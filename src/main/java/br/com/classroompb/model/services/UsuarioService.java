@@ -6,6 +6,7 @@ import br.com.classroompb.model.entities.Coordenador;
 import br.com.classroompb.model.entities.Professor;
 import br.com.classroompb.model.entities.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
+import br.com.classroompb.model.repository.UserRepository;
 
 public class UsuarioService {
 
@@ -32,4 +33,13 @@ public class UsuarioService {
 
         return usuario;
     }
+
+//    public Usuario fazerLoginUsuario(String email, String senha){
+//
+//        //CHAMAR USERREPOSITORY
+//
+//
+//
+//
+//    }
 }

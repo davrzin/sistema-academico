@@ -1,5 +1,7 @@
 package br.com.classroompb.ui;
 
+import br.com.classroompb.model.services.UsuarioService;
+
 import java.util.Scanner;
 
 public class MenuPrincipal {
@@ -8,6 +10,7 @@ public class MenuPrincipal {
 
     public void iniciar(){
 
+        UsuarioService usuarioService = new UsuarioService();
         int opcao;
 
         do{
@@ -28,7 +31,13 @@ public class MenuPrincipal {
             switch (opcao) {
                 case 1:
                     System.out.println("Email: ");
+                    String emailUsuario = scanner.nextLine();
+
                     System.out.println("Senha: ");
+                    String senhaUsuario = scanner.nextLine();
+
+                    //usuarioService.fazerLoginUsuario(emailUsuario, senhaUsuario);
+
                     break;
                 case 2:
                     System.out.println();

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.classroompb.model.entities.Usuario;
@@ -53,6 +54,22 @@ public class UserRepository {
         }
 
     }
+
+    public Usuario encontrarUsuario(String email, String senha){
+
+        List<Usuario> listaUsuarios = this.listar();
+
+        //ITERANDO SOBRE TOODS OS USUÁRIO POIS COM O LOGIN EU NÃO TENHO COMO SABER QUAL O TIPO DE USUARIO
+        for(Usuario usuario: listaUsuarios){
+            if(usuario.getEmail().equals(email) && usuario.getSenha().equals(senha)){
+
+                return usuario;
+            }
+        }
+
+        throw new UsuarioNaoEncontradoException();
+    }
+
 
     public List<Usuario> listar(){
         File diretorio = new File(diretorioUsuarios);

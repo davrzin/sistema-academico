@@ -1,13 +1,11 @@
 package br.com.classroompb.model.repository;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.File;
 import java.util.List;
 
 import java.nio.file.Path;
 
+import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -20,6 +18,8 @@ import br.com.classroompb.model.entities.Coordenador;
 import br.com.classroompb.model.entities.Professor;
 import br.com.classroompb.model.entities.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class UserRepositoryTest {
 
@@ -97,6 +97,36 @@ class UserRepositoryTest {
         assertEquals("Carlos", repository.listar(TipoUsuario.ADMINISTRADOR).get(0).getNome());
         assertEquals("456", repository.listar(TipoUsuario.ADMINISTRADOR).get(0).getMatricula());
     }
+
+    @Test
+    void deveEncontrarUsuario() {
+        UserRepository repository = new UserRepository(new ObjectMapper(), tempDir.resolve("usuarios").toString());
+
+        repository.salvarUsuario(new Aluno("Maria", "maria@email.com", "123", "senha123", TipoUsuario.ALUNO));
+        repository.salvarUsuario(new Professor("João", "joao@email.com", "234", "senha123", TipoUsuario.PROFESSOR));
+        repository.salvarUsuario(new Coordenador("Ana", "ana@email.com", "345", "senha123", TipoUsuario.COORDENADOR));
+        repository.salvarUsuario(new Administrador("Carlos", "carlos@email.com", "456", "senha123", TipoUsuario.ADMINISTRADOR));
+
+
+        assertNotNull(repository.encontrarUsuario("maria@email.com", "senha123"));
+        assertNotNull(repository.encontrarUsuario("joao@email.com", "senha123"));
+        assertNotNull(repository.encontrarUsuario("ana@email.com", "senha123"));
+        assertNotNull(repository.encontrarUsuario("carlos@email.com", "senha123"));
+    }
+
+    @Test
+    void deveLancarExceptionDeUsuarioNaoEncontrado(){
+        UserRepository repository = new UserRepository(new ObjectMapper(), tempDir.resolve("usuarios").toString());
+
+        repository.salvarUsuario(new Aluno("Maria", "maria@email.com", "123", "senha123", TipoUsuario.ALUNO));
+        repository.salvarUsuario(new Professor("João", "joao@email.com", "234", "senha123", TipoUsuario.PROFESSOR));
+        repository.salvarUsuario(new Coordenador("Ana", "ana@email.com", "345", "senha123", TipoUsuario.COORDENADOR));
+        repository.salvarUsuario(new Administrador("Carlos", "carlos@email.com", "456", "senha123", TipoUsuario.ADMINISTRADOR));
+
+        assertThrows(UsuarioNaoEncontradoException.class, () -> repository.encontrarUsuario("joaquim@gmial.com", "s123"));
+    }
+
+
 
     @Test
     void deveListarUsuariosDeTodosOsTipos() {
