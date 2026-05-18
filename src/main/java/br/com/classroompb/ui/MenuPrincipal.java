@@ -1,5 +1,7 @@
 package br.com.classroompb.ui;
 
+import br.com.classroompb.model.entities.Usuario;
+import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.services.UsuarioService;
 
 import java.util.Scanner;
@@ -36,7 +38,23 @@ public class MenuPrincipal {
                     System.out.println("Senha: ");
                     String senhaUsuario = scanner.nextLine();
 
-                    //usuarioService.fazerLoginUsuario(emailUsuario, senhaUsuario);
+                    Usuario usuario = usuarioService.fazerLoginUsuario(emailUsuario, senhaUsuario);
+
+                    if(usuario.getTipoUsuario() == TipoUsuario.ALUNO){
+
+                    }
+                    else if(usuario.getTipoUsuario() == TipoUsuario.PROFESSOR){
+                        //DIRECIONAR PARA O A PAGINA DE PROFESSOR
+
+                    }
+                    else if (usuario.getTipoUsuario() == TipoUsuario.COORDENADOR) {
+                        //DIRECIONAR PARA O A PAGINA DE COORDENADOR
+
+                    }
+                    else if(usuario.getTipoUsuario() == TipoUsuario.ADMINISTRADOR){
+                        //DIRECIONAR PARA O A PAGINA DE ADMINISTRADOR
+
+                    }
 
                     break;
                 case 2:

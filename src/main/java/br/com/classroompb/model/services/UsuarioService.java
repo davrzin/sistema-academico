@@ -6,9 +6,20 @@ import br.com.classroompb.model.entities.Coordenador;
 import br.com.classroompb.model.entities.Professor;
 import br.com.classroompb.model.entities.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
+import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.File;
+import java.nio.file.Path;
 
 public class UsuarioService {
+
+    private final String PASTA_USUARIO = System.getProperty("user.home");
+
+    private final Path DIRETORIO_USUARIOS = Path.of(PASTA_USUARIO, "usuarios");
+
+    private final UserRepository repository = new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString());
 
     public Usuario cadastrarUsuario(String nome, String email, String matricula, String senha, TipoUsuario tipoUsuario){
 
@@ -34,12 +45,16 @@ public class UsuarioService {
         return usuario;
     }
 
-//    public Usuario fazerLoginUsuario(String email, String senha){
-//
-//        //CHAMAR USERREPOSITORY
-//
-//
-//
-//
-//    }
+    public Usuario fazerLoginUsuario(String email, String senha){
+
+        Usuario usuario = null;
+        try{
+           usuario = repository.encontrarUsuario(email, senha);
+        }
+        catch(UsuarioNaoEncontradoException e){
+            System.out.println(e.getMessage());
+        }
+
+        return usuario;
+    }
 }
