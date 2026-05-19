@@ -1,10 +1,13 @@
 package br.com.classroompb.ui;
 
-import br.com.classroompb.model.entities.Usuario;
-import br.com.classroompb.model.enums.TipoUsuario;
-import br.com.classroompb.model.services.UsuarioService;
-
 import java.util.Scanner;
+
+import br.com.classroompb.model.entities.Administrador;
+import br.com.classroompb.model.entities.Aluno;
+import br.com.classroompb.model.entities.Coordenador;
+import br.com.classroompb.model.entities.Professor;
+import br.com.classroompb.model.entities.Usuario;
+import br.com.classroompb.model.services.UsuarioService;
 
 public class MenuPrincipal {
 
@@ -40,20 +43,30 @@ public class MenuPrincipal {
 
                     Usuario usuario = usuarioService.fazerLoginUsuario(emailUsuario, senhaUsuario);
 
-                    if(usuario.getTipoUsuario() == TipoUsuario.ALUNO){
+                    switch (usuario.getTipoUsuario()) {
+                        case ALUNO:
+                            MenuAluno menuAluno = new MenuAluno((Aluno) usuario);
+                            menuAluno.iniciar();
+                            break;
 
-                    }
-                    else if(usuario.getTipoUsuario() == TipoUsuario.PROFESSOR){
-                        //DIRECIONAR PARA O A PAGINA DE PROFESSOR
+                        case PROFESSOR:
+                            MenuProfessor menuProfessor = new MenuProfessor((Professor) usuario);
+                            menuProfessor.iniciar();
+                            break;
 
-                    }
-                    else if (usuario.getTipoUsuario() == TipoUsuario.COORDENADOR) {
-                        //DIRECIONAR PARA O A PAGINA DE COORDENADOR
+                        case COORDENADOR:
+                            MenuCoordenador menuCoordenador = new MenuCoordenador((Coordenador) usuario);
+                            menuCoordenador.iniciar();
+                            break;
 
-                    }
-                    else if(usuario.getTipoUsuario() == TipoUsuario.ADMINISTRADOR){
-                        //DIRECIONAR PARA O A PAGINA DE ADMINISTRADOR
+                        case ADMINISTRADOR:
+                            MenuAdministrador menuAdmin = new MenuAdministrador((Administrador) usuario);
+                            menuAdmin.iniciar();
+                            break;
 
+                        default:
+                            System.out.println("Tipo de usuário inválido!");
+                            break;
                     }
 
                     break;
@@ -62,6 +75,7 @@ public class MenuPrincipal {
                     break;
                 case 0:
                     System.out.println("Fechando o Sistema");
+                    break;
                 default:
                     System.out.println("Opção inválida");
             }

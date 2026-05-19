@@ -1,13 +1,17 @@
 package br.com.classroompb.ui;
 
-import br.com.classroompb.model.entities.Usuario;
-import br.com.classroompb.model.enums.TipoUsuario;
-
 import java.util.Scanner;
 
-public class MenuAluno {
+import br.com.classroompb.model.entities.Aluno;
 
+public class MenuAluno {
+    
     private Scanner scanner = new Scanner(System.in);
+    private Aluno usuarioLogado;
+
+    public MenuAluno(Aluno usuarioLogado){
+        this.usuarioLogado = usuarioLogado;
+    }
 
     public void iniciar(){
 
