@@ -19,9 +19,9 @@ public class MenuCoordenador {
 
         do{
             System.out.println("""
-            ╔════════════════════════════════════╗
+            ╔═══════════════════════════════════╗
             ║         MENU COORDENADOR          ║
-            ╠════════════════════════════════════╣
+            ╠═══════════════════════════════════╣
             ║ 1 - Cadastrar disciplina          ║
             ║ 2 - Listar disciplinas            ║
             ║ 3 - Cadastrar período letivo      ║
@@ -31,7 +31,7 @@ public class MenuCoordenador {
             ║ 7 - Alterar turma                 ║
             ║ 8 - Cancelar turma                ║
             ║ 0 - Voltar                        ║
-            ╚════════════════════════════════════╝
+            ╚═══════════════════════════════════╝
         \s""");
 
             System.out.print("Digite uma opção: ");

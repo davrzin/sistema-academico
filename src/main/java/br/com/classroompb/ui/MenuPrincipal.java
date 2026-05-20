@@ -7,6 +7,8 @@ import br.com.classroompb.model.entities.Aluno;
 import br.com.classroompb.model.entities.Coordenador;
 import br.com.classroompb.model.entities.Professor;
 import br.com.classroompb.model.entities.Usuario;
+import br.com.classroompb.model.enums.TipoUsuario;
+import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.services.UsuarioService;
 
 public class MenuPrincipal {
@@ -32,6 +34,7 @@ public class MenuPrincipal {
             System.out.print("Digite uma opção: ");
 
             opcao = scanner.nextInt();
+            scanner.nextLine(); //SCANNER PARA LER UMA LINHA PARA CAPTURAR O /n QUE SOBRA DO scanner.NextInt()
 
             switch (opcao) {
                 case 1:
@@ -71,7 +74,29 @@ public class MenuPrincipal {
 
                     break;
                 case 2:
-                    System.out.println();
+                    System.out.println("Nome: ");
+                    String nome = scanner.nextLine();
+
+                    System.out.println("Email: ");
+                    String email = scanner.nextLine();
+
+                    System.out.println("Matricula: ");
+                    String matricula = scanner.nextLine();
+
+                    System.out.println("Senha: ");
+                    String senha = scanner.nextLine();
+
+                    System.out.println("Tipo de Usuário( Aluno, Professor, Coordenador, Administrador): ");
+                    String tipoUsuario = scanner.nextLine();
+
+                    try{
+                        Usuario usuarioCadastrado = usuarioService.cadastrarUsuario(nome, email, matricula, senha, TipoUsuario.valueOf(tipoUsuario.toUpperCase()));
+
+                        System.out.println("Usuario cadastrado com sucesso!");
+
+                    }catch (PersistenciaException e){
+                        System.out.println(e.getMessage());
+                    }
                     break;
                 case 0:
                     System.out.println("Fechando o Sistema");

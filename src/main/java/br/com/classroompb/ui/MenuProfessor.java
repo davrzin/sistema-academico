@@ -19,16 +19,16 @@ public class MenuProfessor {
 
         do{
             System.out.println("""
-            ╔════════════════════════════════════╗
+            ╔═══════════════════════════════════╗
             ║          MENU PROFESSOR           ║
-            ╠════════════════════════════════════╣
+            ╠═══════════════════════════════════╣
             ║ 1 - Consultar turmas              ║
             ║ 2 - Consultar alunos              ║
             ║ 3 - Lançar notas                  ║
             ║ 4 - Lançar frequência             ║
             ║ 5 - Consultar diário              ║
             ║ 0 - Voltar                        ║
-            ╚════════════════════════════════════╝
+            ╚═══════════════════════════════════╝
         \s""");
 
             System.out.print("Digite uma opção: ");

@@ -19,9 +19,9 @@ public class MenuAdministrador {
 
         do{
             System.out.println("""
-            ╔════════════════════════════════════╗
+            ╔═══════════════════════════════════╗
             ║        MENU ADMINISTRADOR         ║
-            ╠════════════════════════════════════╣
+            ╠═══════════════════════════════════╣
             ║ 1 - Cadastrar usuário             ║
             ║ 2 - Listar usuários               ║
             ║ 3 - Cadastrar curso               ║
@@ -29,7 +29,7 @@ public class MenuAdministrador {
             ║ 5 - Remover usuário               ║
             ║ 6 - Atualizar usuário             ║
             ║ 0 - Voltar                        ║
-            ╚════════════════════════════════════╝
+            ╚═══════════════════════════════════╝
         \s""");
 
             System.out.print("Digite uma opção: ");

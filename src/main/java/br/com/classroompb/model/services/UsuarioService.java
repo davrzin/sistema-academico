@@ -6,6 +6,7 @@ import br.com.classroompb.model.entities.Coordenador;
 import br.com.classroompb.model.entities.Professor;
 import br.com.classroompb.model.entities.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
+import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +42,8 @@ public class UsuarioService {
         }
 
         //Chamar UserRepository
+
+        repository.salvarUsuario(usuario);
 
         return usuario;
     }
