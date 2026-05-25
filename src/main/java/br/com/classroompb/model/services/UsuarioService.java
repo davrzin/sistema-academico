@@ -6,58 +6,73 @@ import br.com.classroompb.model.entities.Coordenador;
 import br.com.classroompb.model.entities.Professor;
 import br.com.classroompb.model.entities.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
-import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;
 import java.nio.file.Path;
 
 public class UsuarioService {
 
-    private final String PASTA_USUARIO = System.getProperty("user.home");
+    private static final Path DIRETORIO_USUARIOS = Path.of(System.getProperty("user.dir"), "usuarios");
 
-    private final Path DIRETORIO_USUARIOS = Path.of(PASTA_USUARIO, "usuarios");
+    private final UserRepository repository;
 
-    private final UserRepository repository = new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString());
+    public UsuarioService() {
+        this.repository = new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString());
+    }
 
-    public Usuario cadastrarUsuario(String nome, String email, String matricula, String senha, TipoUsuario tipoUsuario){
+    public UsuarioService(UserRepository repository) {
+        this.repository = repository;
+    }
 
-        Usuario usuario = null;
+    public Usuario cadastrarUsuario(String nome, String email, String matricula, String senha, TipoUsuario tipoUsuario) {
+        if (tipoUsuario == null) {
+            throw new IllegalArgumentException("Tipo de usuário inválido.");
+        }
+
+        Usuario usuario;
 
         switch (tipoUsuario) {
             case ALUNO:
                 usuario = new Aluno(nome, email, matricula, senha, tipoUsuario);
                 break;
+
             case ADMINISTRADOR:
                 usuario = new Administrador(nome, email, matricula, senha, tipoUsuario);
                 break;
+
             case COORDENADOR:
                 usuario = new Coordenador(nome, email, matricula, senha, tipoUsuario);
+                break;
+
             case PROFESSOR:
                 usuario = new Professor(nome, email, matricula, senha, tipoUsuario);
-            default:
                 break;
-        }
 
-        //Chamar UserRepository
+            default:
+                throw new IllegalArgumentException("Tipo de usuário inválido.");
+        }
 
         repository.salvarUsuario(usuario);
 
         return usuario;
     }
 
-    public Usuario fazerLoginUsuario(String email, String senha){
-
-        Usuario usuario = null;
-        try{
-           usuario = repository.encontrarUsuario(email, senha);
-        }
-        catch(UsuarioNaoEncontradoException e){
+    public Usuario fazerLoginUsuario(String email, String senha) {
+        try {
+            return repository.encontrarUsuario(email, senha);
+        } catch (UsuarioNaoEncontradoException e) {
             System.out.println(e.getMessage());
+            return null;
         }
+    }
 
-        return usuario;
+    public Usuario buscarUsuarioPorMatricula(Usuario usuarioLogado, String matricula) {
+        Usuario usuarioEncontrado = repository.buscarPorMatricula(matricula);
+
+        PermissaoService.validarPermissaoBuscaPorMatricula(usuarioLogado, usuarioEncontrado);
+
+        return usuarioEncontrado;
     }
 }

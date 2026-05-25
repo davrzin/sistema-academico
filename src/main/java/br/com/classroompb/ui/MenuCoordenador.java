@@ -3,21 +3,31 @@ package br.com.classroompb.ui;
 import java.util.Scanner;
 
 import br.com.classroompb.model.entities.Coordenador;
+import br.com.classroompb.model.entities.Usuario;
+import br.com.classroompb.model.services.UsuarioService;
 
 public class MenuCoordenador {
 
-    Scanner scanner = new Scanner(System.in);
+    private Scanner scanner = new Scanner(System.in);
     private Coordenador usuarioLogado;
+    private UsuarioService usuarioService = new UsuarioService();
 
-    public MenuCoordenador(Coordenador usuarioLogado){
+    public MenuCoordenador(Coordenador usuarioLogado) {
         this.usuarioLogado = usuarioLogado;
     }
 
-    public void iniciar(){
+    public Coordenador getUsuarioLogado() {
+        return usuarioLogado;
+    }
 
+    public void setUsuarioLogado(Coordenador usuarioLogado) {
+        this.usuarioLogado = usuarioLogado;
+    }
+
+    public void iniciar() {
         int opcao;
 
-        do{
+        do {
             System.out.println("""
             ╔═══════════════════════════════════╗
             ║         MENU COORDENADOR          ║
@@ -30,13 +40,14 @@ public class MenuCoordenador {
             ║ 6 - Ofertar turma                 ║
             ║ 7 - Alterar turma                 ║
             ║ 8 - Cancelar turma                ║
+            ║ 9 - Buscar aluno/professor        ║
             ║ 0 - Voltar                        ║
             ╚═══════════════════════════════════╝
         \s""");
 
             System.out.print("Digite uma opção: ");
-
             opcao = scanner.nextInt();
+            scanner.nextLine();
 
             switch (opcao) {
                 case 1:
@@ -71,14 +82,43 @@ public class MenuCoordenador {
 
                     break;
 
+                case 9:
+                    buscarUsuarioPorMatricula();
+                    break;
+
                 case 0:
                     System.out.println("Voltando...");
+                    System.err.println();
                     break;
 
                 default:
                     System.out.println("Opção inválida");
+                    System.err.println();
             }
 
-        } while(opcao != 0);
+        } while (opcao != 0);
+    }
+
+    private void buscarUsuarioPorMatricula() {
+        System.out.print("Digite a matrícula do aluno ou professor: ");
+        String matricula = scanner.nextLine();
+        System.err.println();
+
+        try {
+            Usuario usuarioEncontrado = usuarioService.buscarUsuarioPorMatricula(usuarioLogado, matricula);
+            exibirUsuario(usuarioEncontrado);
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+            System.err.println();
+        }
+    }
+
+    private void exibirUsuario(Usuario usuario) {
+        System.out.println("\nUsuário encontrado:");
+        System.out.println("Nome: " + usuario.getNome());
+        System.out.println("E-mail: " + usuario.getEmail());
+        System.out.println("Matrícula: " + usuario.getMatricula());
+        System.out.println("Tipo: " + usuario.getTipoUsuario());
+        System.out.println();
     }
 }

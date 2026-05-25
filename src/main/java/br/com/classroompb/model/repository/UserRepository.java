@@ -23,23 +23,27 @@ public class UserRepository {
     private ObjectMapper objectMapper;
     private final String diretorioUsuarios;
 
-    public UserRepository(ObjectMapper objectMapper){
+    public UserRepository(ObjectMapper objectMapper) {
         this(objectMapper, DIRETORIO_USUARIOS_PADRAO);
     }
 
-    public UserRepository(ObjectMapper objectMapper, String diretorioUsuarios){
+    public UserRepository(ObjectMapper objectMapper, String diretorioUsuarios) {
         this.objectMapper = objectMapper;
         this.diretorioUsuarios = diretorioUsuarios;
     }
 
-    public ObjectMapper getObjectMapper(){
+    public ObjectMapper getObjectMapper() {
         return objectMapper;
     }
-    public void setObjectMapper(ObjectMapper objectMapper){
+
+    public void setObjectMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
-    public void salvarUsuario(Usuario usuario){
+    public void salvarUsuario(Usuario usuario) {
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuário não pode ser nulo.");
+        }
 
         TipoUsuario tipoUsuario = usuario.getTipoUsuario();
         String caminhoArquivo = getCaminhoArquivo(tipoUsuario);
@@ -52,17 +56,14 @@ public class UserRepository {
         } catch (IOException e) {
             throw new PersistenciaException("Erro ao adicionar usuários.", e);
         }
-
     }
 
-    public Usuario encontrarUsuario(String email, String senha){
-
+    public Usuario encontrarUsuario(String email, String senha) {
         List<Usuario> listaUsuarios = this.listar();
 
-        //ITERANDO SOBRE TOODS OS USUÁRIO POIS COM O LOGIN EU NÃO TENHO COMO SABER QUAL O TIPO DE USUARIO
-        for(Usuario usuario: listaUsuarios){
-            if(usuario.getEmail().equals(email) && usuario.getSenha().equals(senha)){
-
+        // Iterando sobre todos os usuários, pois no login ainda não sabemos qual é o tipo do usuário.
+        for (Usuario usuario : listaUsuarios) {
+            if (usuario.getEmail().equals(email) && usuario.getSenha().equals(senha)) {
                 return usuario;
             }
         }
@@ -70,8 +71,35 @@ public class UserRepository {
         throw new UsuarioNaoEncontradoException();
     }
 
+    public Usuario buscarPorMatricula(String matricula) {
+        validarMatriculaInformada(matricula);
 
-    public List<Usuario> listar(){
+        List<Usuario> listaUsuarios = this.listar();
+
+        for (Usuario usuario : listaUsuarios) {
+            if (matriculasSaoIguais(usuario.getMatricula(), matricula)) {
+                return usuario;
+            }
+        }
+
+        throw new UsuarioNaoEncontradoException("Usuário com matrícula " + matricula + " não foi encontrado.");
+    }
+
+    public Usuario buscarPorMatricula(String matricula, TipoUsuario tipoUsuario) {
+        validarMatriculaInformada(matricula);
+
+        List<Usuario> listaUsuarios = this.listar(tipoUsuario);
+
+        for (Usuario usuario : listaUsuarios) {
+            if (matriculasSaoIguais(usuario.getMatricula(), matricula)) {
+                return usuario;
+            }
+        }
+
+        throw new UsuarioNaoEncontradoException("Usuário com matrícula " + matricula + " não foi encontrado.");
+    }
+
+    public List<Usuario> listar() {
         File diretorio = new File(diretorioUsuarios);
 
         if (!diretorio.exists() || !diretorio.isDirectory()) {
@@ -105,14 +133,14 @@ public class UserRepository {
         }
     }
 
-    public List<Usuario> listar(TipoUsuario tipoUsuario){
+    public List<Usuario> listar(TipoUsuario tipoUsuario) {
         File arquivo = new File(getCaminhoArquivo(tipoUsuario));
 
-        if(!arquivo.exists()){
+        if (!arquivo.exists()) {
             return new ArrayList<>();
         }
 
-        try{
+        try {
             return switch (tipoUsuario) {
                 case ALUNO -> new ArrayList<>(lerUsuarios(arquivo, Aluno.class));
                 case ADMINISTRADOR -> new ArrayList<>(lerUsuarios(arquivo, Administrador.class));
@@ -122,6 +150,16 @@ public class UserRepository {
         } catch (IOException e) {
             throw new PersistenciaException("Erro ao ler usuários.", e);
         }
+    }
+
+    private void validarMatriculaInformada(String matricula) {
+        if (matricula == null || matricula.trim().isEmpty()) {
+            throw new IllegalArgumentException("Matrícula não pode ser vazia.");
+        }
+    }
+
+    private boolean matriculasSaoIguais(String matriculaUsuario, String matriculaBuscada) {
+        return matriculaUsuario != null && matriculaUsuario.trim().equalsIgnoreCase(matriculaBuscada.trim());
     }
 
     private <T extends Usuario> List<Usuario> lerUsuarios(File arquivo, Class<T> tipo) throws IOException {

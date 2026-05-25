@@ -13,6 +13,14 @@ public class MenuAluno {
         this.usuarioLogado = usuarioLogado;
     }
 
+    public Aluno getUsuarioLogado() {
+        return usuarioLogado;
+    }
+
+    public void setUsuarioLogado(Aluno usuarioLogado) {
+        this.usuarioLogado = usuarioLogado;
+    }
+
     public void iniciar(){
 
         int opcao;

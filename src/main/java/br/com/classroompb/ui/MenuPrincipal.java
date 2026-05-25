@@ -38,11 +38,12 @@ public class MenuPrincipal {
 
             switch (opcao) {
                 case 1:
-                    System.out.println("Email: ");
+                    System.out.print("Email: ");
                     String emailUsuario = scanner.nextLine();
 
-                    System.out.println("Senha: ");
+                    System.out.print("Senha: ");
                     String senhaUsuario = scanner.nextLine();
+                    System.out.println();
 
                     Usuario usuario = usuarioService.fazerLoginUsuario(emailUsuario, senhaUsuario);
 
@@ -74,23 +75,23 @@ public class MenuPrincipal {
 
                     break;
                 case 2:
-                    System.out.println("Nome: ");
+                    System.out.print("Nome: ");
                     String nome = scanner.nextLine();
 
-                    System.out.println("Email: ");
+                    System.out.print("Email: ");
                     String email = scanner.nextLine();
 
-                    System.out.println("Matricula: ");
+                    System.out.print("Matricula: ");
                     String matricula = scanner.nextLine();
 
-                    System.out.println("Senha: ");
+                    System.out.print("Senha: ");
                     String senha = scanner.nextLine();
 
-                    System.out.println("Tipo de Usuário( Aluno, Professor, Coordenador, Administrador): ");
+                    System.out.print("Tipo de Usuário( Aluno, Professor, Coordenador, Administrador): ");
                     String tipoUsuario = scanner.nextLine();
 
                     try{
-                        Usuario usuarioCadastrado = usuarioService.cadastrarUsuario(nome, email, matricula, senha, TipoUsuario.valueOf(tipoUsuario.toUpperCase()));
+                        usuarioService.cadastrarUsuario(nome, email, matricula, senha, TipoUsuario.valueOf(tipoUsuario.toUpperCase()));
 
                         System.out.println("Usuario cadastrado com sucesso!");
 
