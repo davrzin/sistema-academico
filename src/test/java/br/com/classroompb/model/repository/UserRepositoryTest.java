@@ -12,11 +12,11 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.classroompb.model.entities.Administrador;
-import br.com.classroompb.model.entities.Aluno;
-import br.com.classroompb.model.entities.Coordenador;
-import br.com.classroompb.model.entities.Professor;
-import br.com.classroompb.model.entities.Usuario;
+import br.com.classroompb.model.entities.Usuario.Administrador;
+import br.com.classroompb.model.entities.Usuario.Aluno;
+import br.com.classroompb.model.entities.Usuario.Coordenador;
+import br.com.classroompb.model.entities.Usuario.Professor;
+import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
 
 import static org.junit.jupiter.api.Assertions.*;

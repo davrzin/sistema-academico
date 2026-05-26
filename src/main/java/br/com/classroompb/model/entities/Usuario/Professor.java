@@ -1,4 +1,4 @@
-package br.com.classroompb.model.entities;
+package br.com.classroompb.model.entities.Usuario;
 
 import br.com.classroompb.model.enums.TipoUsuario;
 

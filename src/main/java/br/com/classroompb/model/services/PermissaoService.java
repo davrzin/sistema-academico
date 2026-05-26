@@ -2,7 +2,7 @@ package br.com.classroompb.model.services;
 
 import java.util.Objects;
 
-import br.com.classroompb.model.entities.Usuario;
+import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
 
 public class PermissaoService {

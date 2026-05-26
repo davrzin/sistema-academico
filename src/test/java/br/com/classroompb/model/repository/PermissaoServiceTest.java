@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
-import br.com.classroompb.model.entities.Administrador;
-import br.com.classroompb.model.entities.Aluno;
-import br.com.classroompb.model.entities.Coordenador;
-import br.com.classroompb.model.entities.Professor;
+import br.com.classroompb.model.entities.Usuario.Administrador;
+import br.com.classroompb.model.entities.Usuario.Aluno;
+import br.com.classroompb.model.entities.Usuario.Coordenador;
+import br.com.classroompb.model.entities.Usuario.Professor;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.services.PermissaoService;
 

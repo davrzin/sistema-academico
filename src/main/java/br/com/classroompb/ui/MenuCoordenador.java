@@ -2,8 +2,13 @@ package br.com.classroompb.ui;
 
 import java.util.Scanner;
 
-import br.com.classroompb.model.entities.Coordenador;
-import br.com.classroompb.model.entities.Usuario;
+import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
+import br.com.classroompb.model.entities.Usuario.Coordenador;
+import br.com.classroompb.model.entities.Usuario.Usuario;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
+import br.com.classroompb.model.exception.PersistenciaException;
+import br.com.classroompb.model.services.GestaoAcademicaService;
 import br.com.classroompb.model.services.UsuarioService;
 
 public class MenuCoordenador {
@@ -26,6 +31,9 @@ public class MenuCoordenador {
 
     public void iniciar() {
         int opcao;
+
+        Scanner scanner = new Scanner(System.in);
+        GestaoAcademicaService gestaoAcademicaService = new GestaoAcademicaService();
 
         do {
             System.out.println("""
@@ -59,6 +67,23 @@ public class MenuCoordenador {
                     break;
 
                 case 3:
+                    System.out.println("Informe o período letivo (202X.Y)");
+                    String periodo = scanner.nextLine();
+
+                    System.out.println("Informe a data de início do período (DD/MM/AAAA):");
+                    String dataInicio = scanner.nextLine();
+
+                    System.out.println("Informe a data de fim do período (DD/MM/AAAA): ");
+                    String dataFim = scanner.nextLine();
+
+                    try{
+                        PeriodoLetivo novoPeriodo = gestaoAcademicaService.cadastrarPeriodoLetivo(periodo, dataInicio, dataFim);
+
+                        System.out.println("Período letivo cadastrado com sucesso");
+
+                    }catch(PersistenciaException | EntradaInvalidaException | PeriodoLetivoExistenteException e){
+                        System.out.println("Ocorreu um erro ao cadastrar novo período letivo: " + e.getMessage());
+                    }
 
                     break;
 

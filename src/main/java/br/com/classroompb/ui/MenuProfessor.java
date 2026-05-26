@@ -2,8 +2,8 @@ package br.com.classroompb.ui;
 
 import java.util.Scanner;
 
-import br.com.classroompb.model.entities.Professor;
-import br.com.classroompb.model.entities.Usuario;
+import br.com.classroompb.model.entities.Usuario.Professor;
+import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.services.UsuarioService;
 
 public class MenuProfessor {

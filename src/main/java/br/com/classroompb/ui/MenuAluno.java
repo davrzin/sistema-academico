@@ -2,7 +2,7 @@ package br.com.classroompb.ui;
 
 import java.util.Scanner;
 
-import br.com.classroompb.model.entities.Aluno;
+import br.com.classroompb.model.entities.Usuario.Aluno;
 
 public class MenuAluno {
     
