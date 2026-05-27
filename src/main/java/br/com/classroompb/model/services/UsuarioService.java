@@ -1,7 +1,6 @@
 package br.com.classroompb.model.services;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -81,33 +80,14 @@ public class UsuarioService {
     }
 
     private String gerarMatricula(TipoUsuario tipoUsuario) {
-    
-        String prefixo = "";
+        String prefixo = switch (tipoUsuario) {
+            case ALUNO -> "al";
+            case ADMINISTRADOR -> "ad";
+            case PROFESSOR -> "pr";
+            case COORDENADOR -> "co";
+        };
 
-        switch (tipoUsuario) {
-            case ALUNO:
-                prefixo = "al";
-                break;
-
-            case ADMINISTRADOR:
-                prefixo = "ad";
-                break;
-
-            case PROFESSOR:
-                prefixo = "pr";
-                break;
-
-            case COORDENADOR:
-                prefixo = "co";
-                break;
-        }
-
-        UserRepository userRepository = new UserRepository(new ObjectMapper());
-        List<Usuario> usuarios = userRepository.listar(tipoUsuario);
-
-        long quantidade = usuarios.stream()
-                .filter(u -> u.getTipoUsuario() == tipoUsuario)
-                .count();
+        long quantidade = repository.listar(tipoUsuario).size();
 
         return prefixo + String.format("%02d", quantidade);
     }

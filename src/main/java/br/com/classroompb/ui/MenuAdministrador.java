@@ -2,15 +2,21 @@ package br.com.classroompb.ui;
 
 import java.util.Scanner;
 
+import br.com.classroompb.model.entities.GestaoAcademica.Curso;
 import br.com.classroompb.model.entities.Usuario.Administrador;
 import br.com.classroompb.model.entities.Usuario.Usuario;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.PersistenciaException;
+import br.com.classroompb.model.services.CursoService;
 import br.com.classroompb.model.services.UsuarioService;
+
 
 public class MenuAdministrador {
 
     private Scanner scanner = new Scanner(System.in);
     private Administrador usuarioLogado;
     private UsuarioService usuarioService = new UsuarioService();
+    private CursoService cursoService = new CursoService();
 
     public MenuAdministrador(Administrador usuarioLogado) {
         this.usuarioLogado = usuarioLogado;
@@ -57,11 +63,28 @@ public class MenuAdministrador {
                     break;
 
                 case 3:
+                    System.out.println("Informe o nome do curso:");
+                    String nome = scanner.nextLine();
 
+                    System.out.println("Informe a quantidade de períodos:");
+                    int quantidadePeriodos = Integer.parseInt(scanner.nextLine());
+
+                    System.out.println("Informe a carga horária total:");
+                    int cargaHorariaTotal = Integer.parseInt(scanner.nextLine());
+
+                    try{
+                        Curso novoCurso = cursoService.cadastrarCurso(nome, quantidadePeriodos, cargaHorariaTotal);
+                        System.out.println("Curso cadastrado com sucesso.");
+                    }catch(
+                            PersistenciaException
+                            | EntradaInvalidaException e
+                    ){
+                        System.out.println("Ocorreu um erro ao cadastrar curso: "+ e.getMessage());
+                    }
                     break;
 
                 case 4:
-
+                    System.out.println(cursoService.listarCursos());
                     break;
 
                 case 5:

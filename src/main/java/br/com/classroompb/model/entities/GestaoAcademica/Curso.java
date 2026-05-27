@@ -47,4 +47,14 @@ public class Curso {
     public void setCargaHorariaTotal(int cargaHorariaTotal) {
         this.cargaHorariaTotal = cargaHorariaTotal;
     }
+
+    @Override
+    public String toString() {
+        return
+                "Código: " + codigo +
+                "\nNome: " + nome +
+                "\nQuantidade de períodos: " + quantidadePeriodos +
+                "\nCarga horária total: " + cargaHorariaTotal +
+                "\n";
+    }
 }

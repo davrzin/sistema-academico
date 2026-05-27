@@ -1,16 +1,15 @@
 package br.com.classroompb.model.services;
 
-import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
-import br.com.classroompb.model.exception.EntradaInvalidaException;
-import br.com.classroompb.model.exception.PersistenciaException;
-import br.com.classroompb.model.repository.PeriodoLetivoRepository;
-import br.com.classroompb.model.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 
 public class GestaoAcademicaService {
 
@@ -82,8 +81,5 @@ public class GestaoAcademicaService {
             throw new EntradaInvalidaException("Formato de data inválida.");
         }
     }
-
-
-
 
 }
