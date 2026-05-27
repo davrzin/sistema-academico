@@ -38,7 +38,7 @@ public class CursoRepository {
         return diretorioCursos;
     }
 
-    public int salvarCurso(Curso curso) {
+    public void salvarCurso(Curso curso) {
         if (curso == null) {
             throw new IllegalArgumentException("Curso não pode ser nulo.");
         }
@@ -51,9 +51,8 @@ public class CursoRepository {
 
         try {
             this.objectMapper.writeValue(new File(caminhoArquivo),cursos);
-            return 1;
         } catch (IOException e){
-            throw new PersistenciaException("Erro ao salvar curso.",e);
+            throw new PersistenciaException("Erro ao salvar curso.", e);
         }
     }
 
@@ -71,7 +70,7 @@ public class CursoRepository {
                     Curso.class
             );
         } catch (IOException e) {
-            throw new PersistenciaException("Erro ao ler cursos.",e);
+            throw new PersistenciaException("Erro ao ler cursos.", e);
         }
     }
 

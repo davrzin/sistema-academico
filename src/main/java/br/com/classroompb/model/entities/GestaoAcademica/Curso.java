@@ -50,11 +50,15 @@ public class Curso {
 
     @Override
     public String toString() {
-        return
-                "Código: " + codigo +
-                "\nNome: " + nome +
-                "\nQuantidade de períodos: " + quantidadePeriodos +
-                "\nCarga horária total: " + cargaHorariaTotal +
-                "\n";
+        return """
+            ┌───────────────────────────────────────┐
+            │                 CURSO                 │
+            ├───────────────────────────────────────┤
+            │ Código        : %s
+            │ Nome          : %s
+            │ Períodos      : %d
+            │ Carga Horária : %dh
+            └───────────────────────────────────────┘
+            """.formatted(codigo, nome, quantidadePeriodos, cargaHorariaTotal);
     }
 }
