@@ -1,5 +1,10 @@
 package br.com.classroompb.model.services;
 
+import java.nio.file.Path;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import br.com.classroompb.model.entities.Usuario.Administrador;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Coordenador;
@@ -8,9 +13,6 @@ import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.nio.file.Path;
 
 public class UsuarioService {
 
@@ -26,10 +28,12 @@ public class UsuarioService {
         this.repository = repository;
     }
 
-    public Usuario cadastrarUsuario(String nome, String email, String matricula, String senha, TipoUsuario tipoUsuario) {
+    public Usuario cadastrarUsuario(String nome, String email, String senha, TipoUsuario tipoUsuario) {
         if (tipoUsuario == null) {
             throw new IllegalArgumentException("Tipo de usuário inválido.");
         }
+        
+        String matricula = gerarMatricula(tipoUsuario);
 
         Usuario usuario;
 
@@ -74,5 +78,37 @@ public class UsuarioService {
         PermissaoService.validarPermissaoBuscaPorMatricula(usuarioLogado, usuarioEncontrado);
 
         return usuarioEncontrado;
+    }
+
+    private String gerarMatricula(TipoUsuario tipoUsuario) {
+    
+        String prefixo = "";
+
+        switch (tipoUsuario) {
+            case ALUNO:
+                prefixo = "al";
+                break;
+
+            case ADMINISTRADOR:
+                prefixo = "ad";
+                break;
+
+            case PROFESSOR:
+                prefixo = "pr";
+                break;
+
+            case COORDENADOR:
+                prefixo = "co";
+                break;
+        }
+
+        UserRepository userRepository = new UserRepository(new ObjectMapper());
+        List<Usuario> usuarios = userRepository.listar(tipoUsuario);
+
+        long quantidade = usuarios.stream()
+                .filter(u -> u.getTipoUsuario() == tipoUsuario)
+                .count();
+
+        return prefixo + String.format("%02d", quantidade);
     }
 }

@@ -81,9 +81,6 @@ public class MenuPrincipal {
                     System.out.print("Email: ");
                     String email = scanner.nextLine();
 
-                    System.out.print("Matricula: ");
-                    String matricula = scanner.nextLine();
-
                     System.out.print("Senha: ");
                     String senha = scanner.nextLine();
 
@@ -91,7 +88,7 @@ public class MenuPrincipal {
                     String tipoUsuario = scanner.nextLine();
 
                     try{
-                        usuarioService.cadastrarUsuario(nome, email, matricula, senha, TipoUsuario.valueOf(tipoUsuario.toUpperCase()));
+                        usuarioService.cadastrarUsuario(nome, email, senha, TipoUsuario.valueOf(tipoUsuario.toUpperCase()));
 
                         System.out.println("Usuario cadastrado com sucesso!");
 

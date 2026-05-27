@@ -41,7 +41,7 @@ public class MenuAluno {
            \s""");
 
             System.out.print("Digite uma opção: ");
-
+            System.out.print("\nMatricula: " + usuarioLogado.getMatricula());
             opcao = scanner.nextInt();
 
             switch (opcao) {
