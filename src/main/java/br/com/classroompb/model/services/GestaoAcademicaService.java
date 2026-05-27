@@ -41,13 +41,7 @@ public class GestaoAcademicaService {
 
     public boolean validarExistenciaPeriodoLetivo(String periodo, String dataInicio, String dataFim){
 
-        PeriodoLetivo periodoLetivo = repository.buscarPeriodoLetivo(periodo, dataInicio, dataFim);
-
-        if(periodoLetivo == null){
-            return true;
-        }
-
-        return false;
+        return this.repository.validarAtributosExistentes(periodo, dataInicio, dataFim);
     }
 
     public boolean validarPeriodoLetivo(String periodo){

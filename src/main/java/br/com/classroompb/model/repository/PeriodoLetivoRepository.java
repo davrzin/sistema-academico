@@ -1,11 +1,8 @@
 package br.com.classroompb.model.repository;
 
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
-import br.com.classroompb.model.entities.Usuario.Usuario;
-import br.com.classroompb.model.exception.ExistePeriodoAtivoException;
 import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
 import br.com.classroompb.model.exception.PersistenciaException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
@@ -102,13 +99,25 @@ public class PeriodoLetivoRepository {
 
     }
 
+    public boolean validarAtributosExistentes(String periodo, String dataInicio, String dataFim){
+        List<PeriodoLetivo> periodos = this.listarPeriodos();
+
+        for(PeriodoLetivo periodoLetivo : periodos){
+            if(periodoLetivo.getPeriodo().equals(periodo) || periodoLetivo.getDataInicio().equals(dataInicio) || periodoLetivo.getDataFim().equals(dataFim)){
+                throw new PeriodoLetivoExistenteException();
+            }
+        }
+
+        return false;
+    }
+
     public PeriodoLetivo buscarPeriodoLetivo(String periodo, String dataInicio, String dataFim){
 
         List<PeriodoLetivo> periodos = this.listarPeriodos();
 
         for(PeriodoLetivo periodoLetivo : periodos){
-            if(periodoLetivo.getPeriodo() == periodo || periodoLetivo.getDataInicio() == dataInicio || periodoLetivo.getDataFim() == dataFim){
-                throw new PeriodoLetivoExistenteException();
+            if(periodoLetivo.getPeriodo().equals(periodo) && periodoLetivo.getDataInicio().equals(dataInicio) && periodoLetivo.getDataFim().equals(dataFim)){
+                return periodoLetivo;
             }
         }
 
