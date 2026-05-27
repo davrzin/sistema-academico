@@ -1,5 +1,7 @@
 package br.com.classroompb.ui;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -10,6 +12,7 @@ import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.ExistePeriodoAtivoException;
 import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
 import br.com.classroompb.model.exception.PersistenciaException;
+import br.com.classroompb.model.services.DisciplinaService;
 import br.com.classroompb.model.services.GestaoAcademicaService;
 import br.com.classroompb.model.services.UsuarioService;
 
@@ -18,6 +21,7 @@ public class MenuCoordenador {
     private Scanner scanner = new Scanner(System.in);
     private Coordenador usuarioLogado;
     private UsuarioService usuarioService = new UsuarioService();
+    private DisciplinaService disciplinaService = new DisciplinaService();
 
     public MenuCoordenador(Coordenador usuarioLogado) {
         this.usuarioLogado = usuarioLogado;
@@ -61,11 +65,47 @@ public class MenuCoordenador {
 
             switch (opcao) {
                 case 1:
+                    System.out.println("Informe o nome da disciplina:");
+                    String nome = scanner.nextLine();
+
+                    System.out.println("Informe a carga horária:");
+                    int cargaHoraria = Integer.parseInt(scanner.nextLine());
+
+                    System.out.println("Informe o período:");
+                    int periodoDis = Integer.parseInt(scanner.nextLine());
+
+                    System.out.println("Informe a quantidade de créditos:");
+                    int creditos = Integer.parseInt(scanner.nextLine());
+
+                    System.out.println("Informe o código do curso:");
+                    String codigoCurso = scanner.nextLine();
+
+                    System.out.println("""
+                        Informe os pré-requisitos da disciplina.
+                        Digite os códigos separados por vírgula.
+                        Caso não exista pré-requisitos, pressione ENTER.
+                        """);
+
+                    String entradaPreRequisitos = scanner.nextLine();
+
+                    List<String> preRequisitos = new ArrayList<>();
+
+                    if (!entradaPreRequisitos.isBlank()) {
+                        preRequisitos = Arrays.stream(entradaPreRequisitos.split(",")).map(String::trim).toList();
+                    }
+                    try {
+                        disciplinaService.cadastrarDisciplina(nome, cargaHoraria, periodoDis, creditos, codigoCurso, preRequisitos);
+                        System.out.println("Disciplina cadastrada com sucesso.");
+                    } catch(
+                            PersistenciaException
+                            | EntradaInvalidaException e
+                    ) {
+                        System.out.println("Ocorreu um erro ao cadastrar disciplina: " + e.getMessage());
+                    }
 
                     break;
-
                 case 2:
-
+                    System.out.println(disciplinaService.listarDisciplinas());
                     break;
 
                 case 3:
