@@ -8,10 +8,14 @@ public class PeriodoLetivo {
 
     private String dataFim;
 
+    private boolean periodoAtivo;
+
+    public PeriodoLetivo(){}
     public PeriodoLetivo(String periodo, String dataInicio, String dataFim){
         this.periodo = periodo;
         this.dataInicio = dataInicio;
         this.dataFim = dataFim;
+        this.periodoAtivo = false;
     }
 
     public String getPeriodo(){
@@ -36,5 +40,13 @@ public class PeriodoLetivo {
 
     public void setDataFim(String dataFim){
         this.dataFim = dataFim;
+    }
+
+    public boolean getPeriodoAtivo(){
+        return this.periodoAtivo;
+    }
+
+    public void setPeriodoAtivo(boolean periodoAtivo){
+        this.periodoAtivo = periodoAtivo;
     }
 }

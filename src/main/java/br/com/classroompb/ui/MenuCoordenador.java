@@ -1,11 +1,13 @@
 package br.com.classroompb.ui;
 
+import java.util.List;
 import java.util.Scanner;
 
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.Usuario.Coordenador;
 import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.ExistePeriodoAtivoException;
 import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
 import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.services.GestaoAcademicaService;
@@ -89,9 +91,82 @@ public class MenuCoordenador {
 
                 case 4:
 
+                    System.out.println("Selecione o período letivo que vai ser ativado: ");
+
+                    try{
+                        List<PeriodoLetivo> periodosLetivos = gestaoAcademicaService.listarPeriodosLetivos();
+
+                        int i = 1;
+                        for(PeriodoLetivo periodos : periodosLetivos){
+
+                            if(periodos.getPeriodoAtivo() == false){
+                                System.out.println(i + "-) "+ periodos.getPeriodo() + " (" + periodos.getDataInicio() + " - " + periodos.getDataFim() + ")");
+                                i++;
+                            }
+
+                        }
+
+                        int periodoEscolhido = scanner.nextInt();
+                        scanner.nextLine();
+
+                        boolean deuCerto = gestaoAcademicaService.ativarPeriodoLetivo(periodosLetivos.get(periodoEscolhido - 1), periodoEscolhido - 1);
+
+                        if(deuCerto){
+                            System.out.println("Período ativado com sucesso!");
+                        }
+
+                        System.out.println("Deu errado");
+
+                    }catch(PersistenciaException | ExistePeriodoAtivoException | IndexOutOfBoundsException e){
+
+                        if(e.getClass() == IndexOutOfBoundsException.class){
+                            System.out.println("Índice de período letivo não existe");
+                        }
+                        else{
+                            System.out.println("Ocorreu um erro. " + e.getMessage());
+                        }
+                    }
                     break;
 
                 case 5:
+
+                    System.out.println("Selecione o período letivo que vai ser desativado: ");
+
+
+                    try{
+                        List<PeriodoLetivo> listaPeriodos = gestaoAcademicaService.listarPeriodosLetivos();
+
+                        int i=1;
+                        for(PeriodoLetivo periodos: listaPeriodos){
+
+                            if(periodos.getPeriodoAtivo() == true){
+                                System.out.println(i + "-) "+ periodos.getPeriodo() + " (" + periodos.getDataInicio() + " - " + periodos.getDataFim() + ")");
+                                i++;
+                            }
+                        }
+
+                        int periodoEscolhido = scanner.nextInt();
+                        scanner.nextLine();
+
+                        boolean deuCerto = gestaoAcademicaService.desativarPeriodoLetivo(listaPeriodos.get(periodoEscolhido - 1), periodoEscolhido - 1 );
+
+                        if(deuCerto){
+                            System.out.println("Período desativado com sucesso");
+                        }
+                        else{
+                            System.out.println("Período não desativado.");
+                        }
+
+                    }catch(PersistenciaException | IndexOutOfBoundsException e){
+
+                        if(e.getClass() == IndexOutOfBoundsException.class){
+                            System.out.println("Índice de período letivo não existe.");
+                        }
+                        else{
+                            System.out.println("Ocorreu um erro: " + e.getMessage());
+
+                        }
+                    }
 
                     break;
 

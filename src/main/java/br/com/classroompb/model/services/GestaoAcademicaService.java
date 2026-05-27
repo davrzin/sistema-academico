@@ -4,7 +4,9 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
+import br.com.classroompb.model.exception.ExistePeriodoAtivoException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
@@ -38,7 +40,7 @@ public class GestaoAcademicaService {
     }
 
     public boolean validarExistenciaPeriodoLetivo(String periodo, String dataInicio, String dataFim){
-        //
+
         PeriodoLetivo periodoLetivo = repository.buscarPeriodoLetivo(periodo, dataInicio, dataFim);
 
         if(periodoLetivo == null){
@@ -58,10 +60,11 @@ public class GestaoAcademicaService {
             throw new EntradaInvalidaException("Entradas null não são aceitas!");
         }
 
-        if(!periodo.matches("[\\d\\.]+")){
-            throw new EntradaInvalidaException("Formato de período inválido");
+        if (periodo.matches("\\d{4}\\.\\d+")) {
+            return true;
         }
-        return true;
+
+        throw new EntradaInvalidaException("Formato de período inválido.");
 
     }
 
@@ -81,5 +84,30 @@ public class GestaoAcademicaService {
             throw new EntradaInvalidaException("Formato de data inválida.");
         }
     }
+
+
+    public List<PeriodoLetivo> listarPeriodosLetivos(){
+
+        return repository.listarPeriodos();
+    }
+
+    public boolean ativarPeriodoLetivo(PeriodoLetivo periodo, int indicePeriodoEscolhido){
+
+        if(!this.repository.existePeriodoLetivoAtivo()){
+            periodo.setPeriodoAtivo(true);
+
+            return repository.updatePeriodoLetivo(periodo, indicePeriodoEscolhido);
+        }
+
+        throw new ExistePeriodoAtivoException();
+    }
+
+    public boolean desativarPeriodoLetivo(PeriodoLetivo periodo, int indicePeriodoEscolhido){
+
+        periodo.setPeriodoAtivo(false);
+
+        return repository.updatePeriodoLetivo(periodo, indicePeriodoEscolhido);
+    }
+
 
 }

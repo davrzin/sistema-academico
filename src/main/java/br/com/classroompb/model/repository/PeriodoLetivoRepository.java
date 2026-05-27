@@ -2,8 +2,10 @@ package br.com.classroompb.model.repository;
 
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.Usuario.Usuario;
+import br.com.classroompb.model.exception.ExistePeriodoAtivoException;
 import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
 import br.com.classroompb.model.exception.PersistenciaException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
@@ -41,7 +43,7 @@ public class PeriodoLetivoRepository {
         return this.diretorioPeriodos;
     }
 
-    public int salvarPeriodoLetivo(PeriodoLetivo periodoLetivo) {
+    public boolean salvarPeriodoLetivo(PeriodoLetivo periodoLetivo) {
 
         if (periodoLetivo == null) {
             throw new IllegalArgumentException("Período letivo não pode ser nulo");
@@ -56,38 +58,46 @@ public class PeriodoLetivoRepository {
         try {
             this.objectMapper.writeValue(new File(caminhoArquivo), periodos);
 
-            return 1;
+            return true;
         } catch (IOException e) {
             throw new PersistenciaException("Erro ao adicionar período letivo", e);
         }
 
     }
 
-    public List<PeriodoLetivo> listarPeriodos() {
-        File diretorio = new File(this.getCaminhoArquivo());
+    public boolean updatePeriodoLetivo(PeriodoLetivo periodoAtualizado, int indicePeriodoEscolhido){
+        if(periodoAtualizado == null){
+            throw new IllegalArgumentException("Periodo letivo não pode ser nulo.");
+        }
 
-        if (!diretorio.exists() || !diretorio.isDirectory()) {
+        List<PeriodoLetivo> listaPeriodos = this.listarPeriodos();
+        File arquivo = new File(this.getCaminhoArquivo());
+
+        PeriodoLetivo periodoAntigo = listaPeriodos.get(indicePeriodoEscolhido);
+
+        try{
+            this.objectMapper.updateValue(periodoAntigo, periodoAtualizado);
+            this.objectMapper.writeValue(arquivo, listaPeriodos);
+
+            return true;
+        }catch(IOException e){
+            throw new PersistenciaException("Falhar ao atualizar período letivo", e);
+        }
+    }
+
+
+    public List<PeriodoLetivo> listarPeriodos() {
+        File arquivo = new File(this.getCaminhoArquivo());
+
+        if (!arquivo.exists()) {
             return new ArrayList<>();
         }
 
-        File[] arquivos = diretorio.listFiles();
-
-        List<PeriodoLetivo> periodos = new ArrayList<>();
-
-        if (arquivos == null) {
-            return periodos;
-        }
-
-        try {
-            for (File arquivo : arquivos) {
-
-                periodos.addAll(this.lerPeriodos(arquivo, PeriodoLetivo.class));
-
-            }
-
-            return periodos;
-        } catch (IOException e) {
-            throw new PersistenciaException("Erro ao ler usuários.", e);
+        try{
+            return this.lerPeriodos(arquivo, PeriodoLetivo.class);
+        }catch(IOException e){
+            e.printStackTrace();
+            throw new PersistenciaException("Erro eo ler periodos", e);
         }
 
     }
@@ -98,12 +108,26 @@ public class PeriodoLetivoRepository {
 
         for(PeriodoLetivo periodoLetivo : periodos){
             if(periodoLetivo.getPeriodo() == periodo || periodoLetivo.getDataInicio() == dataInicio || periodoLetivo.getDataFim() == dataFim){
-                return periodoLetivo;
+                throw new PeriodoLetivoExistenteException();
             }
         }
 
-        throw new PeriodoLetivoExistenteException();
+        return null;
     }
+
+    public boolean existePeriodoLetivoAtivo(){
+        List<PeriodoLetivo> listaPeriodos = this.listarPeriodos();
+
+        for(PeriodoLetivo periodo : listaPeriodos){
+
+            if(periodo.getPeriodoAtivo()){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     private String getCaminhoArquivo() {
         File diretorio = new File(diretorioPeriodos);
