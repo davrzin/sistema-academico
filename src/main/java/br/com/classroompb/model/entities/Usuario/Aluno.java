@@ -8,8 +8,15 @@ public class Aluno extends Usuario {
         super();
     }
 
-    public Aluno(String nome, String email, String matricula, String senha, TipoUsuario tipoUsuario) {
-        super(nome, email, matricula, senha, tipoUsuario);
+    public Aluno(String nome, String email, String senha) {
+        super(nome, email, senha, TipoUsuario.ALUNO);
     }
 
+    public Aluno(String nome, String email, String matricula, String senha) {
+        super(nome, email, matricula, senha, TipoUsuario.ALUNO);
+    }
+
+    public Aluno(String nome, String email, String matricula, String senha, TipoUsuario tipoUsuario) {
+        super(nome, email, matricula, senha, TipoUsuario.ALUNO);
+    }
 }

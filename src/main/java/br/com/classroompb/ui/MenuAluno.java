@@ -38,7 +38,7 @@ public class MenuAluno {
             ║ 6 - Cancelar matrícula             ║
             ║ 0 - Voltar                         ║
             ╚════════════════════════════════════╝
-           \s""");
+            \s""");
 
             System.out.print("Digite uma opção: ");
             opcao = scanner.nextInt();

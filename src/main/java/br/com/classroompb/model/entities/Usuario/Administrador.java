@@ -8,8 +8,15 @@ public class Administrador extends Usuario {
         super();
     }
 
-    public Administrador(String nome, String email, String matricula, String senha, TipoUsuario tipoUsuario) {
-        super(nome, email, matricula, senha, tipoUsuario);
+    public Administrador(String nome, String email, String senha) {
+        super(nome, email, senha, TipoUsuario.ADMINISTRADOR);
     }
 
+    public Administrador(String nome, String email, String matricula, String senha) {
+        super(nome, email, matricula, senha, TipoUsuario.ADMINISTRADOR);
+    }
+
+    public Administrador(String nome, String email, String matricula, String senha, TipoUsuario tipoUsuario) {
+        super(nome, email, matricula, senha, TipoUsuario.ADMINISTRADOR);
+    }
 }

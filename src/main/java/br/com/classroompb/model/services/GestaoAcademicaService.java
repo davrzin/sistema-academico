@@ -1,16 +1,14 @@
 package br.com.classroompb.model.services;
 
 import java.nio.file.Path;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
-import br.com.classroompb.model.exception.ExistePeriodoAtivoException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.ExistePeriodoAtivoException;
+import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 
 public class GestaoAcademicaService {
@@ -18,90 +16,64 @@ public class GestaoAcademicaService {
     private static final Path DIRETORIO_PERIODOS = Path.of(System.getProperty("user.dir"), "periodos");
     private final PeriodoLetivoRepository repository;
 
-    public GestaoAcademicaService(){
+    public GestaoAcademicaService() {
         this.repository = new PeriodoLetivoRepository(new ObjectMapper(), DIRETORIO_PERIODOS.toString());
     }
 
-    public GestaoAcademicaService(PeriodoLetivoRepository periodoLetivoRepository){
+    public GestaoAcademicaService(PeriodoLetivoRepository periodoLetivoRepository) {
         this.repository = periodoLetivoRepository;
     }
 
-    public PeriodoLetivo cadastrarPeriodoLetivo(String periodo, String dataInicio, String dataFim){
+    public void cadastrarPeriodoLetivo(PeriodoLetivo periodoLetivo) {
+        validarPeriodoLetivo(periodoLetivo);
+        validarExistenciaPeriodoLetivo(periodoLetivo);
 
-        if(this.validarPeriodoLetivo(periodo) && this.validarDataInicioFimPeriodo(dataInicio, dataFim) && this.validarExistenciaPeriodoLetivo(periodo, dataInicio, dataFim)){
-
-            PeriodoLetivo novoPeriodo = new PeriodoLetivo(periodo, dataInicio, dataFim);
-
-            repository.salvarPeriodoLetivo(novoPeriodo);
-
-            return novoPeriodo;
-        }
-        return null;
+        repository.salvarPeriodoLetivo(periodoLetivo);
     }
 
-    public boolean validarExistenciaPeriodoLetivo(String periodo, String dataInicio, String dataFim){
-
-        return this.repository.validarAtributosExistentes(periodo, dataInicio, dataFim);
-    }
-
-    public boolean validarPeriodoLetivo(String periodo){
-
-        try{
-            if(periodo.isBlank()){
-                throw new EntradaInvalidaException("Entradas completamente em branco não são aceitas.");
-            }
-        }catch(NullPointerException e){
-            throw new EntradaInvalidaException("Entradas null não são aceitas!");
+    private void validarPeriodoLetivo(PeriodoLetivo periodoLetivo) {
+        if (periodoLetivo == null) {
+            throw new EntradaInvalidaException("Período letivo não pode ser null.");
         }
 
-        if (periodo.matches("\\d{4}\\.\\d+")) {
-            return true;
-        }
-
-        throw new EntradaInvalidaException("Formato de período inválido.");
-
+        periodoLetivo.validarDadosBasicos();
     }
 
-    public boolean validarDataInicioFimPeriodo(String dataInicio, String dataFim){
-        try{
+    private void validarExistenciaPeriodoLetivo(PeriodoLetivo periodoLetivo) {
+        boolean periodoJaExiste = repository.existePeriodoComDados(
+                periodoLetivo.getPeriodo(),
+                periodoLetivo.getDataInicio(),
+                periodoLetivo.getDataFim()
+        );
 
-            String formatoData = "dd/MM/yyyy";
-
-            DateTimeFormatter formater = DateTimeFormatter.ofPattern(formatoData);
-
-            LocalDate.parse(dataInicio, formater);
-            LocalDate.parse(dataFim, formater);
-
-            return true;
-
-        }catch(DateTimeParseException e){
-            throw new EntradaInvalidaException("Formato de data inválida.");
+        if (periodoJaExiste) {
+            throw new PeriodoLetivoExistenteException();
         }
     }
 
-
-    public List<PeriodoLetivo> listarPeriodosLetivos(){
-
+    public List<PeriodoLetivo> listarPeriodosLetivos() {
         return repository.listarPeriodos();
     }
 
-    public boolean ativarPeriodoLetivo(PeriodoLetivo periodo, int indicePeriodoEscolhido){
+    public boolean ativarPeriodoLetivo(PeriodoLetivo periodo, int indicePeriodoEscolhido) {
+        if (periodo == null) {
+            throw new EntradaInvalidaException("Período letivo não pode ser null.");
+        }
 
-        if(!this.repository.existePeriodoLetivoAtivo()){
+        if (!repository.existePeriodoLetivoAtivo()) {
             periodo.setPeriodoAtivo(true);
-
             return repository.updatePeriodoLetivo(periodo, indicePeriodoEscolhido);
         }
 
         throw new ExistePeriodoAtivoException();
     }
 
-    public boolean desativarPeriodoLetivo(PeriodoLetivo periodo, int indicePeriodoEscolhido){
+    public boolean desativarPeriodoLetivo(PeriodoLetivo periodo, int indicePeriodoEscolhido) {
+        if (periodo == null) {
+            throw new EntradaInvalidaException("Período letivo não pode ser null.");
+        }
 
         periodo.setPeriodoAtivo(false);
-
         return repository.updatePeriodoLetivo(periodo, indicePeriodoEscolhido);
     }
-
-
 }

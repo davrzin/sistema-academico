@@ -13,13 +13,15 @@ import br.com.classroompb.model.repository.DisciplinaRepository;
 
 public class DisciplinaService {
 
-    private static final Path DIRETORIO_DISCIPLINAS = Path.of(System.getProperty("user.dir"),"disciplinas");
+    private static final Path DIRETORIO_DISCIPLINAS = Path.of(System.getProperty("user.dir"), "disciplinas");
+    private static final Path DIRETORIO_CURSOS = Path.of(System.getProperty("user.dir"), "cursos");
+
     private final DisciplinaRepository repository;
     private final CursoRepository cursoRepository;
 
     public DisciplinaService() {
         this.repository = new DisciplinaRepository(new ObjectMapper(), DIRETORIO_DISCIPLINAS.toString());
-        this.cursoRepository = new CursoRepository(new ObjectMapper());
+        this.cursoRepository = new CursoRepository(new ObjectMapper(), DIRETORIO_CURSOS.toString());
     }
 
     public DisciplinaService(DisciplinaRepository repository, CursoRepository cursoRepository) {
@@ -27,105 +29,76 @@ public class DisciplinaService {
         this.cursoRepository = cursoRepository;
     }
 
-    public Disciplina cadastrarDisciplina(String nome, int cargaHoraria, int periodo, int creditos, String codigoCurso, 
-        List<String> preRequisitos) {
+    public void cadastrarDisciplina(Disciplina disciplina) {
+        validarDisciplina(disciplina);
 
         String codigo = gerarCodigoDisciplina();
-        if(validarCodigo(codigo) && validarNome(nome) && validarCargaHoraria(cargaHoraria) && validarPeriodo(periodo) 
-            && validarCurso(codigoCurso)  && validarExistenciaDisciplina(codigo,nome) && validarCreditos(creditos)
-            && validarPreRequisitos(preRequisitos)) 
-        {
-            Disciplina novaDisciplina = new Disciplina(codigo, nome, cargaHoraria, periodo, creditos, codigoCurso, preRequisitos);
-            repository.salvarDisciplina(novaDisciplina);
-            return novaDisciplina;
-        }
+        disciplina.setCodigo(codigo);
 
-        return null;
+        validarExistenciaDisciplina(disciplina.getCodigo(), disciplina.getNome());
+        validarCurso(disciplina);
+        validarPreRequisitos(disciplina.getPreRequisitos());
+
+        repository.salvarDisciplina(disciplina);
     }
 
-    public boolean validarExistenciaDisciplina(String codigo, String nome) {
+    private void validarDisciplina(Disciplina disciplina) {
+        if (disciplina == null) {
+            throw new EntradaInvalidaException("Disciplina não pode ser null.");
+        }
+
+        disciplina.validarDadosBasicos();
+    }
+
+    private void validarExistenciaDisciplina(String codigo, String nome) {
         Disciplina disciplinaCodigo = repository.buscarPorCodigo(codigo);
         Disciplina disciplinaNome = repository.buscarPorNome(nome);
-        return disciplinaCodigo == null && disciplinaNome == null;
-    }
 
-    public boolean validarCodigo(String codigo) {
-        try{
-            if (codigo.isBlank()) {
-                throw new EntradaInvalidaException("Código inválido.");
-            }
-
-        } catch(NullPointerException e){
-            throw new EntradaInvalidaException( "Código não pode ser null.");
+        if (disciplinaCodigo != null) {
+            throw new EntradaInvalidaException("Já existe uma disciplina cadastrada com esse código.");
         }
 
-        return true;
-    }
-
-    public boolean validarNome(String nome) {
-        try {
-            if(nome.isBlank()){ 
-                throw new EntradaInvalidaException("Nome inválido.");
-            }
-        } catch(NullPointerException e){
-            throw new EntradaInvalidaException("Nome não pode ser null.");
+        if (disciplinaNome != null) {
+            throw new EntradaInvalidaException("Já existe uma disciplina cadastrada com esse nome.");
         }
-
-        return true;
     }
 
-    public boolean validarCargaHoraria(int cargaHoraria) {
-        if (cargaHoraria <= 0){
-            throw new EntradaInvalidaException("Carga horária inválida.");
-        }
+    private void validarCurso(Disciplina disciplina) {
+        Curso curso = cursoRepository.buscarPorCodigo(disciplina.getCodigoCurso());
 
-        return true;
-    }
-
-    public boolean validarPeriodo(int periodo) {
-        if (periodo <= 0){
-            throw new EntradaInvalidaException("Período inválido.");
-        }
-
-        return true;
-    }
-
-    public boolean validarCreditos(int creditos) {
-        if (creditos <= 0){
-            throw new EntradaInvalidaException("Quantidade de créditos inválida.");
-        }
-        return true;
-    }
-
-    public boolean validarCurso(String codigoCurso) {
-        Curso curso = cursoRepository.buscarPorCodigo(codigoCurso);
-        if(curso == null){
+        if (curso == null) {
             throw new EntradaInvalidaException("Curso não encontrado.");
         }
-        return true;
+
+        if (disciplina.getPeriodo() > curso.getQuantidadePeriodos()) {
+            throw new EntradaInvalidaException("O período da disciplina não pode ser maior que a quantidade de períodos do curso.");
+        }
     }
 
-    public boolean validarPreRequisitos(List<String> preRequisitos) {
-        if (preRequisitos == null){return true;}
+    private void validarPreRequisitos(List<String> preRequisitos) {
+        if (preRequisitos == null || preRequisitos.isEmpty()) {
+            return;
+        }
 
-        for (String codigoDisciplina : preRequisitos){
-            if (codigoDisciplina == null || codigoDisciplina.isBlank()) {
-                throw new EntradaInvalidaException("Código de pré-requisito inválido.");
-            }
-
+        for (String codigoDisciplina : preRequisitos) {
             Disciplina disciplina = repository.buscarPorCodigo(codigoDisciplina);
 
-            if (disciplina == null){
+            if (disciplina == null) {
                 throw new EntradaInvalidaException("Pré-requisito " + codigoDisciplina + " não encontrado.");
             }
         }
-
-        return true;
     }
 
     private String gerarCodigoDisciplina() {
-        long quantidade = repository.listarDisciplinas().size();
-        return "dis" + String.format("%02d", quantidade);
+        int contador = repository.listarDisciplinas().size();
+        String codigo;
+
+        do {
+            codigo = "dis" + String.format("%02d", contador);
+            contador++;
+        } while (repository.buscarPorCodigo(codigo) != null);
+
+        return codigo;
     }
 
     public List<Disciplina> listarDisciplinas() {

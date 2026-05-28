@@ -73,7 +73,8 @@ public class MenuAdministrador {
                     int cargaHorariaTotal = Integer.parseInt(scanner.nextLine());
 
                     try{
-                        Curso novoCurso = cursoService.cadastrarCurso(nome, quantidadePeriodos, cargaHorariaTotal);
+                        Curso novoCurso = new Curso(null, nome, quantidadePeriodos, cargaHorariaTotal);
+                        cursoService.cadastrarCurso(novoCurso);
                         System.out.println("Curso cadastrado com sucesso.");
                     }catch(
                             PersistenciaException

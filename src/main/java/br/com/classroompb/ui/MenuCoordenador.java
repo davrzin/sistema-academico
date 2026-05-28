@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
+import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.Usuario.Coordenador;
 import br.com.classroompb.model.entities.Usuario.Usuario;
@@ -37,8 +38,6 @@ public class MenuCoordenador {
 
     public void iniciar() {
         int opcao;
-
-        Scanner scanner = new Scanner(System.in);
         GestaoAcademicaService gestaoAcademicaService = new GestaoAcademicaService();
 
         do {
@@ -94,7 +93,8 @@ public class MenuCoordenador {
                         preRequisitos = Arrays.stream(entradaPreRequisitos.split(",")).map(String::trim).toList();
                     }
                     try {
-                        disciplinaService.cadastrarDisciplina(nome, cargaHoraria, periodoDis, creditos, codigoCurso, preRequisitos);
+                        Disciplina novaDisciplina = new Disciplina(nome, cargaHoraria, periodoDis, creditos, codigoCurso, preRequisitos);
+                        disciplinaService.cadastrarDisciplina(novaDisciplina);
                         System.out.println("Disciplina cadastrada com sucesso.");
                     } catch(
                             PersistenciaException
@@ -119,7 +119,8 @@ public class MenuCoordenador {
                     String dataFim = scanner.nextLine();
 
                     try{
-                        PeriodoLetivo novoPeriodo = gestaoAcademicaService.cadastrarPeriodoLetivo(periodo, dataInicio, dataFim);
+                        PeriodoLetivo novoPeriodo = new PeriodoLetivo(periodo, dataInicio, dataFim);
+                        gestaoAcademicaService.cadastrarPeriodoLetivo(novoPeriodo);
 
                         System.out.println("Período letivo cadastrado com sucesso");
 

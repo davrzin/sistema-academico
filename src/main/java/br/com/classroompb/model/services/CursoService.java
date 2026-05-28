@@ -9,77 +9,61 @@ import br.com.classroompb.model.entities.GestaoAcademica.Curso;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.repository.CursoRepository;
 
-
 public class CursoService {
 
-    private static final Path DIRETORIO_PERIODOS = Path.of(System.getProperty("user.dir"), "cursos");
+    private static final Path DIRETORIO_CURSOS = Path.of(System.getProperty("user.dir"), "cursos");
     private final CursoRepository repository;
 
-    public CursoService(){
-        this.repository = new CursoRepository(new ObjectMapper(), DIRETORIO_PERIODOS.toString());
+    public CursoService() {
+        this.repository = new CursoRepository(new ObjectMapper(), DIRETORIO_CURSOS.toString());
     }
 
-    public CursoService(CursoRepository cursoRepository){
+    public CursoService(CursoRepository cursoRepository) {
         this.repository = cursoRepository;
     }
 
-    public Curso cadastrarCurso(String nome,int quantidadePeriodos,int cargaHorariaTotal) {
+    public void cadastrarCurso(Curso curso) {
+        validarCurso(curso);
+
         String codigo = gerarCodigoCurso();
+        curso.setCodigo(codigo);
 
-        if (validarCodigoCurso(codigo) && validarNomeCurso(nome) && validarQuantidadePeriodos(quantidadePeriodos) && validarCargaHoraria(cargaHorariaTotal) && validarExistenciaCurso(codigo, nome)) {
-            Curso novoCurso = new Curso(codigo, nome, quantidadePeriodos, cargaHorariaTotal);
-            repository.salvarCurso(novoCurso);
-            return novoCurso;
-        }
+        validarExistenciaCurso(curso.getCodigo(), curso.getNome());
 
-        return null;
+        repository.salvarCurso(curso);
     }
 
-    public boolean validarExistenciaCurso(String codigo, String nome){
+    private void validarCurso(Curso curso) {
+        if (curso == null) {
+            throw new EntradaInvalidaException("Curso não pode ser null.");
+        }
+
+        curso.validarDadosBasicos();
+    }
+
+    private void validarExistenciaCurso(String codigo, String nome) {
         Curso cursoCodigo = repository.buscarPorCodigo(codigo);
         Curso cursoNome = repository.buscarPorNome(nome);
 
-        if (cursoCodigo == null && cursoNome == null){return true;}
-
-        return false;
-    }
-
-    public boolean validarCodigoCurso(String codigo) {
-        try {
-            if (codigo.isBlank()){throw new EntradaInvalidaException("Código do curso não pode ser vazio.");}
-        } catch (NullPointerException e){
-            throw new EntradaInvalidaException("Código do curso não pode ser null.");
+        if (cursoCodigo != null) {
+            throw new EntradaInvalidaException("Já existe um curso cadastrado com esse código.");
         }
 
-        return true;
-    }
-
-    public boolean validarNomeCurso(String nome) {
-        try{
-            if (nome.isBlank()) {throw new EntradaInvalidaException( "Nome do curso não pode ser vazio.");}
-        } catch (NullPointerException e){
-            throw new EntradaInvalidaException("Nome do curso não pode ser null.");
+        if (cursoNome != null) {
+            throw new EntradaInvalidaException("Já existe um curso cadastrado com esse nome.");
         }
-
-        return true;
-    }
-
-    public boolean validarQuantidadePeriodos(int quantidadePeriodos){
-        if (quantidadePeriodos <= 0) {throw new EntradaInvalidaException("Quantidade de períodos inválida.");}
-
-        return true;
-    }
-
-    public boolean validarCargaHoraria(int cargaHoraria){
-        if (cargaHoraria <= 0) {throw new EntradaInvalidaException( "Carga horária inválida.");}
-
-        return true;
     }
 
     private String gerarCodigoCurso() {
-        long quantidade = repository.listarCursos().stream().count();
+        int contador = repository.listarCursos().size();
+        String codigo;
 
-        return "cur" + String.format("%02d", quantidade);
+        do {
+            codigo = "cur" + String.format("%02d", contador);
+            contador++;
+        } while (repository.buscarPorCodigo(codigo) != null);
+
+        return codigo;
     }
 
     public List<Curso> listarCursos() {

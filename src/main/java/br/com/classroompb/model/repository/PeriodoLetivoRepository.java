@@ -1,7 +1,6 @@
 package br.com.classroompb.model.repository;
 
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
-import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
 import br.com.classroompb.model.exception.PersistenciaException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -21,7 +20,7 @@ public class PeriodoLetivoRepository {
         this(objectMapper, DIRETORIO_PERIODO_LETIVO);
     }
 
-    public PeriodoLetivoRepository(ObjectMapper objectMapper, String diretorioPeriodo){
+    public PeriodoLetivoRepository(ObjectMapper objectMapper, String diretorioPeriodo) {
         this.objectMapper = objectMapper;
         this.diretorioPeriodos = diretorioPeriodo;
     }
@@ -31,19 +30,16 @@ public class PeriodoLetivoRepository {
     }
 
     public void setObjectMapper(ObjectMapper objectMapper) {
-
         this.objectMapper = objectMapper;
-
     }
 
-    public String getDiretorioPeriodoLetivo(){
+    public String getDiretorioPeriodoLetivo() {
         return this.diretorioPeriodos;
     }
 
     public boolean salvarPeriodoLetivo(PeriodoLetivo periodoLetivo) {
-
         if (periodoLetivo == null) {
-            throw new IllegalArgumentException("Período letivo não pode ser nulo");
+            throw new IllegalArgumentException("Período letivo não pode ser nulo.");
         }
 
         String caminhoArquivo = this.getCaminhoArquivo();
@@ -51,20 +47,17 @@ public class PeriodoLetivoRepository {
         List<PeriodoLetivo> periodos = this.listarPeriodos();
         periodos.add(periodoLetivo);
 
-
         try {
             this.objectMapper.writeValue(new File(caminhoArquivo), periodos);
-
             return true;
         } catch (IOException e) {
-            throw new PersistenciaException("Erro ao adicionar período letivo", e);
+            throw new PersistenciaException("Erro ao adicionar período letivo.", e);
         }
-
     }
 
-    public boolean updatePeriodoLetivo(PeriodoLetivo periodoAtualizado, int indicePeriodoEscolhido){
-        if(periodoAtualizado == null){
-            throw new IllegalArgumentException("Periodo letivo não pode ser nulo.");
+    public boolean updatePeriodoLetivo(PeriodoLetivo periodoAtualizado, int indicePeriodoEscolhido) {
+        if (periodoAtualizado == null) {
+            throw new IllegalArgumentException("Período letivo não pode ser nulo.");
         }
 
         List<PeriodoLetivo> listaPeriodos = this.listarPeriodos();
@@ -72,16 +65,15 @@ public class PeriodoLetivoRepository {
 
         PeriodoLetivo periodoAntigo = listaPeriodos.get(indicePeriodoEscolhido);
 
-        try{
+        try {
             this.objectMapper.updateValue(periodoAntigo, periodoAtualizado);
             this.objectMapper.writeValue(arquivo, listaPeriodos);
 
             return true;
-        }catch(IOException e){
-            throw new PersistenciaException("Falhar ao atualizar período letivo", e);
+        } catch (IOException e) {
+            throw new PersistenciaException("Falha ao atualizar período letivo.", e);
         }
     }
-
 
     public List<PeriodoLetivo> listarPeriodos() {
         File arquivo = new File(this.getCaminhoArquivo());
@@ -90,46 +82,22 @@ public class PeriodoLetivoRepository {
             return new ArrayList<>();
         }
 
-        try{
+        try {
             return this.lerPeriodos(arquivo, PeriodoLetivo.class);
-        }catch(IOException e){
-            e.printStackTrace();
-            throw new PersistenciaException("Erro eo ler periodos", e);
+        } catch (IOException e) {
+            throw new PersistenciaException("Erro ao ler períodos.", e);
         }
-
     }
 
-    public boolean validarAtributosExistentes(String periodo, String dataInicio, String dataFim){
+    public boolean existePeriodoComDados(String periodo, String dataInicio, String dataFim) {
         List<PeriodoLetivo> periodos = this.listarPeriodos();
 
-        for(PeriodoLetivo periodoLetivo : periodos){
-            if(periodoLetivo.getPeriodo().equals(periodo) || periodoLetivo.getDataInicio().equals(dataInicio) || periodoLetivo.getDataFim().equals(dataFim)){
-                throw new PeriodoLetivoExistenteException();
-            }
-        }
-
-        return false;
-    }
-
-    public PeriodoLetivo buscarPeriodoLetivo(String periodo, String dataInicio, String dataFim){
-
-        List<PeriodoLetivo> periodos = this.listarPeriodos();
-
-        for(PeriodoLetivo periodoLetivo : periodos){
-            if(periodoLetivo.getPeriodo().equals(periodo) && periodoLetivo.getDataInicio().equals(dataInicio) && periodoLetivo.getDataFim().equals(dataFim)){
-                return periodoLetivo;
-            }
-        }
-
-        return null;
-    }
-
-    public boolean existePeriodoLetivoAtivo(){
-        List<PeriodoLetivo> listaPeriodos = this.listarPeriodos();
-
-        for(PeriodoLetivo periodo : listaPeriodos){
-
-            if(periodo.getPeriodoAtivo()){
+        for (PeriodoLetivo periodoLetivo : periodos) {
+            if (
+                    periodoLetivo.getPeriodo().equals(periodo)
+                            || periodoLetivo.getDataInicio().equals(dataInicio)
+                            || periodoLetivo.getDataFim().equals(dataFim)
+            ) {
                 return true;
             }
         }
@@ -137,6 +105,33 @@ public class PeriodoLetivoRepository {
         return false;
     }
 
+    public PeriodoLetivo buscarPeriodoLetivo(String periodo, String dataInicio, String dataFim) {
+        List<PeriodoLetivo> periodos = this.listarPeriodos();
+
+        for (PeriodoLetivo periodoLetivo : periodos) {
+            if (
+                    periodoLetivo.getPeriodo().equals(periodo)
+                            && periodoLetivo.getDataInicio().equals(dataInicio)
+                            && periodoLetivo.getDataFim().equals(dataFim)
+            ) {
+                return periodoLetivo;
+            }
+        }
+
+        return null;
+    }
+
+    public boolean existePeriodoLetivoAtivo() {
+        List<PeriodoLetivo> listaPeriodos = this.listarPeriodos();
+
+        for (PeriodoLetivo periodo : listaPeriodos) {
+            if (periodo.getPeriodoAtivo()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private String getCaminhoArquivo() {
         File diretorio = new File(diretorioPeriodos);
@@ -145,13 +140,15 @@ public class PeriodoLetivoRepository {
             diretorio.mkdirs();
         }
 
-        return new File(diretorio,"periodos_letivos.json").getPath();
+        return new File(diretorio, "periodos_letivos.json").getPath();
     }
-
 
     private <T extends PeriodoLetivo> List<PeriodoLetivo> lerPeriodos(File arquivo, Class<T> tipo) throws IOException {
-        return new ArrayList<>(objectMapper.readValue(arquivo, objectMapper.getTypeFactory().constructCollectionType(List.class, tipo)));
+        return new ArrayList<>(
+                objectMapper.readValue(
+                        arquivo,
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, tipo)
+                )
+        );
     }
-
-
 }

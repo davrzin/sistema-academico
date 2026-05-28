@@ -8,7 +8,6 @@ import br.com.classroompb.model.entities.Usuario.Coordenador;
 import br.com.classroompb.model.entities.Usuario.Professor;
 import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
-import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.services.UsuarioService;
 
 public class MenuPrincipal {
@@ -34,7 +33,7 @@ public class MenuPrincipal {
             System.out.print("Digite uma opção: ");
 
             opcao = scanner.nextInt();
-            scanner.nextLine(); //SCANNER PARA LER UMA LINHA PARA CAPTURAR O /n QUE SOBRA DO scanner.NextInt()
+            scanner.nextLine();
 
             switch (opcao) {
                 case 1:
@@ -84,17 +83,20 @@ public class MenuPrincipal {
                     System.out.print("Senha: ");
                     String senha = scanner.nextLine();
 
-                    System.out.print("Tipo de Usuário( Aluno, Professor, Coordenador, Administrador): ");
-                    String tipoUsuario = scanner.nextLine();
+                    try {
+                        TipoUsuario tipoUsuario = escolherTipoUsuario();
 
-                    try{
-                        usuarioService.cadastrarUsuario(nome, email, senha, TipoUsuario.valueOf(tipoUsuario.toUpperCase()));
+                        Usuario novoUsuario = criarUsuarioPorTipo(tipoUsuario, nome, email, senha);
 
-                        System.out.println("Usuario cadastrado com sucesso!");
+                        usuarioService.cadastrarUsuario(novoUsuario);
 
-                    }catch (PersistenciaException e){
-                        System.out.println(e.getMessage());
+                        System.out.println("Usuário cadastrado com sucesso!");
+                        System.out.println("Matrícula gerada: " + novoUsuario.getMatricula());
+
+                    } catch (RuntimeException e) {
+                        System.out.println("Erro ao cadastrar usuário: " + e.getMessage());
                     }
+
                     break;
                 case 0:
                     System.out.println("Fechando o Sistema");
@@ -104,8 +106,62 @@ public class MenuPrincipal {
             }
 
         } while(opcao != 0);
+    }
 
+    private TipoUsuario escolherTipoUsuario() {
+        while (true) {
+            System.out.println("""
+                Escolha o tipo de usuário:
+                1 - Administrador
+                2 - Coordenador
+                3 - Professor
+                4 - Aluno
+                """);
 
+            System.out.print("Digite uma opção: ");
+            String opcao = scanner.nextLine();
+
+            switch (opcao) {
+                case "1":
+                    return TipoUsuario.ADMINISTRADOR;
+
+                case "2":
+                    return TipoUsuario.COORDENADOR;
+
+                case "3":
+                    return TipoUsuario.PROFESSOR;
+
+                case "4":
+                    return TipoUsuario.ALUNO;
+
+                default:
+                    System.out.println("Opção inválida! Tente novamente.");
+            }
+        }
+    }
+
+    private Usuario criarUsuarioPorTipo(
+        TipoUsuario tipoUsuario,
+        String nome,
+        String email,
+        String senha
+    ) {
+        switch (tipoUsuario) {
+            case ALUNO:
+                return new Aluno(nome, email, senha);
+
+            case PROFESSOR:
+                return new Professor(nome, email, senha);
+
+            case COORDENADOR:
+                return new Coordenador(nome, email, senha);
+
+            case ADMINISTRADOR:
+                return new Administrador(nome, email, senha);
+
+            default:
+                throw new IllegalArgumentException("Tipo de usuário inválido.");
+        }
     }
 
 }

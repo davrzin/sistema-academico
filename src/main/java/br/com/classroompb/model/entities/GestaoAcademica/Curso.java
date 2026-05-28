@@ -1,5 +1,7 @@
 package br.com.classroompb.model.entities.GestaoAcademica;
 
+import br.com.classroompb.model.exception.EntradaInvalidaException;
+
 public class Curso {
     private String codigo;
     private String nome;
@@ -9,11 +11,17 @@ public class Curso {
     public Curso() {
     }
 
+    public Curso(String nome, int quantidadePeriodos, int cargaHorariaTotal) {
+        setNome(nome);
+        setQuantidadePeriodos(quantidadePeriodos);
+        setCargaHorariaTotal(cargaHorariaTotal);
+    }
+
     public Curso(String codigo, String nome, int quantidadePeriodos, int cargaHorariaTotal) {
-        this.codigo = codigo;
-        this.nome = nome;
-        this.quantidadePeriodos = quantidadePeriodos;
-        this.cargaHorariaTotal = cargaHorariaTotal;
+        setCodigo(codigo);
+        setNome(nome);
+        setQuantidadePeriodos(quantidadePeriodos);
+        setCargaHorariaTotal(cargaHorariaTotal);
     }
 
     public String getCodigo() {
@@ -21,6 +29,7 @@ public class Curso {
     }
 
     public void setCodigo(String codigo) {
+        validarCodigo(codigo);
         this.codigo = codigo;
     }
 
@@ -29,6 +38,7 @@ public class Curso {
     }
 
     public void setNome(String nome) {
+        validarNome(nome);
         this.nome = nome;
     }
 
@@ -37,6 +47,7 @@ public class Curso {
     }
 
     public void setQuantidadePeriodos(int quantidadePeriodos) {
+        validarQuantidadePeriodos(quantidadePeriodos);
         this.quantidadePeriodos = quantidadePeriodos;
     }
 
@@ -45,7 +56,38 @@ public class Curso {
     }
 
     public void setCargaHorariaTotal(int cargaHorariaTotal) {
+        validarCargaHorariaTotal(cargaHorariaTotal);
         this.cargaHorariaTotal = cargaHorariaTotal;
+    }
+
+    public void validarDadosBasicos() {
+        validarNome(nome);
+        validarQuantidadePeriodos(quantidadePeriodos);
+        validarCargaHorariaTotal(cargaHorariaTotal);
+    }
+
+    private void validarCodigo(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            throw new EntradaInvalidaException("Código do curso não pode ser vazio.");
+        }
+    }
+
+    private void validarNome(String nome) {
+        if (nome == null || nome.isBlank()) {
+            throw new EntradaInvalidaException("Nome do curso não pode ser vazio.");
+        }
+    }
+
+    private void validarQuantidadePeriodos(int quantidadePeriodos) {
+        if (quantidadePeriodos <= 0) {
+            throw new EntradaInvalidaException("Quantidade de períodos inválida.");
+        }
+    }
+
+    private void validarCargaHorariaTotal(int cargaHorariaTotal) {
+        if (cargaHorariaTotal <= 0) {
+            throw new EntradaInvalidaException("Carga horária inválida.");
+        }
     }
 
     @Override

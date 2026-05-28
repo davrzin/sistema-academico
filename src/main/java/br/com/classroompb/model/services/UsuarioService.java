@@ -1,15 +1,13 @@
 package br.com.classroompb.model.services;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.classroompb.model.entities.Usuario.Administrador;
-import br.com.classroompb.model.entities.Usuario.Aluno;
-import br.com.classroompb.model.entities.Usuario.Coordenador;
-import br.com.classroompb.model.entities.Usuario.Professor;
 import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.UserRepository;
 
@@ -27,39 +25,33 @@ public class UsuarioService {
         this.repository = repository;
     }
 
-    public Usuario cadastrarUsuario(String nome, String email, String senha, TipoUsuario tipoUsuario) {
-        if (tipoUsuario == null) {
-            throw new IllegalArgumentException("Tipo de usuário inválido.");
-        }
-        
-        String matricula = gerarMatricula(tipoUsuario);
+    public void cadastrarUsuario(Usuario usuario) {
+        validarUsuario(usuario);
+        validarEmailDisponivel(usuario.getEmail());
 
-        Usuario usuario;
+        String matricula = gerarMatricula(usuario.getTipoUsuario());
+        usuario.setMatricula(matricula);
 
-        switch (tipoUsuario) {
-            case ALUNO:
-                usuario = new Aluno(nome, email, matricula, senha, tipoUsuario);
-                break;
-
-            case ADMINISTRADOR:
-                usuario = new Administrador(nome, email, matricula, senha, tipoUsuario);
-                break;
-
-            case COORDENADOR:
-                usuario = new Coordenador(nome, email, matricula, senha, tipoUsuario);
-                break;
-
-            case PROFESSOR:
-                usuario = new Professor(nome, email, matricula, senha, tipoUsuario);
-                break;
-
-            default:
-                throw new IllegalArgumentException("Tipo de usuário inválido.");
-        }
-
+        usuario.validarDadosComMatricula();
         repository.salvarUsuario(usuario);
+    }
 
-        return usuario;
+    private void validarUsuario(Usuario usuario) {
+        if (usuario == null) {
+            throw new EntradaInvalidaException("Usuário não pode ser null.");
+        }
+
+        usuario.validarDadosBasicos();
+    }
+
+    private void validarEmailDisponivel(String email) {
+        List<Usuario> usuarios = repository.listar();
+
+        for (Usuario usuario : usuarios) {
+            if (usuario.getEmail() != null && usuario.getEmail().equalsIgnoreCase(email)) {
+                throw new EntradaInvalidaException("Já existe um usuário cadastrado com esse e-mail.");
+            }
+        }
     }
 
     public Usuario fazerLoginUsuario(String email, String senha) {
@@ -87,8 +79,26 @@ public class UsuarioService {
             case COORDENADOR -> "co";
         };
 
-        long quantidade = repository.listar(tipoUsuario).size();
+        int contador = repository.listar(tipoUsuario).size();
+        String matricula;
 
-        return prefixo + String.format("%02d", quantidade);
+        do {
+            matricula = prefixo + String.format("%02d", contador);
+            contador++;
+        } while (existeMatricula(matricula, tipoUsuario));
+
+        return matricula;
+    }
+
+    private boolean existeMatricula(String matricula, TipoUsuario tipoUsuario) {
+        List<Usuario> usuarios = repository.listar(tipoUsuario);
+
+        for (Usuario usuario : usuarios) {
+            if (usuario.getMatricula() != null && usuario.getMatricula().equalsIgnoreCase(matricula)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
