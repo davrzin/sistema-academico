@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
+import br.com.classroompb.model.entities.GestaoAcademica.Turma;
 import br.com.classroompb.model.entities.Usuario.Coordenador;
 import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
@@ -15,6 +16,7 @@ import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
 import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.services.DisciplinaService;
 import br.com.classroompb.model.services.GestaoAcademicaService;
+import br.com.classroompb.model.services.TurmaService;
 import br.com.classroompb.model.services.UsuarioService;
 
 public class MenuCoordenador {
@@ -23,6 +25,7 @@ public class MenuCoordenador {
     private Coordenador usuarioLogado;
     private UsuarioService usuarioService = new UsuarioService();
     private DisciplinaService disciplinaService = new DisciplinaService();
+    private TurmaService turmaService = new TurmaService();
 
     public MenuCoordenador(Coordenador usuarioLogado) {
         this.usuarioLogado = usuarioLogado;
@@ -212,7 +215,7 @@ public class MenuCoordenador {
                     break;
 
                 case 6:
-
+                    ofertarTurma();
                     break;
 
                 case 7:
@@ -238,6 +241,49 @@ public class MenuCoordenador {
             }
 
         } while (opcao != 0);
+    }
+
+    private void ofertarTurma() {
+        try {
+            System.out.println("Informe o código da disciplina:");
+            String codigoDisciplina = scanner.nextLine();
+
+            System.out.println("Informe o período letivo da turma. Exemplo: 2026.2");
+            String periodoLetivo = scanner.nextLine();
+
+            System.out.println("Informe a matrícula do professor responsável:");
+            String matriculaProfessor = scanner.nextLine();
+
+            System.out.println("Informe o limite de vagas:");
+            int limiteVagas = Integer.parseInt(scanner.nextLine());
+
+            System.out.println("Informe o horário da turma. Exemplo: SEG 08:00-10:00");
+            String horario = scanner.nextLine();
+
+            System.out.println("Informe a sala da turma:");
+            String sala = scanner.nextLine();
+
+            Turma novaTurma = new Turma(
+                    codigoDisciplina,
+                    periodoLetivo,
+                    matriculaProfessor,
+                    limiteVagas,
+                    horario,
+                    sala
+            );
+
+            turmaService.ofertarTurma(novaTurma);
+
+            System.out.println("Turma ofertada com sucesso.");
+            System.out.println("Código da turma: " + novaTurma.getCodigo());
+            System.err.println();
+        } catch (PersistenciaException | EntradaInvalidaException e) {
+            System.out.println("Ocorreu um erro ao ofertar turma: " + e.getMessage());
+            System.err.println();
+        } catch (NumberFormatException e) {
+            System.out.println("Limite de vagas inválido.");
+            System.err.println();
+        }
     }
 
     private void buscarUsuarioPorMatricula() {
