@@ -15,7 +15,7 @@ import br.com.classroompb.model.exception.ExistePeriodoAtivoException;
 import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
 import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.services.DisciplinaService;
-import br.com.classroompb.model.services.GestaoAcademicaService;
+import br.com.classroompb.model.services.PeriodoLetivoService;
 import br.com.classroompb.model.services.TurmaService;
 import br.com.classroompb.model.services.UsuarioService;
 
@@ -41,7 +41,7 @@ public class MenuCoordenador {
 
     public void iniciar() {
         int opcao;
-        GestaoAcademicaService gestaoAcademicaService = new GestaoAcademicaService();
+        PeriodoLetivoService periodoLetivoService = new PeriodoLetivoService();
 
         do {
             System.out.println("""
@@ -123,7 +123,7 @@ public class MenuCoordenador {
 
                     try{
                         PeriodoLetivo novoPeriodo = new PeriodoLetivo(periodo, dataInicio, dataFim);
-                        gestaoAcademicaService.cadastrarPeriodoLetivo(novoPeriodo);
+                        periodoLetivoService.cadastrarPeriodoLetivo(novoPeriodo);
 
                         System.out.println("Período letivo cadastrado com sucesso");
 
@@ -138,7 +138,7 @@ public class MenuCoordenador {
                     System.out.println("Selecione o período letivo que vai ser ativado: ");
 
                     try{
-                        List<PeriodoLetivo> periodosLetivos = gestaoAcademicaService.listarPeriodosLetivos();
+                        List<PeriodoLetivo> periodosLetivos = periodoLetivoService.listarPeriodosLetivos();
 
                         int i = 1;
                         for(PeriodoLetivo periodos : periodosLetivos){
@@ -153,7 +153,7 @@ public class MenuCoordenador {
                         int periodoEscolhido = scanner.nextInt();
                         scanner.nextLine();
 
-                        boolean deuCerto = gestaoAcademicaService.ativarPeriodoLetivo(periodosLetivos.get(periodoEscolhido - 1), periodoEscolhido - 1);
+                        boolean deuCerto = periodoLetivoService.ativarPeriodoLetivo(periodosLetivos.get(periodoEscolhido - 1), periodoEscolhido - 1);
 
                         if(deuCerto){
                             System.out.println("Período ativado com sucesso!");
@@ -178,7 +178,7 @@ public class MenuCoordenador {
 
 
                     try{
-                        List<PeriodoLetivo> listaPeriodos = gestaoAcademicaService.listarPeriodosLetivos();
+                        List<PeriodoLetivo> listaPeriodos = periodoLetivoService.listarPeriodosLetivos();
 
                         int i=1;
                         for(PeriodoLetivo periodos: listaPeriodos){
@@ -192,7 +192,7 @@ public class MenuCoordenador {
                         int periodoEscolhido = scanner.nextInt();
                         scanner.nextLine();
 
-                        boolean deuCerto = gestaoAcademicaService.desativarPeriodoLetivo(listaPeriodos.get(periodoEscolhido - 1), periodoEscolhido - 1 );
+                        boolean deuCerto = periodoLetivoService.desativarPeriodoLetivo(listaPeriodos.get(periodoEscolhido - 1), periodoEscolhido - 1 );
 
                         if(deuCerto){
                             System.out.println("Período desativado com sucesso");

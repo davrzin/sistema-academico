@@ -42,14 +42,14 @@ public class GestaoAcademicaServiceTest {
         );
     }
 
-    private GestaoAcademicaService criarService(PeriodoLetivoRepository repository) {
-        return new GestaoAcademicaService(repository);
+    private PeriodoLetivoService criarService(PeriodoLetivoRepository repository) {
+        return new PeriodoLetivoService(repository);
     }
 
     @Test
     public void deveCadastrarPeriodoLetivo() {
         PeriodoLetivoRepository repository = criarRepository();
-        GestaoAcademicaService service = criarService(repository);
+        PeriodoLetivoService service = criarService(repository);
 
         PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
@@ -62,7 +62,7 @@ public class GestaoAcademicaServiceTest {
     @Test
     public void deveLancarEntradaInvalidaExceptionAoCadastrarPeriodoNull() {
         PeriodoLetivoRepository repository = criarRepository();
-        GestaoAcademicaService service = criarService(repository);
+        PeriodoLetivoService service = criarService(repository);
 
         Assertions.assertThrows(
                 EntradaInvalidaException.class,
@@ -73,7 +73,7 @@ public class GestaoAcademicaServiceTest {
     @Test
     public void deveLancarPeriodoLetivoExistenteExceptionQuandoPeriodoJaExistir() {
         PeriodoLetivoRepository repository = criarRepository();
-        GestaoAcademicaService service = criarService(repository);
+        PeriodoLetivoService service = criarService(repository);
 
         service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
 
@@ -88,7 +88,7 @@ public class GestaoAcademicaServiceTest {
     @Test
     public void deveLancarPeriodoLetivoExistenteExceptionQuandoDataInicioJaExistir() {
         PeriodoLetivoRepository repository = criarRepository();
-        GestaoAcademicaService service = criarService(repository);
+        PeriodoLetivoService service = criarService(repository);
 
         service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
 
@@ -103,7 +103,7 @@ public class GestaoAcademicaServiceTest {
     @Test
     public void deveLancarPeriodoLetivoExistenteExceptionQuandoDataFimJaExistir() {
         PeriodoLetivoRepository repository = criarRepository();
-        GestaoAcademicaService service = criarService(repository);
+        PeriodoLetivoService service = criarService(repository);
 
         service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
 
@@ -118,7 +118,7 @@ public class GestaoAcademicaServiceTest {
     @Test
     public void deveListarPeriodosLetivos() {
         PeriodoLetivoRepository repository = criarRepository();
-        GestaoAcademicaService service = criarService(repository);
+        PeriodoLetivoService service = criarService(repository);
 
         service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
         service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.2", "03/10/2026", "15/12/2026"));
@@ -129,7 +129,7 @@ public class GestaoAcademicaServiceTest {
     @Test
     public void deveAtivarPeriodoLetivoQuandoNaoExistePeriodoAtivo() {
         PeriodoLetivoRepository repository = criarRepository();
-        GestaoAcademicaService service = criarService(repository);
+        PeriodoLetivoService service = criarService(repository);
 
         PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
         service.cadastrarPeriodoLetivo(periodo);
@@ -143,7 +143,7 @@ public class GestaoAcademicaServiceTest {
     @Test
     public void deveLancarExistePeriodoAtivoExceptionQuandoJaExistePeriodoAtivo() {
         PeriodoLetivoRepository repository = criarRepository();
-        GestaoAcademicaService service = criarService(repository);
+        PeriodoLetivoService service = criarService(repository);
 
         PeriodoLetivo periodoAtivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
         PeriodoLetivo outroPeriodo = new PeriodoLetivo("2026.2", "03/10/2026", "15/12/2026");
@@ -161,7 +161,7 @@ public class GestaoAcademicaServiceTest {
     @Test
     public void deveDesativarPeriodoLetivo() {
         PeriodoLetivoRepository repository = criarRepository();
-        GestaoAcademicaService service = criarService(repository);
+        PeriodoLetivoService service = criarService(repository);
 
         PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
         service.cadastrarPeriodoLetivo(periodo);

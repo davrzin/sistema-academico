@@ -11,16 +11,16 @@ import br.com.classroompb.model.exception.ExistePeriodoAtivoException;
 import br.com.classroompb.model.exception.PeriodoLetivoExistenteException;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 
-public class GestaoAcademicaService {
+public class PeriodoLetivoService {
 
     private static final Path DIRETORIO_PERIODOS = Path.of(System.getProperty("user.dir"), "periodos");
     private final PeriodoLetivoRepository repository;
 
-    public GestaoAcademicaService() {
+    public PeriodoLetivoService() {
         this.repository = new PeriodoLetivoRepository(new ObjectMapper(), DIRETORIO_PERIODOS.toString());
     }
 
-    public GestaoAcademicaService(PeriodoLetivoRepository periodoLetivoRepository) {
+    public PeriodoLetivoService(PeriodoLetivoRepository periodoLetivoRepository) {
         this.repository = periodoLetivoRepository;
     }
 
