@@ -1,5 +1,6 @@
 package br.com.classroompb.ui;
 
+import java.util.List;
 import java.util.Scanner;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Curso;
@@ -59,7 +60,7 @@ public class MenuAdministrador {
                     break;
 
                 case 2:
-
+                    listarUsuarios();
                     break;
 
                 case 3:
@@ -73,7 +74,7 @@ public class MenuAdministrador {
                     int cargaHorariaTotal = Integer.parseInt(scanner.nextLine());
 
                     try{
-                        Curso novoCurso = new Curso(null, nome, quantidadePeriodos, cargaHorariaTotal);
+                        Curso novoCurso = new Curso(nome, quantidadePeriodos, cargaHorariaTotal);
                         cursoService.cadastrarCurso(novoCurso);
                         System.out.println("Curso cadastrado com sucesso.");
                     }catch(
@@ -119,7 +120,7 @@ public class MenuAdministrador {
             Usuario usuarioEncontrado = usuarioService.buscarUsuarioPorMatricula(usuarioLogado, matricula);
             exibirUsuario(usuarioEncontrado);
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Erro ao buscar usuário: " + e.getMessage());
         }
     }
 
@@ -130,5 +131,18 @@ public class MenuAdministrador {
         System.out.println("Matrícula: " + usuario.getMatricula());
         System.out.println("Tipo: " + usuario.getTipoUsuario());
         System.out.println();
+    }
+
+    private void listarUsuarios() {
+        List<Usuario> usuarios = usuarioService.listarUsuarios();
+
+        if (usuarios.isEmpty()) {
+            System.out.println("Nenhum usuário cadastrado.");
+            return;
+        }
+
+        for (Usuario usuario : usuarios) {
+            exibirUsuario(usuario);
+        }
     }
 }

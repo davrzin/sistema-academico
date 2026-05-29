@@ -101,4 +101,8 @@ public class UsuarioService {
 
         return false;
     }
+
+    public List<Usuario> listarUsuarios() {
+        return repository.listar();
+    }   
 }
