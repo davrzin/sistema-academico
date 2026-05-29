@@ -1,6 +1,6 @@
 package br.com.classroompb.application;
 
-import br.com.classroompb.ui.MenuPrincipal;
+import br.com.classroompb.ui.menu.MenuPrincipal;
 
 public class Program {
     public static void main(String[] args) {

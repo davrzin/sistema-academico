@@ -34,12 +34,7 @@ public class TurmaService {
         this.userRepository = new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString());
     }
 
-    public TurmaService(
-            TurmaRepository turmaRepository,
-            DisciplinaRepository disciplinaRepository,
-            PeriodoLetivoRepository periodoLetivoRepository,
-            UserRepository userRepository
-    ) {
+    public TurmaService( TurmaRepository turmaRepository, DisciplinaRepository disciplinaRepository, PeriodoLetivoRepository periodoLetivoRepository, UserRepository userRepository) {
         this.turmaRepository = turmaRepository;
         this.disciplinaRepository = disciplinaRepository;
         this.periodoLetivoRepository = periodoLetivoRepository;

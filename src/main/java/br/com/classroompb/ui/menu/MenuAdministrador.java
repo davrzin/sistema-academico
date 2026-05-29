@@ -1,0 +1,90 @@
+package br.com.classroompb.ui.menu;
+
+import java.util.Scanner;
+
+import br.com.classroompb.model.entities.Usuario.Administrador;
+import br.com.classroompb.ui.tela.CursoTela;
+import br.com.classroompb.ui.tela.UsuarioTela;
+
+public class MenuAdministrador {
+
+    private final Scanner scanner = new Scanner(System.in);
+    private final Administrador usuarioLogado;
+    private final UsuarioTela usuarioTela = new UsuarioTela(scanner);
+    private final CursoTela cursoTela = new CursoTela(scanner);
+
+    public MenuAdministrador(Administrador usuarioLogado) {
+        this.usuarioLogado = usuarioLogado;
+    }
+
+    public void iniciar() {
+        int opcao;
+
+        do {
+            System.out.println("""
+            ╔═══════════════════════════════════╗
+            ║        MENU ADMINISTRADOR         ║
+            ╠═══════════════════════════════════╣
+            ║ 1 - Cadastrar usuário             ║
+            ║ 2 - Listar usuários               ║
+            ║ 3 - Buscar usuário por matrícula  ║
+            ║ 4 - Atualizar usuário             ║
+            ║ 5 - Remover usuário               ║
+            ║ 6 - Cadastrar curso               ║
+            ║ 7 - Listar cursos                 ║
+            ║ 0 - Voltar                        ║
+            ╚═══════════════════════════════════╝
+            """);
+
+            opcao = lerOpcao();
+
+            switch (opcao) {
+                case 1:
+                    usuarioTela.cadastrarUsuario();
+                    break;
+
+                case 2:
+                    usuarioTela.listarUsuarios(usuarioLogado);
+                    break;
+
+                case 3:
+                    usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
+                    break;
+
+                case 4:
+                    usuarioTela.atualizarUsuario(usuarioLogado);
+                    break;
+
+                case 5:
+                    usuarioTela.removerUsuario(usuarioLogado);
+                    break;
+
+                case 6:
+                    cursoTela.cadastrarCurso();
+                    break;
+
+                case 7:
+                    cursoTela.listarCursos();
+                    break;
+
+                case 0:
+                    System.out.println("Voltando...");
+                    break;
+
+                default:
+                    System.out.println("Opção inválida.");
+            }
+
+        } while (opcao != 0);
+    }
+
+    private int lerOpcao() {
+        System.out.print("Digite uma opção: ");
+
+        try {
+            return Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+}

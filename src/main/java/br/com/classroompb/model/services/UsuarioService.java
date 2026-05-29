@@ -27,13 +27,52 @@ public class UsuarioService {
 
     public void cadastrarUsuario(Usuario usuario) {
         validarUsuario(usuario);
-        validarEmailDisponivel(usuario.getEmail());
+        validarEmailDisponivel(usuario.getEmail(), null);
 
         String matricula = gerarMatricula(usuario.getTipoUsuario());
         usuario.setMatricula(matricula);
 
         usuario.validarDadosComMatricula();
         repository.salvarUsuario(usuario);
+    }
+
+    public Usuario atualizarUsuario(
+            Usuario usuarioLogado,
+            String matricula,
+            String novoNome,
+            String novoEmail,
+            String novaSenha
+    ) {
+        Usuario usuarioEncontrado = buscarUsuarioPorMatricula(usuarioLogado, matricula);
+
+        if (novoNome != null && !novoNome.isBlank()) {
+            usuarioEncontrado.setNome(novoNome);
+        }
+
+        if (novoEmail != null && !novoEmail.isBlank()) {
+            validarEmailDisponivel(novoEmail, usuarioEncontrado.getMatricula());
+            usuarioEncontrado.setEmail(novoEmail);
+        }
+
+        if (novaSenha != null && !novaSenha.isBlank()) {
+            usuarioEncontrado.setSenha(novaSenha);
+        }
+
+        usuarioEncontrado.validarDadosComMatricula();
+        repository.atualizarUsuario(usuarioEncontrado);
+
+        return usuarioEncontrado;
+    }
+
+    public Usuario removerUsuarioPorMatricula(Usuario usuarioLogado, String matricula) {
+        Usuario usuarioEncontrado = buscarUsuarioPorMatricula(usuarioLogado, matricula);
+
+        repository.removerPorMatricula(
+                usuarioEncontrado.getMatricula(),
+                usuarioEncontrado.getTipoUsuario()
+        );
+
+        return usuarioEncontrado;
     }
 
     private void validarUsuario(Usuario usuario) {
@@ -44,11 +83,18 @@ public class UsuarioService {
         usuario.validarDadosBasicos();
     }
 
-    private void validarEmailDisponivel(String email) {
+    private void validarEmailDisponivel(String email, String matriculaIgnorada) {
         List<Usuario> usuarios = repository.listar();
 
         for (Usuario usuario : usuarios) {
-            if (usuario.getEmail() != null && usuario.getEmail().equalsIgnoreCase(email)) {
+            boolean mesmoEmail = usuario.getEmail() != null
+                    && usuario.getEmail().equalsIgnoreCase(email);
+
+            boolean mesmoUsuario = matriculaIgnorada != null
+                    && usuario.getMatricula() != null
+                    && usuario.getMatricula().equalsIgnoreCase(matriculaIgnorada);
+
+            if (mesmoEmail && !mesmoUsuario) {
                 throw new EntradaInvalidaException("Já existe um usuário cadastrado com esse e-mail.");
             }
         }
@@ -102,7 +148,8 @@ public class UsuarioService {
         return false;
     }
 
-    public List<Usuario> listarUsuarios() {
+    public List<Usuario> listarUsuarios(Usuario usuarioLogado) {
+        PermissaoService.validarPermissao(usuarioLogado, TipoUsuario.ADMINISTRADOR);
         return repository.listar();
-    }   
+    }
 }

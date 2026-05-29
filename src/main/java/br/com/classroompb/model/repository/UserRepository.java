@@ -46,22 +46,56 @@ public class UserRepository {
         }
 
         TipoUsuario tipoUsuario = usuario.getTipoUsuario();
-        String caminhoArquivo = getCaminhoArquivo(tipoUsuario);
+        List<Usuario> usuarios = listar(tipoUsuario);
+
+        usuarios.add(usuario);
+        salvarListaUsuarios(tipoUsuario, usuarios);
+    }
+
+    public void atualizarUsuario(Usuario usuarioAtualizado) {
+        if (usuarioAtualizado == null) {
+            throw new IllegalArgumentException("Usuário não pode ser nulo.");
+        }
+
+        TipoUsuario tipoUsuario = usuarioAtualizado.getTipoUsuario();
+        List<Usuario> usuarios = listar(tipoUsuario);
+
+        for (int i = 0; i < usuarios.size(); i++) {
+            Usuario usuario = usuarios.get(i);
+
+            if (matriculasSaoIguais(usuario.getMatricula(), usuarioAtualizado.getMatricula())) {
+                usuarios.set(i, usuarioAtualizado);
+                salvarListaUsuarios(tipoUsuario, usuarios);
+                return;
+            }
+        }
+
+        throw new UsuarioNaoEncontradoException(
+                "Usuário com matrícula " + usuarioAtualizado.getMatricula() + " não foi encontrado."
+        );
+    }
+
+    public Usuario removerPorMatricula(String matricula, TipoUsuario tipoUsuario) {
+        validarMatriculaInformada(matricula);
 
         List<Usuario> usuarios = listar(tipoUsuario);
-        usuarios.add(usuario);
 
-        try {
-            objectMapper.writeValue(new File(caminhoArquivo), usuarios);
-        } catch (IOException e) {
-            throw new PersistenciaException("Erro ao adicionar usuários.", e);
+        for (int i = 0; i < usuarios.size(); i++) {
+            Usuario usuario = usuarios.get(i);
+
+            if (matriculasSaoIguais(usuario.getMatricula(), matricula)) {
+                Usuario usuarioRemovido = usuarios.remove(i);
+                salvarListaUsuarios(tipoUsuario, usuarios);
+                return usuarioRemovido;
+            }
         }
+
+        throw new UsuarioNaoEncontradoException("Usuário com matrícula " + matricula + " não foi encontrado.");
     }
 
     public Usuario encontrarUsuario(String email, String senha) {
         List<Usuario> listaUsuarios = this.listar();
 
-        // Iterando sobre todos os usuários, pois no login ainda não sabemos qual é o tipo do usuário.
         for (Usuario usuario : listaUsuarios) {
             if (usuario.getEmail().equals(email) && usuario.getSenha().equals(senha)) {
                 return usuario;
@@ -152,6 +186,16 @@ public class UserRepository {
         }
     }
 
+    private void salvarListaUsuarios(TipoUsuario tipoUsuario, List<Usuario> usuarios) {
+        String caminhoArquivo = getCaminhoArquivo(tipoUsuario);
+
+        try {
+            objectMapper.writeValue(new File(caminhoArquivo), usuarios);
+        } catch (IOException e) {
+            throw new PersistenciaException("Erro ao salvar usuários.", e);
+        }
+    }
+
     private void validarMatriculaInformada(String matricula) {
         if (matricula == null || matricula.trim().isEmpty()) {
             throw new IllegalArgumentException("Matrícula não pode ser vazia.");
@@ -163,7 +207,12 @@ public class UserRepository {
     }
 
     private <T extends Usuario> List<Usuario> lerUsuarios(File arquivo, Class<T> tipo) throws IOException {
-        return new ArrayList<>(objectMapper.readValue(arquivo, objectMapper.getTypeFactory().constructCollectionType(List.class, tipo)));
+        return new ArrayList<>(
+                objectMapper.readValue(
+                        arquivo,
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, tipo)
+                )
+        );
     }
 
     private String getCaminhoArquivo(TipoUsuario tipoUsuario) {
