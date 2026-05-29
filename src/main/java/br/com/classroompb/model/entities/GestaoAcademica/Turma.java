@@ -15,14 +15,7 @@ public class Turma {
     public Turma() {
     }
 
-    public Turma(
-            String codigoDisciplina,
-            String periodoLetivo,
-            String matriculaProfessor,
-            int limiteVagas,
-            String horario,
-            String sala
-    ) {
+    public Turma(String codigoDisciplina, String periodoLetivo, String matriculaProfessor, int limiteVagas, String horario, String sala) {
         setCodigoDisciplina(codigoDisciplina);
         setPeriodoLetivo(periodoLetivo);
         setMatriculaProfessor(matriculaProfessor);
@@ -31,15 +24,7 @@ public class Turma {
         setSala(sala);
     }
 
-    public Turma(
-            String codigo,
-            String codigoDisciplina,
-            String periodoLetivo,
-            String matriculaProfessor,
-            int limiteVagas,
-            String horario,
-            String sala
-    ) {
+    public Turma(String codigo, String codigoDisciplina, String periodoLetivo, String matriculaProfessor, int limiteVagas, String horario, String sala) {
         setCodigo(codigo);
         setCodigoDisciplina(codigoDisciplina);
         setPeriodoLetivo(periodoLetivo);
@@ -90,10 +75,7 @@ public class Turma {
     }
 
     public void setLimiteVagas(int limiteVagas) {
-        if (limiteVagas <= 0) {
-            throw new EntradaInvalidaException("Limite de vagas da turma deve ser maior que zero.");
-        }
-
+        validarLimiteVagas(limiteVagas);
         this.limiteVagas = limiteVagas;
     }
 
@@ -119,7 +101,7 @@ public class Turma {
         validarCampoObrigatorio(codigoDisciplina, "Código da disciplina não pode ser vazio.");
         validarCampoObrigatorio(periodoLetivo, "Período letivo da turma não pode ser vazio.");
         validarCampoObrigatorio(matriculaProfessor, "Turma deve possuir professor responsável.");
-        setLimiteVagas(limiteVagas);
+        validarLimiteVagas(limiteVagas);
         validarCampoObrigatorio(horario, "Horário da turma não pode ser vazio.");
         validarCampoObrigatorio(sala, "Sala da turma não pode ser vazia.");
     }
@@ -127,6 +109,12 @@ public class Turma {
     private void validarCampoObrigatorio(String valor, String mensagemErro) {
         if (valor == null || valor.isBlank()) {
             throw new EntradaInvalidaException(mensagemErro);
+        }
+    }
+
+    private void validarLimiteVagas(int limiteVagas) {
+        if (limiteVagas <= 0) {
+            throw new EntradaInvalidaException("Limite de vagas da turma deve ser maior que zero.");
         }
     }
 

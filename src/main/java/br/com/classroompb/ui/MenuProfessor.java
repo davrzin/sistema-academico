@@ -1,9 +1,12 @@
 package br.com.classroompb.ui;
 
+import java.util.List;
 import java.util.Scanner;
 
+import br.com.classroompb.model.entities.GestaoAcademica.Turma;
 import br.com.classroompb.model.entities.Usuario.Professor;
 import br.com.classroompb.model.entities.Usuario.Usuario;
+import br.com.classroompb.model.services.TurmaService;
 import br.com.classroompb.model.services.UsuarioService;
 
 public class MenuProfessor {
@@ -11,6 +14,7 @@ public class MenuProfessor {
     private Scanner scanner = new Scanner(System.in);
     private Professor usuarioLogado;
     private UsuarioService usuarioService = new UsuarioService();
+    private TurmaService turmaService = new TurmaService();
 
     public MenuProfessor(Professor usuarioLogado) {
         this.usuarioLogado = usuarioLogado;
@@ -48,7 +52,7 @@ public class MenuProfessor {
 
             switch (opcao) {
                 case 1:
-
+                    consultarMinhasTurmas();
                     break;
 
                 case 2:
@@ -80,6 +84,23 @@ public class MenuProfessor {
             }
 
         } while (opcao != 0);
+    }
+
+    private void consultarMinhasTurmas() {
+        try {
+            List<Turma> turmas = turmaService.listarTurmasPorProfessor(usuarioLogado.getMatricula());
+
+            if (turmas.isEmpty()) {
+                System.out.println("Nenhuma turma encontrada para este professor.");
+                return;
+            }
+
+            for (Turma turma : turmas) {
+                System.out.println(turma);
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Ocorreu um erro ao consultar turmas: " + e.getMessage());
+        }
     }
 
     private void buscarAlunoPorMatricula() {

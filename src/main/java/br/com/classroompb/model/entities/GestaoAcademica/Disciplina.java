@@ -18,14 +18,7 @@ public class Disciplina {
         this.preRequisitos = new ArrayList<>();
     }
 
-    public Disciplina(
-            String nome,
-            int cargaHoraria,
-            int periodo,
-            int creditos,
-            String codigoCurso,
-            List<String> preRequisitos
-    ) {
+    public Disciplina(String nome, int cargaHoraria, int periodo, int creditos, String codigoCurso, List<String> preRequisitos) {
         setNome(nome);
         setCargaHoraria(cargaHoraria);
         setPeriodo(periodo);
@@ -34,15 +27,7 @@ public class Disciplina {
         setPreRequisitos(preRequisitos);
     }
 
-    public Disciplina(
-            String codigo,
-            String nome,
-            int cargaHoraria,
-            int periodo,
-            int creditos,
-            String codigoCurso,
-            List<String> preRequisitos
-    ) {
+    public Disciplina( String codigo, String nome, int cargaHoraria, int periodo, int creditos, String codigoCurso, List<String> preRequisitos) {
         setCodigo(codigo);
         setNome(nome);
         setCargaHoraria(cargaHoraria);

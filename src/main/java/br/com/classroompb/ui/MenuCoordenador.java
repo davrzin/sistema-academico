@@ -57,6 +57,7 @@ public class MenuCoordenador {
             ║ 7 - Alterar turma                 ║
             ║ 8 - Cancelar turma                ║
             ║ 9 - Buscar aluno/professor        ║
+            ║ 10 - Consultar turmas             ║
             ║ 0 - Voltar                        ║
             ╚═══════════════════════════════════╝
         \s""");
@@ -99,7 +100,7 @@ public class MenuCoordenador {
                         Disciplina novaDisciplina = new Disciplina(nome, cargaHoraria, periodoDis, creditos, codigoCurso, preRequisitos);
                         disciplinaService.cadastrarDisciplina(novaDisciplina);
                         System.out.println("Disciplina cadastrada com sucesso.");
-                    } catch(
+                    } catch (
                             PersistenciaException
                             | EntradaInvalidaException e
                     ) {
@@ -121,13 +122,13 @@ public class MenuCoordenador {
                     System.out.println("Informe a data de fim do período (DD/MM/AAAA): ");
                     String dataFim = scanner.nextLine();
 
-                    try{
+                    try {
                         PeriodoLetivo novoPeriodo = new PeriodoLetivo(periodo, dataInicio, dataFim);
                         periodoLetivoService.cadastrarPeriodoLetivo(novoPeriodo);
 
                         System.out.println("Período letivo cadastrado com sucesso");
 
-                    }catch(PersistenciaException | EntradaInvalidaException | PeriodoLetivoExistenteException e){
+                    } catch (PersistenciaException | EntradaInvalidaException | PeriodoLetivoExistenteException e) {
                         System.out.println("Ocorreu um erro ao cadastrar novo período letivo: " + e.getMessage());
                     }
 
@@ -137,14 +138,14 @@ public class MenuCoordenador {
 
                     System.out.println("Selecione o período letivo que vai ser ativado: ");
 
-                    try{
+                    try {
                         List<PeriodoLetivo> periodosLetivos = periodoLetivoService.listarPeriodosLetivos();
 
                         int i = 1;
-                        for(PeriodoLetivo periodos : periodosLetivos){
+                        for (PeriodoLetivo periodos : periodosLetivos) {
 
-                            if(periodos.getPeriodoAtivo() == false){
-                                System.out.println(i + "-) "+ periodos.getPeriodo() + " (" + periodos.getDataInicio() + " - " + periodos.getDataFim() + ")");
+                            if (!periodos.getPeriodoAtivo()) {
+                                System.out.println(i + "-) " + periodos.getPeriodo() + " (" + periodos.getDataInicio() + " - " + periodos.getDataFim() + ")");
                                 i++;
                             }
 
@@ -155,18 +156,17 @@ public class MenuCoordenador {
 
                         boolean deuCerto = periodoLetivoService.ativarPeriodoLetivo(periodosLetivos.get(periodoEscolhido - 1), periodoEscolhido - 1);
 
-                        if(deuCerto){
+                        if (deuCerto) {
                             System.out.println("Período ativado com sucesso!");
+                        } else {
+                            System.out.println("Período não ativado.");
                         }
 
-                        System.out.println("Deu errado");
+                    } catch (PersistenciaException | ExistePeriodoAtivoException | IndexOutOfBoundsException e) {
 
-                    }catch(PersistenciaException | ExistePeriodoAtivoException | IndexOutOfBoundsException e){
-
-                        if(e.getClass() == IndexOutOfBoundsException.class){
+                        if (e.getClass() == IndexOutOfBoundsException.class) {
                             System.out.println("Índice de período letivo não existe");
-                        }
-                        else{
+                        } else {
                             System.out.println("Ocorreu um erro. " + e.getMessage());
                         }
                     }
@@ -176,15 +176,14 @@ public class MenuCoordenador {
 
                     System.out.println("Selecione o período letivo que vai ser desativado: ");
 
-
-                    try{
+                    try {
                         List<PeriodoLetivo> listaPeriodos = periodoLetivoService.listarPeriodosLetivos();
 
-                        int i=1;
-                        for(PeriodoLetivo periodos: listaPeriodos){
+                        int i = 1;
+                        for (PeriodoLetivo periodos : listaPeriodos) {
 
-                            if(periodos.getPeriodoAtivo() == true){
-                                System.out.println(i + "-) "+ periodos.getPeriodo() + " (" + periodos.getDataInicio() + " - " + periodos.getDataFim() + ")");
+                            if (periodos.getPeriodoAtivo()) {
+                                System.out.println(i + "-) " + periodos.getPeriodo() + " (" + periodos.getDataInicio() + " - " + periodos.getDataFim() + ")");
                                 i++;
                             }
                         }
@@ -192,21 +191,19 @@ public class MenuCoordenador {
                         int periodoEscolhido = scanner.nextInt();
                         scanner.nextLine();
 
-                        boolean deuCerto = periodoLetivoService.desativarPeriodoLetivo(listaPeriodos.get(periodoEscolhido - 1), periodoEscolhido - 1 );
+                        boolean deuCerto = periodoLetivoService.desativarPeriodoLetivo(listaPeriodos.get(periodoEscolhido - 1), periodoEscolhido - 1);
 
-                        if(deuCerto){
+                        if (deuCerto) {
                             System.out.println("Período desativado com sucesso");
-                        }
-                        else{
+                        } else {
                             System.out.println("Período não desativado.");
                         }
 
-                    }catch(PersistenciaException | IndexOutOfBoundsException e){
+                    } catch (PersistenciaException | IndexOutOfBoundsException e) {
 
-                        if(e.getClass() == IndexOutOfBoundsException.class){
+                        if (e.getClass() == IndexOutOfBoundsException.class) {
                             System.out.println("Índice de período letivo não existe.");
-                        }
-                        else{
+                        } else {
                             System.out.println("Ocorreu um erro: " + e.getMessage());
 
                         }
@@ -219,15 +216,19 @@ public class MenuCoordenador {
                     break;
 
                 case 7:
-
+                    alterarTurma();
                     break;
 
                 case 8:
-
+                    cancelarTurma();
                     break;
 
                 case 9:
                     buscarUsuarioPorMatricula();
+                    break;
+
+                case 10:
+                    consultarTurmas();
                     break;
 
                 case 0:
@@ -245,32 +246,7 @@ public class MenuCoordenador {
 
     private void ofertarTurma() {
         try {
-            System.out.println("Informe o código da disciplina:");
-            String codigoDisciplina = scanner.nextLine();
-
-            System.out.println("Informe o período letivo da turma. Exemplo: 2026.2");
-            String periodoLetivo = scanner.nextLine();
-
-            System.out.println("Informe a matrícula do professor responsável:");
-            String matriculaProfessor = scanner.nextLine();
-
-            System.out.println("Informe o limite de vagas:");
-            int limiteVagas = Integer.parseInt(scanner.nextLine());
-
-            System.out.println("Informe o horário da turma. Exemplo: SEG 08:00-10:00");
-            String horario = scanner.nextLine();
-
-            System.out.println("Informe a sala da turma:");
-            String sala = scanner.nextLine();
-
-            Turma novaTurma = new Turma(
-                    codigoDisciplina,
-                    periodoLetivo,
-                    matriculaProfessor,
-                    limiteVagas,
-                    horario,
-                    sala
-            );
+            Turma novaTurma = lerDadosTurma();
 
             turmaService.ofertarTurma(novaTurma);
 
@@ -283,6 +259,96 @@ public class MenuCoordenador {
         } catch (NumberFormatException e) {
             System.out.println("Limite de vagas inválido.");
             System.err.println();
+        }
+    }
+
+    private void alterarTurma() {
+        try {
+            consultarTurmas();
+
+            System.out.println("Informe o código da turma que deseja alterar:");
+            String codigo = scanner.nextLine();
+
+            Turma turmaAtualizada = lerDadosTurma();
+
+            turmaService.alterarTurma(codigo, turmaAtualizada);
+
+            System.out.println("Turma alterada com sucesso.");
+            System.err.println();
+        } catch (PersistenciaException | EntradaInvalidaException e) {
+            System.out.println("Ocorreu um erro ao alterar turma: " + e.getMessage());
+            System.err.println();
+        } catch (NumberFormatException e) {
+            System.out.println("Limite de vagas inválido.");
+            System.err.println();
+        }
+    }
+
+    private void cancelarTurma() {
+        try {
+            consultarTurmas();
+
+            System.out.println("Informe o código da turma que deseja cancelar:");
+            String codigo = scanner.nextLine();
+
+            turmaService.cancelarTurma(codigo);
+
+            System.out.println("Turma cancelada com sucesso.");
+            System.err.println();
+        } catch (PersistenciaException | EntradaInvalidaException e) {
+            System.out.println("Ocorreu um erro ao cancelar turma: " + e.getMessage());
+            System.err.println();
+        }
+    }
+
+    private Turma lerDadosTurma() {
+        System.out.println("Informe o código da disciplina:");
+        String codigoDisciplina = scanner.nextLine();
+
+        System.out.println("Informe o período letivo da turma. Exemplo: 2026.2");
+        String periodoLetivo = scanner.nextLine();
+
+        System.out.println("Informe a matrícula do professor responsável:");
+        String matriculaProfessor = scanner.nextLine();
+
+        System.out.println("Informe o limite de vagas:");
+        int limiteVagas = Integer.parseInt(scanner.nextLine());
+
+        System.out.println("Informe o horário da turma. Exemplo: SEG 08:00-10:00");
+        String horario = scanner.nextLine();
+
+        System.out.println("Informe a sala da turma:");
+        String sala = scanner.nextLine();
+
+        return new Turma(
+                codigoDisciplina,
+                periodoLetivo,
+                matriculaProfessor,
+                limiteVagas,
+                horario,
+                sala
+        );
+    }
+
+    private void consultarTurmas() {
+        try {
+            List<Turma> turmas = turmaService.listarTurmas();
+            exibirTurmas(turmas);
+        } catch (PersistenciaException e) {
+            System.out.println("Ocorreu um erro ao consultar turmas: " + e.getMessage());
+            System.err.println();
+        }
+    }
+
+    private void exibirTurmas(List<Turma> turmas) {
+        if (turmas == null || turmas.isEmpty()) {
+            System.out.println("Nenhuma turma cadastrada.");
+            System.err.println();
+            return;
+        }
+
+        for (Turma turma : turmas) {
+            System.out.println(turma);
         }
     }
 

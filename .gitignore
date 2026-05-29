@@ -1,8 +1,8 @@
-# Arquivos compilados / build Maven
+# Build Maven
 target/
 *.class
 
-# Arquivos de IDE
+# IDEs
 .vscode/
 .idea/
 *.iml
@@ -10,22 +10,17 @@ target/
 .classpath
 .settings/
 
-# Arquivos do sistema operacional
+# Sistema operacional
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Logs
+# Logs e temporários
 *.log
-
-# Arquivos temporários
 *.tmp
 *.temp
 *.bak
 *.swp
 
-# Dados locais do sistema
-usuarios/*.json
-
-# Mantém a pasta usuarios no Git, mas ignora os dados reais
-!usuarios/.gitkeep
+# Ignorar qualquer JSON do projeto
+*.json

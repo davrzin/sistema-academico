@@ -51,14 +51,82 @@ public class TurmaService {
         validarDisciplinaExistente(turma.getCodigoDisciplina());
         validarPeriodoLetivoExistente(turma.getPeriodoLetivo());
         validarProfessorResponsavel(turma.getMatriculaProfessor());
-        validarConflitoHorarioProfessor(turma);
+        validarConflitoHorarioProfessor(turma, null);
 
         turma.setCodigo(gerarCodigoTurma());
         turmaRepository.salvarTurma(turma);
     }
 
+    public void alterarTurma(String codigo, Turma turmaAtualizada) {
+        validarCodigoTurma(codigo);
+
+        Turma turmaCadastrada = turmaRepository.buscarPorCodigo(codigo);
+
+        if (turmaCadastrada == null) {
+            throw new EntradaInvalidaException("Turma não encontrada.");
+        }
+
+        validarTurma(turmaAtualizada);
+        validarDisciplinaExistente(turmaAtualizada.getCodigoDisciplina());
+        validarPeriodoLetivoExistente(turmaAtualizada.getPeriodoLetivo());
+        validarProfessorResponsavel(turmaAtualizada.getMatriculaProfessor());
+
+        turmaAtualizada.setCodigo(turmaCadastrada.getCodigo());
+        validarConflitoHorarioProfessor(turmaAtualizada, turmaCadastrada.getCodigo());
+
+        boolean atualizou = turmaRepository.atualizarTurma(turmaAtualizada);
+
+        if (!atualizou) {
+            throw new EntradaInvalidaException("Não foi possível alterar a turma.");
+        }
+    }
+
+    public void cancelarTurma(String codigo) {
+        validarCodigoTurma(codigo);
+
+        Turma turma = turmaRepository.buscarPorCodigo(codigo);
+
+        if (turma == null) {
+            throw new EntradaInvalidaException("Turma não encontrada.");
+        }
+
+        boolean removeu = turmaRepository.removerTurmaPorCodigo(codigo);
+
+        if (!removeu) {
+            throw new EntradaInvalidaException("Não foi possível cancelar a turma.");
+        }
+    }
+
+    public Turma buscarTurmaPorCodigo(String codigo) {
+        validarCodigoTurma(codigo);
+
+        Turma turma = turmaRepository.buscarPorCodigo(codigo);
+
+        if (turma == null) {
+            throw new EntradaInvalidaException("Turma não encontrada.");
+        }
+
+        return turma;
+    }
+
     public List<Turma> listarTurmas() {
         return turmaRepository.listarTurmas();
+    }
+
+    public List<Turma> listarTurmasPorProfessor(String matriculaProfessor) {
+        if (matriculaProfessor == null || matriculaProfessor.isBlank()) {
+            throw new EntradaInvalidaException("Matrícula do professor não pode ser vazia.");
+        }
+
+        return turmaRepository.buscarPorProfessor(matriculaProfessor);
+    }
+
+    public List<Turma> listarTurmasPorPeriodoLetivo(String periodoLetivo) {
+        if (periodoLetivo == null || periodoLetivo.isBlank()) {
+            throw new EntradaInvalidaException("Período letivo não pode ser vazio.");
+        }
+
+        return turmaRepository.buscarPorPeriodoLetivo(periodoLetivo);
     }
 
     private void validarTurma(Turma turma) {
@@ -67,6 +135,12 @@ public class TurmaService {
         }
 
         turma.validarDadosBasicos();
+    }
+
+    private void validarCodigoTurma(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            throw new EntradaInvalidaException("Código da turma não pode ser vazio.");
+        }
     }
 
     private void validarDisciplinaExistente(String codigoDisciplina) {
@@ -99,10 +173,18 @@ public class TurmaService {
         }
     }
 
-    private void validarConflitoHorarioProfessor(Turma novaTurma) {
+    private void validarConflitoHorarioProfessor(Turma novaTurma, String codigoTurmaIgnorada) {
         List<Turma> turmasDoProfessor = turmaRepository.buscarPorProfessor(novaTurma.getMatriculaProfessor());
 
         for (Turma turmaCadastrada : turmasDoProfessor) {
+            boolean mesmaTurma = codigoTurmaIgnorada != null
+                    && turmaCadastrada.getCodigo() != null
+                    && turmaCadastrada.getCodigo().equalsIgnoreCase(codigoTurmaIgnorada);
+
+            if (mesmaTurma) {
+                continue;
+            }
+
             boolean mesmoPeriodo = turmaCadastrada.getPeriodoLetivo() != null
                     && turmaCadastrada.getPeriodoLetivo().equalsIgnoreCase(novaTurma.getPeriodoLetivo());
             boolean mesmoHorario = turmaCadastrada.getHorario() != null

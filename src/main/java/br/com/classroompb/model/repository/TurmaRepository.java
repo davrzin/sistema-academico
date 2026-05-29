@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class TurmaRepository {
@@ -42,15 +43,51 @@ public class TurmaRepository {
             throw new IllegalArgumentException("Turma não pode ser nula.");
         }
 
-        String caminhoArquivo = getCaminhoArquivo();
         List<Turma> turmas = listarTurmas();
         turmas.add(turma);
+        salvarListaTurmas(turmas);
+    }
 
-        try {
-            objectMapper.writeValue(new File(caminhoArquivo), turmas);
-        } catch (IOException e) {
-            throw new PersistenciaException("Erro ao salvar turma.", e);
+    public boolean atualizarTurma(Turma turmaAtualizada) {
+        if (turmaAtualizada == null) {
+            throw new IllegalArgumentException("Turma não pode ser nula.");
         }
+
+        List<Turma> turmas = listarTurmas();
+
+        for (int i = 0; i < turmas.size(); i++) {
+            Turma turma = turmas.get(i);
+
+            if (turma.getCodigo() != null
+                    && turma.getCodigo().equalsIgnoreCase(turmaAtualizada.getCodigo())) {
+                turmas.set(i, turmaAtualizada);
+                salvarListaTurmas(turmas);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean removerTurmaPorCodigo(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            return false;
+        }
+
+        List<Turma> turmas = listarTurmas();
+        Iterator<Turma> iterator = turmas.iterator();
+
+        while (iterator.hasNext()) {
+            Turma turma = iterator.next();
+
+            if (turma.getCodigo() != null && turma.getCodigo().equalsIgnoreCase(codigo.trim())) {
+                iterator.remove();
+                salvarListaTurmas(turmas);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public List<Turma> listarTurmas() {
@@ -112,6 +149,16 @@ public class TurmaRepository {
         }
 
         return turmasDoPeriodo;
+    }
+
+    private void salvarListaTurmas(List<Turma> turmas) {
+        String caminhoArquivo = getCaminhoArquivo();
+
+        try {
+            objectMapper.writeValue(new File(caminhoArquivo), turmas);
+        } catch (IOException e) {
+            throw new PersistenciaException("Erro ao salvar turmas.", e);
+        }
     }
 
     private String getCaminhoArquivo() {
