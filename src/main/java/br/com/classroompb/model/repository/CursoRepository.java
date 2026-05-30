@@ -38,7 +38,7 @@ public class CursoRepository {
         return diretorioCursos;
     }
 
-    public void salvarCurso(Curso curso) {
+    public boolean salvarCurso(Curso curso) {
         if (curso == null) {
             throw new IllegalArgumentException("Curso não pode ser nulo.");
         }
@@ -51,6 +51,8 @@ public class CursoRepository {
 
         try {
             this.objectMapper.writeValue(new File(caminhoArquivo),cursos);
+
+            return true;
         } catch (IOException e){
             throw new PersistenciaException("Erro ao salvar curso.", e);
         }
@@ -58,14 +60,14 @@ public class CursoRepository {
 
     public List<Curso> listarCursos() {
 
-        File arquivo = new File(this.getCaminhoArquivo());
+        File arquivo = new File(getCaminhoArquivo());
 
         if (!arquivo.exists()) {
             return new ArrayList<>();
         }
 
         try {
-            return this.lerCursos(
+            return lerCursos(
                     arquivo,
                     Curso.class
             );
