@@ -47,19 +47,10 @@ public class DisciplinaTela {
             List<String> preRequisitos = new ArrayList<>();
 
             if (!entradaPreRequisitos.isBlank()) {
-                preRequisitos = Arrays.stream(entradaPreRequisitos.split(","))
-                        .map(String::trim)
-                        .toList();
+                preRequisitos = Arrays.stream(entradaPreRequisitos.split(",")).map(String::trim).toList();
             }
 
-            Disciplina novaDisciplina = new Disciplina(
-                    nome,
-                    cargaHoraria,
-                    periodo,
-                    creditos,
-                    codigoCurso,
-                    preRequisitos
-            );
+            Disciplina novaDisciplina = new Disciplina(nome, cargaHoraria, periodo, creditos, codigoCurso, preRequisitos);
 
             disciplinaService.cadastrarDisciplina(novaDisciplina);
 

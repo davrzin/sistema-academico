@@ -39,8 +39,7 @@ public class DisciplinaRepository {
     }
 
     public void salvarDisciplina(Disciplina disciplina){
-
-        if(disciplina == null){throw new IllegalArgumentException("Disciplina não pode ser nula.");}
+        if(disciplina == null) {throw new IllegalArgumentException("Disciplina não pode ser nula.");}
 
         String caminhoArquivo = this.getCaminhoArquivo();
         List<Disciplina> disciplinas = this.listarDisciplinas();
@@ -80,7 +79,6 @@ public class DisciplinaRepository {
     }
 
     public Disciplina buscarPorNome(String nome) {
-
         List<Disciplina> disciplinas = this.listarDisciplinas();
 
         for(Disciplina disciplina : disciplinas){

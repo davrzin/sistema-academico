@@ -124,29 +124,67 @@ public class Disciplina {
         if (nome == null || nome.isBlank()) {
             throw new EntradaInvalidaException("Nome da disciplina não pode ser vazio.");
         }
+
+        if (nome.length() < 3){
+            throw new EntradaInvalidaException(
+                "Nome da disciplina deve possuir pelo menos 3 caracteres."
+            );
+        }
+
+        if (nome.length() > 200){
+            throw new EntradaInvalidaException(
+                "Nome da disciplina deve possuir no máximo 100 caracteres."
+            );
+        }
     }
 
     private void validarCargaHoraria(int cargaHoraria) {
         if (cargaHoraria <= 0) {
             throw new EntradaInvalidaException("Carga horária da disciplina inválida.");
         }
-    }
-
-    private void validarPeriodo(int periodo) {
-        if (periodo <= 0) {
-            throw new EntradaInvalidaException("Período da disciplina inválido.");
+        
+        if (cargaHoraria > 300) {
+            throw new EntradaInvalidaException(
+                "Carga horária da disciplina inválida."
+            );
         }
     }
 
-    private void validarCreditos(int creditos) {
-        if (creditos <= 0) {
+    private void validarPeriodo(int periodo){
+        if (periodo <= 0){
+            throw new EntradaInvalidaException("Período da disciplina inválido.");
+        }
+
+        if (periodo > 12){
+            throw new EntradaInvalidaException(
+                "O período de oferta deve estar entre 1 e 13."
+            );
+        }
+    }
+
+    private void validarCreditos(int creditos){
+        if (creditos <= 0){
             throw new EntradaInvalidaException("Quantidade de créditos inválida.");
+        }
+
+        if (creditos > 30){
+            throw new EntradaInvalidaException(
+                "Quantidade de créditos inválida."
+            );
         }
     }
 
     private void validarCodigoCurso(String codigoCurso) {
         if (codigoCurso == null || codigoCurso.isBlank()) {
             throw new EntradaInvalidaException("Código do curso da disciplina não pode ser vazio.");
+        }
+
+        codigoCurso = codigoCurso.trim();
+
+        if (!codigoCurso.matches("cur\\d{2,}")){
+            throw new EntradaInvalidaException(
+                "Formato do código curso inválido."
+            );
         }
     }
 
@@ -158,6 +196,12 @@ public class Disciplina {
         for (String codigoDisciplina : preRequisitos) {
             if (codigoDisciplina == null || codigoDisciplina.isBlank()) {
                 throw new EntradaInvalidaException("Código de pré-requisito inválido.");
+            }
+            
+            if (!codigoDisciplina.matches("dis\\d{2,}")){
+                throw new EntradaInvalidaException(
+                    "Formato do código de pré-requisito inválido."
+                );
             }
         }
     }

@@ -76,17 +76,41 @@ public class Curso {
         if (nome == null || nome.isBlank()) {
             throw new EntradaInvalidaException("Nome do curso não pode ser vazio.");
         }
+
+        if (nome.length() < 3) {
+            throw new EntradaInvalidaException(
+                "Nome do curso deve possuir pelo menos 3 caracteres."
+            );
+        }
+
+        if (nome.length() > 200) {
+            throw new EntradaInvalidaException(
+                "Nome do curso deve possuir no máximo 100 caracteres."
+            );
+        }
     }
 
-    private void validarQuantidadePeriodos(int quantidadePeriodos) {
-        if (quantidadePeriodos <= 0) {
+    private void validarQuantidadePeriodos(int quantidadePeriodos){
+        if (quantidadePeriodos <= 0){
             throw new EntradaInvalidaException("Quantidade de períodos inválida.");
+        }
+
+        if (quantidadePeriodos > 13){
+            throw new EntradaInvalidaException(
+                "A quantidade de períodos não pode ultrapassar 13."
+            );
         }
     }
 
     private void validarCargaHorariaTotal(int cargaHorariaTotal) {
-        if (cargaHorariaTotal <= 0) {
+        if (cargaHorariaTotal <= 0){
             throw new EntradaInvalidaException("Carga horária inválida.");
+        }
+
+        if (cargaHorariaTotal > 10000){
+            throw new EntradaInvalidaException(
+                "Carga horária inválida."
+            );
         }
     }
 
