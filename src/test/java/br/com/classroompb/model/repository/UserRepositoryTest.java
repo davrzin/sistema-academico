@@ -9,6 +9,7 @@ import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -184,6 +185,54 @@ class UserRepositoryTest {
         assertTrue(usuarios.stream().anyMatch(u -> u.getMatricula().equals("pr00") && u.getTipoUsuario() == TipoUsuario.PROFESSOR));
         assertTrue(usuarios.stream().anyMatch(u -> u.getMatricula().equals("co00") && u.getTipoUsuario() == TipoUsuario.COORDENADOR));
         assertTrue(usuarios.stream().anyMatch(u -> u.getMatricula().equals("ad00") && u.getTipoUsuario() == TipoUsuario.ADMINISTRADOR));
+    }
+
+    @Test
+    public void deveListarUsuariosDeTipoEspecifico(){
+
+        UserRepository repository = criarRepository();
+
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+        aluno.setMatricula("al00");
+
+        Aluno aluno2 = new Aluno("Joao", "Joao@email.com", "senha123");
+        aluno2.setMatricula("a101");
+
+        repository.salvarUsuario(aluno);
+        repository.salvarUsuario(aluno2);
+
+        List<Usuario> usuarios = repository.listar(aluno.getTipoUsuario());
+
+        Assertions.assertEquals(2, usuarios.size());
+        Assertions.assertEquals(aluno.getNome(), usuarios.getFirst().getNome());
+        Assertions.assertEquals(aluno2.getNome(), usuarios.getLast().getNome());
+
+    }
+
+    @Test
+    public void deveRemoverUsuarioCorretamente(){
+        UserRepository repository = criarRepository();
+
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+        aluno.setMatricula("al00");
+
+        repository.salvarUsuario(aluno);
+
+        Usuario usuarioRemovido = repository.removerPorMatricula(aluno.getMatricula(), aluno.getTipoUsuario());
+
+        Assertions.assertNotNull(usuarioRemovido);
+    }
+
+    @Test
+    public void deveLancarUsuarioNaoEncontradoException(){
+        UserRepository repository = criarRepository();
+
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+        aluno.setMatricula("al00");
+
+        repository.salvarUsuario(aluno);
+
+        Assertions.assertThrows(UsuarioNaoEncontradoException.class, () -> repository.removerPorMatricula("al01", aluno.getTipoUsuario()));
     }
 
     @Test

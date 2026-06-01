@@ -7,6 +7,7 @@ import br.com.classroompb.model.entities.Usuario.Professor;
 import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.List;
 
 public class UsuarioServiceTest {
 
@@ -172,6 +174,153 @@ public class UsuarioServiceTest {
     }
 
     @Test
+    public void deveSerPossivelProfessorAtualizarDadosDeUsuarioCorretamente(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Professor professor = new Professor("Sabrina", "sabrina@email.com", "1234");
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(professor);
+        service.cadastrarUsuario(aluno);
+
+        Usuario usuarioAtualizado = service.atualizarUsuario(professor, aluno.getMatricula(), "Joana", "joana@email.com", "321");
+
+        Assertions.assertNotEquals(aluno.getNome(), usuarioAtualizado.getNome());
+        Assertions.assertNotEquals(aluno.getEmail(), usuarioAtualizado.getEmail());
+        Assertions.assertNotEquals(aluno.getSenha(), usuarioAtualizado.getSenha());
+
+    }
+
+    @Test
+    public void deveSerPossivelCoordenadorAtualizarDadosDeUsuarioCorretamente(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Coordenador coordenador = new Coordenador("Sabrina", "sabrina@email.com", "1234");
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(coordenador);
+        service.cadastrarUsuario(aluno);
+
+        Usuario usuarioAtualizado = service.atualizarUsuario(coordenador, aluno.getMatricula(), "Joana", "joana@email.com", "321");
+
+        Assertions.assertNotEquals(aluno.getNome(), usuarioAtualizado.getNome());
+        Assertions.assertNotEquals(aluno.getEmail(), usuarioAtualizado.getEmail());
+        Assertions.assertNotEquals(aluno.getSenha(), usuarioAtualizado.getSenha());
+
+    }
+
+    @Test
+    public void deveSerPossivelAdministradortualizarDadosDeUsuarioCorretamente(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Administrador adm = new Administrador("Sabrina", "sabrina@email.com", "1234");
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(adm);
+        service.cadastrarUsuario(aluno);
+
+        Usuario usuarioAtualizado = service.atualizarUsuario(adm, aluno.getMatricula(), "Joana", "joana@email.com", "321");
+
+        Assertions.assertNotEquals(aluno.getNome(), usuarioAtualizado.getNome());
+        Assertions.assertNotEquals(aluno.getEmail(), usuarioAtualizado.getEmail());
+        Assertions.assertNotEquals(aluno.getSenha(), usuarioAtualizado.getSenha());
+
+    }
+
+    @Test
+    public void deveLancarRuntimeExceptioAoAlunoTentarEditarSeusDados(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(aluno);
+
+        Assertions.assertThrows(RuntimeException.class, () -> service.atualizarUsuario(aluno, aluno.getMatricula(), "Joana", "joana@email.com", "321"));
+
+    }
+
+    @Test
+    public void administradorDeveRemoverAlunoPorMatricula(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Administrador adm = new Administrador("Sabrina", "sabrina@email.com", "1234");
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(adm);
+        service.cadastrarUsuario(aluno);
+
+        Usuario usuarioRemovido = service.removerUsuarioPorMatricula(adm, aluno.getMatricula());
+
+
+        Assertions.assertNotNull(usuarioRemovido);
+    }
+
+    @Test
+    public void coordenadorDeveRemoverAlunoPorMatricula(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Coordenador coordenador = new Coordenador("Sabrina", "sabrina@email.com", "1234");
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(coordenador);
+        service.cadastrarUsuario(aluno);
+
+        Usuario usuarioRemovido = service.removerUsuarioPorMatricula(coordenador, aluno.getMatricula());
+
+
+        Assertions.assertNotNull(usuarioRemovido);
+    }
+
+    @Test
+    public void professorDeveRemoverAlunoPorMatricula(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Professor professor = new Professor("Sabrina", "sabrina@email.com", "1234");
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(professor);
+        service.cadastrarUsuario(aluno);
+
+        Usuario usuarioRemovido = service.removerUsuarioPorMatricula(professor, aluno.getMatricula());
+
+
+        Assertions.assertNotNull(usuarioRemovido);
+    }
+
+    @Test
+    public void deveLancarRuntimeExceptionAoAlunoTentarRemoverPropriaConta(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(aluno);
+
+        Assertions.assertThrows(RuntimeException.class, () -> service.removerUsuarioPorMatricula(aluno, aluno.getMatricula()));
+
+
+    }
+
+    @Test
+    public void deveLancarUsuarioNaoEncontradoExceptionAoRemoverUsuarioInexistente(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Professor professor = new Professor("Sabrina", "sabrina@email.com", "1234");
+
+        Assertions.assertThrows(UsuarioNaoEncontradoException.class, () -> service.removerUsuarioPorMatricula(professor, "2fwef234"));
+
+
+    }
+
+    @Test
     public void deveBuscarUsuarioPorMatriculaRespeitandoPermissao() {
         UserRepository repository = criarRepository();
         UsuarioService service = criarService(repository);
@@ -189,4 +338,40 @@ public class UsuarioServiceTest {
 
         Assertions.assertEquals("Maria", usuarioEncontrado.getNome());
     }
+
+    @Test
+    public void deveListarTodosOsUsuariosCadastrados(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Administrador administrador = new Administrador("Carlos", "carlos@email.com", "senha123");
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+        Aluno aluno2 = new Aluno("Joao", "joao@email.com", "senha123");
+
+        service.cadastrarUsuario(administrador);
+        service.cadastrarUsuario(aluno);
+        service.cadastrarUsuario(aluno2);
+
+        List<Usuario> usuariosCadastrados = service.listarUsuarios(administrador);
+
+        Assertions.assertEquals(3, usuariosCadastrados.size());
+        Assertions.assertEquals(aluno.getNome(), usuariosCadastrados.getFirst().getNome());
+        Assertions.assertEquals(aluno2.getNome(), usuariosCadastrados.get(1).getNome());
+        Assertions.assertEquals(administrador.getNome(), usuariosCadastrados.getLast().getNome());
+
+
+    }
+
+    @Test
+    public void deveLancarRuntimeExceptionComPermissaoErrada(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(aluno);
+
+        Assertions.assertThrows(RuntimeException.class, () -> service.listarUsuarios(aluno));
+    }
+
 }
