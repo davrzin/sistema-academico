@@ -38,7 +38,8 @@ public class MenuAluno {
             ║ 3 - Listar matrícula               ║
             ║ 4 - Listar boletim                 ║
             ║ 5 - Listar histórico acadêmico     ║
-            ║ 6 - Cancelar matrícula             ║
+            ║ 6 - Matricular em turma            ║
+            ║ 7 - Cancelar matrícula             ║
             ║ 0 - Voltar                         ║
             ╚════════════════════════════════════╝
             """);
@@ -67,7 +68,7 @@ public class MenuAluno {
                     break;
 
                 case 6:
-                    System.out.println("Funcionalidade de cancelar matrícula ainda não implementada.");
+                    turmaTela.cadastrarNovoAluno();
                     break;
 
                 case 0:

@@ -1,5 +1,6 @@
 package br.com.classroompb.model.entities.GestaoAcademica;
 
+import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 
 public class Turma {
@@ -11,6 +12,7 @@ public class Turma {
     private int limiteVagas;
     private String horario;
     private String sala;
+    private Aluno[] matriculados;
 
     public Turma() {
     }
@@ -22,6 +24,7 @@ public class Turma {
         setLimiteVagas(limiteVagas);
         setHorario(horario);
         setSala(sala);
+        setMatriculados();
     }
 
     public Turma(String codigo, String codigoDisciplina, String periodoLetivo, String matriculaProfessor, int limiteVagas, String horario, String sala) {
@@ -32,6 +35,7 @@ public class Turma {
         setLimiteVagas(limiteVagas);
         setHorario(horario);
         setSala(sala);
+        setMatriculados();
     }
 
     public String getCodigo() {
@@ -95,6 +99,14 @@ public class Turma {
     public void setSala(String sala) {
         validarCampoObrigatorio(sala, "Sala da turma não pode ser vazia.");
         this.sala = sala;
+    }
+
+    public Aluno[] getMAtriculados(){
+        return matriculados;
+    }
+
+    public void setMatriculados(){
+        this.matriculados = new Aluno[this.getLimiteVagas()];
     }
 
     public void validarDadosBasicos() {

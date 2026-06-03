@@ -20,7 +20,7 @@ public class PermissaoService {
         }
     }
 
-    public static void validarPermissaoBuscaPorMatricula(
+    public static void  validarPermissaoBuscaPorMatricula(
         Usuario usuarioLogado,
         Usuario usuarioEncontrado
     ) {

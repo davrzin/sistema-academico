@@ -92,6 +92,16 @@ public class TurmaTela {
         }
     }
 
+    public void cadastrarNovoAluno(){
+        listarTurmas();
+
+        System.out.println("======================================");
+        System.out.println("Informe o código da turma que deseja se matricular: ");
+        String codigoTurma = scanner.nextLine();
+
+
+    }
+
     private Turma lerDadosTurma() {
         System.out.println("Informe o código da disciplina:");
         String codigoDisciplina = scanner.nextLine();
