@@ -213,8 +213,6 @@ public class TurmaService {
 
         Turma turma = buscarTurmaPorCodigo(codigoTurma);
 
-        System.out.println(turma.getLimiteVagas());
-        System.out.println(turma.getMatriculados().size());
         if(turma.getLimiteVagas() == turma.getMatriculados().size()){
             throw new TurmaCheiaException();
         }
@@ -229,6 +227,8 @@ public class TurmaService {
         Set<String> nomeDisciplinasConcluidas = disciplinasConcluidas.stream().map(Disciplina::getNome).collect(Collectors.toSet());
 
         validarDisciplinasConcluidas(nomeDisciplinasConcluidas, disciplina);
+
+        validarAlunoJaMatriculado(aluno, codigoTurma);
 
         validarHorariosDeTurma(aluno, codigoTurma);
     }
@@ -255,6 +255,16 @@ public class TurmaService {
             }
         }
 
+    }
+
+    private void validarAlunoJaMatriculado(Aluno aluno, String codigoTurma){
+
+        for(Turma turma : aluno.getTurmasMatriculadas()){
+
+            if(turma.getCodigo().equals(codigoTurma)){
+                throw new AlunoNaoCumprePreRequisitosException("O aluno ja está matriculado nessa turma.");
+            }
+        }
     }
 
 
