@@ -3,6 +3,9 @@ package br.com.classroompb.model.entities.GestaoAcademica;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Turma {
 
     private String codigo;
@@ -12,7 +15,7 @@ public class Turma {
     private int limiteVagas;
     private String horario;
     private String sala;
-    private Aluno[] matriculados;
+    private List<Aluno> matriculados;
 
     public Turma() {
     }
@@ -101,12 +104,12 @@ public class Turma {
         this.sala = sala;
     }
 
-    public Aluno[] getMAtriculados(){
+    public List<Aluno> getMatriculados(){
         return matriculados;
     }
 
     public void setMatriculados(){
-        this.matriculados = new Aluno[this.getLimiteVagas()];
+        this.matriculados = new ArrayList<>();
     }
 
     public void validarDadosBasicos() {

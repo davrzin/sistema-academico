@@ -3,8 +3,11 @@ package br.com.classroompb.model.services;
 import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
+import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.enums.TipoUsuario;
+import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.TurmaCheiaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
@@ -13,7 +16,10 @@ import br.com.classroompb.model.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TurmaService {
 
@@ -124,6 +130,18 @@ public class TurmaService {
         return turmaRepository.buscarPorPeriodoLetivo(periodoLetivo);
     }
 
+    public void cadastrarAlunoEmTurma(String codigoTurma, Aluno alunoLogado){
+            validarCodigoTurma(codigoTurma);
+
+            validarDisponibilidadeDeTurma(codigoTurma);
+
+            validarEntradaAlunoEmTurma(alunoLogado, codigoTurma);
+
+            //SUJEIRO A MUDANÇA
+            alunoLogado.getTurmasMatriculadas().add(buscarTurmaPorCodigo(codigoTurma));
+    }
+
+
     private void validarTurma(Turma turma) {
         if (turma == null) {
             throw new EntradaInvalidaException("Turma não pode ser null.");
@@ -190,6 +208,55 @@ public class TurmaService {
             }
         }
     }
+
+    private void validarDisponibilidadeDeTurma(String codigoTurma){
+
+        Turma turma = buscarTurmaPorCodigo(codigoTurma);
+
+        System.out.println(turma.getLimiteVagas());
+        System.out.println(turma.getMatriculados().size());
+        if(turma.getLimiteVagas() == turma.getMatriculados().size()){
+            throw new TurmaCheiaException();
+        }
+    }
+
+    private void validarEntradaAlunoEmTurma(Aluno aluno, String codigoTurma){
+        List<Disciplina> disciplinasConcluidas = aluno.getDisciplinasConcluidas();
+        Turma turma = buscarTurmaPorCodigo(codigoTurma);
+
+        Disciplina disciplina = disciplinaRepository.buscarPorCodigo(turma.getCodigoDisciplina());
+
+        Set<String> nomeDisciplinasConcluidas = disciplinasConcluidas.stream().map(Disciplina::getNome).collect(Collectors.toSet());
+
+        validarDisciplinasConcluidas(nomeDisciplinasConcluidas, disciplina);
+
+        validarHorariosDeTurma(aluno, codigoTurma);
+    }
+
+    private void validarDisciplinasConcluidas(Set<String> nomeDisciplinasConcluidas, Disciplina disciplina){
+
+        List<String> disciplinasPreRequisito = disciplina.getPreRequisitos();
+
+        boolean todasDisciplinasForamConcluidas = new HashSet<>(nomeDisciplinasConcluidas.stream().toList()).containsAll(disciplinasPreRequisito);
+
+        if(!todasDisciplinasForamConcluidas){
+            throw new AlunoNaoCumprePreRequisitosException("Aluno não possui todos os pré-requisitos para esta disciplina.");
+        }
+    }
+
+    private void validarHorariosDeTurma(Aluno aluno, String codigoTurma){
+
+        Turma turma = buscarTurmaPorCodigo(codigoTurma);
+
+
+        for(Turma turmaAluno : aluno.getTurmasMatriculadas()){
+            if(turmaAluno.getHorario().equalsIgnoreCase(turma.getHorario())){
+                throw new AlunoNaoCumprePreRequisitosException("Turmas com choque de horário.");
+            }
+        }
+
+    }
+
 
     private String gerarCodigoTurma() {
         int contador = turmaRepository.listarTurmas().size();

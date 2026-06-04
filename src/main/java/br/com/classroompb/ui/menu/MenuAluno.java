@@ -68,7 +68,7 @@ public class MenuAluno {
                     break;
 
                 case 6:
-                    turmaTela.cadastrarNovoAluno();
+                    turmaTela.cadastrarNovoAluno(usuarioLogado);
                     break;
 
                 case 0:

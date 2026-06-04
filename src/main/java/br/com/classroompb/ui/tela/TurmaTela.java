@@ -4,9 +4,12 @@ import java.util.List;
 import java.util.Scanner;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
+import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Usuario;
+import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
+import br.com.classroompb.model.exception.TurmaCheiaException;
 import br.com.classroompb.model.services.TurmaService;
 
 public class TurmaTela {
@@ -92,12 +95,22 @@ public class TurmaTela {
         }
     }
 
-    public void cadastrarNovoAluno(){
-        listarTurmas();
+    public void cadastrarNovoAluno(Aluno alunoLogado){
+        try{
+            listarTurmas();
 
-        System.out.println("======================================");
-        System.out.println("Informe o código da turma que deseja se matricular: ");
-        String codigoTurma = scanner.nextLine();
+            System.out.println("======================================");
+            System.out.println("Informe o código da turma que deseja se matricular: ");
+            String codigoTurma = scanner.nextLine();
+
+
+            turmaService.cadastrarAlunoEmTurma(codigoTurma, alunoLogado);
+
+            System.out.println("Aluno matriculado com sucesso!");
+        }catch(AlunoNaoCumprePreRequisitosException | TurmaCheiaException | PersistenciaException | EntradaInvalidaException e){
+            //INSERIR TELA PARA ENTRADA EM UMA LISTA DE ESPERA
+            System.out.println("Ocorreu um erro ao realizar matrícula: "+ e.getMessage());
+        }
 
 
     }
