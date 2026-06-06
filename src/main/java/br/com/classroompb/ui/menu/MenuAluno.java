@@ -71,6 +71,10 @@ public class MenuAluno {
                     turmaTela.cadastrarNovoAluno(usuarioLogado);
                     break;
 
+                case 7:
+                    turmaTela.cancelarTurmaAluno(usuarioLogado);
+                    break;
+                    
                 case 0:
                     System.out.println("Voltando...");
                     break;

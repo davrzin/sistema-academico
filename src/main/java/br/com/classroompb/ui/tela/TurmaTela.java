@@ -115,6 +115,25 @@ public class TurmaTela {
 
     }
 
+    public void cancelarTurmaAluno(Aluno alunoLogado){
+        try{
+            listarTurmas();
+            System.out.println("======================================");
+            System.out.println("Informe o código da turma que deseja cancelar:");
+            String codigoTurma = scanner.nextLine();
+
+            String msgComplementar = turmaService.cancelarAlunoTurma(codigoTurma, alunoLogado);
+
+            System.out.println("Matrícula cancelada com sucesso.");
+
+            if(!msgComplementar.isBlank()){
+                System.out.println(msgComplementar);
+            }
+        }catch(PersistenciaException | EntradaInvalidaException e){
+            System.out.println("Ocorreu um erro ao cancelar matrícula: " + e.getMessage());
+        }
+    }
+
     private Turma lerDadosTurma() {
         System.out.println("Informe o código da disciplina:");
         String codigoDisciplina = scanner.nextLine();

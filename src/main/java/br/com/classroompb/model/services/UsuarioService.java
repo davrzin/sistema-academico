@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
@@ -115,6 +116,19 @@ public class UsuarioService {
         PermissaoService.validarPermissaoBuscaPorMatricula(usuarioLogado, usuarioEncontrado);
 
         return usuarioEncontrado;
+    }
+
+    public Aluno buscarAlunoPorMatricula(String matricula) {
+
+        Usuario usuario = repository.buscarPorMatricula(matricula);
+
+        if (!(usuario instanceof Aluno aluno)) {
+            throw new EntradaInvalidaException(
+                "Usuário informado não é um aluno."
+            );
+        }
+
+        return aluno;
     }
 
     private String gerarMatricula(TipoUsuario tipoUsuario) {

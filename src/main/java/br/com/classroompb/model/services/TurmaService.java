@@ -32,6 +32,8 @@ public class TurmaService {
     private final PeriodoLetivoRepository periodoLetivoRepository;
     private final UserRepository userRepository;
 
+    private UsuarioService usuarioService;
+
     public TurmaService() {
         this.turmaRepository = new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString());
         this.disciplinaRepository = new DisciplinaRepository(new ObjectMapper(), DIRETORIO_DISCIPLINAS.toString());
@@ -283,6 +285,45 @@ public class TurmaService {
             throw new EntradaInvalidaException(
                 "Aluno já foi aprovado na disciplina '" + disciplina.getNome() + "' e não pode se matricular novamente."
             );
+        }
+    }
+
+    public String cancelarAlunoTurma(String codTurma, Aluno alunoLogado){
+        String msgResultado = "";
+
+        validarCodigoTurma(codTurma);
+
+        Turma turma = buscarTurmaPorCodigo(codTurma);
+        String matriculaAluno = alunoLogado.getMatricula();
+
+        validarAlunoMatriculado(turma, matriculaAluno);
+
+        turma.getMatriculados().remove(matriculaAluno);
+        alunoLogado.getTurmasMatriculadas().remove(codTurma);
+
+        if(!turma.getListaEspera().isEmpty()){
+            String codAlunoListaEspera = turma.getListaEspera().get(0);
+            turma.getMatriculados().add(codAlunoListaEspera);
+
+            turma.getListaEspera().remove(0);
+
+            Aluno alunoListaEspera = usuarioService.buscarAlunoPorMatricula(codAlunoListaEspera);
+            alunoListaEspera.getTurmasMatriculadas().add(codTurma);
+
+            userRepository.atualizarUsuario(alunoListaEspera);
+
+            msgResultado = "\n O aluno com matrícula: " + codAlunoListaEspera + " foi promovido da lista de espera para a turma.";
+        }
+
+        turmaRepository.atualizarTurma(turma);
+        userRepository.atualizarUsuario(alunoLogado);
+
+        return msgResultado;
+    }
+
+    private void validarAlunoMatriculado(Turma turma, String matriculaAluno){
+        if(!turma.getMatriculados().contains(matriculaAluno)){
+            throw new EntradaInvalidaException("Aluno não está matriculado na turma.");
         }
     }
 
