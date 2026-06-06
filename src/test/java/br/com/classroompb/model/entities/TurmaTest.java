@@ -1,13 +1,11 @@
 package br.com.classroompb.model.entities;
 
-import br.com.classroompb.model.entities.GestaoAcademica.Turma;
-import br.com.classroompb.model.entities.Usuario.Aluno;
-import br.com.classroompb.model.exception.EntradaInvalidaException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import br.com.classroompb.model.entities.GestaoAcademica.Turma;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
 
 public class TurmaTest {
 
@@ -111,13 +109,9 @@ public class TurmaTest {
 
     @Test
     public void deveAtualizarListaDeMatriculadosCorretamente(){
-        Aluno aluno =  new Aluno("Arthur", "arthur@email.com", "123");
+        turma.getMatriculados().add("123");
 
-        List<Aluno> listaMatriculados = turma.getMatriculados();
-
-        listaMatriculados.add(aluno);
-
-        Assertions.assertEquals(1, listaMatriculados.size());
-        Assertions.assertEquals(aluno.getNome(), listaMatriculados.getFirst().getNome());
+        Assertions.assertEquals(1, turma.getMatriculados().size());
+        Assertions.assertEquals("123", turma.getMatriculados().getFirst());
     }
 }

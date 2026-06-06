@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -153,8 +152,9 @@ public class TurmaService {
     }
 
     private void adicionarAlunoTurma(Aluno alunoLogado, Turma turma){
-        turma.getMatriculados().add(alunoLogado);
-        alunoLogado.getTurmasMatriculadas().add(turma);
+        String matriculaAluno = alunoLogado.getMatricula();
+        turma.getMatriculados().add(matriculaAluno);
+        alunoLogado.getTurmasMatriculadas().add(turma.getCodigo());
         turmaRepository.atualizarTurma(turma);
         userRepository.atualizarUsuario(alunoLogado);
     }
@@ -238,13 +238,10 @@ public class TurmaService {
         return turma.getLimiteVagas() > turma.getMatriculados().size();
     }
 
-    private void validarEntradaAlunoEmTurma(Aluno aluno, Turma turma) {
-        List<Disciplina> disciplinasConcluidas = aluno.getDisciplinasConcluidas();
+        private void validarEntradaAlunoEmTurma(Aluno aluno, Turma turma) {
+        Set<String> codigosDisciplinasConcluidas = new HashSet<>(aluno.getDisciplinasConcluidas());
 
         Disciplina disciplina = disciplinaRepository.buscarPorCodigo(turma.getCodigoDisciplina());
-        
-        // alterei getNome por getCodigo, ja que no atributo de preRequisitos sao armazenados os códigos das disciplinas e nao o nome
-        Set<String> codigosDisciplinasConcluidas = disciplinasConcluidas.stream().map(Disciplina::getCodigo).collect(Collectors.toSet());
 
         validarDisciplinasConcluidas(codigosDisciplinasConcluidas, disciplina);
         validarAlunoJaAprovadoNaDisciplina(codigosDisciplinasConcluidas, disciplina);
@@ -252,11 +249,11 @@ public class TurmaService {
         validarHorariosDeTurma(aluno, turma);
     }
 
-    private void validarDisciplinasConcluidas(Set<String> nomeDisciplinasConcluidas, Disciplina disciplina){
+    private void validarDisciplinasConcluidas(Set<String> codigoDisciplinasConcluidas, Disciplina disciplina){
 
         List<String> disciplinasPreRequisito = disciplina.getPreRequisitos();
 
-        boolean todasDisciplinasForamConcluidas = new HashSet<>(nomeDisciplinasConcluidas.stream().toList()).containsAll(disciplinasPreRequisito);
+        boolean todasDisciplinasForamConcluidas = new HashSet<>(codigoDisciplinasConcluidas.stream().toList()).containsAll(disciplinasPreRequisito);
 
         if(!todasDisciplinasForamConcluidas){
             throw new AlunoNaoCumprePreRequisitosException("Aluno não possui todos os pré-requisitos para esta disciplina.");
@@ -264,16 +261,18 @@ public class TurmaService {
     }
 
     private void validarHorariosDeTurma(Aluno aluno, Turma turma) {
-        for (Turma turmaAluno : aluno.getTurmasMatriculadas()) {
-            if (turmaAluno.getHorario().equalsIgnoreCase(turma.getHorario())) {
+        for (String codigoTurmaAluno : aluno.getTurmasMatriculadas()) {
+            Turma turmaAluno = turmaRepository.buscarPorCodigo(codigoTurmaAluno);
+
+            if (turmaAluno != null && turmaAluno.getHorario().equalsIgnoreCase(turma.getHorario())) {
                 throw new AlunoNaoCumprePreRequisitosException("Turmas com choque de horário.");
             }
         }
     }
 
     private void validarAlunoJaMatriculado(Aluno aluno, Turma turma) {
-        for (Turma turmaAluno : aluno.getTurmasMatriculadas()) {
-            if (turmaAluno.getCodigo().equals(turma.getCodigo())) {
+        for (String turmaAluno : aluno.getTurmasMatriculadas()) {
+            if (turmaAluno.equals(turma.getCodigo())) {
                 throw new AlunoNaoCumprePreRequisitosException("O aluno já está matriculado nessa turma.");
             }
         }

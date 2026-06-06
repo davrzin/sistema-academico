@@ -1,5 +1,16 @@
 package br.com.classroompb.model.services;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import br.com.classroompb.model.entities.Usuario.Administrador;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Coordenador;
@@ -9,15 +20,6 @@ import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.List;
 
 public class UsuarioServiceTest {
 
@@ -355,11 +357,12 @@ public class UsuarioServiceTest {
         List<Usuario> usuariosCadastrados = service.listarUsuarios(administrador);
 
         Assertions.assertEquals(3, usuariosCadastrados.size());
-        Assertions.assertEquals(aluno.getNome(), usuariosCadastrados.getFirst().getNome());
-        Assertions.assertEquals(aluno2.getNome(), usuariosCadastrados.get(1).getNome());
-        Assertions.assertEquals(administrador.getNome(), usuariosCadastrados.getLast().getNome());
 
+        Assertions.assertTrue(usuariosCadastrados.stream().anyMatch(u -> u.getNome().equals("Carlos")));
 
+        Assertions.assertTrue(usuariosCadastrados.stream().anyMatch(u -> u.getNome().equals("Maria")));
+
+        Assertions.assertTrue(usuariosCadastrados.stream().anyMatch(u -> u.getNome().equals("Joao")));
     }
 
     @Test

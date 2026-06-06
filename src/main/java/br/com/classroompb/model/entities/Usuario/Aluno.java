@@ -1,16 +1,14 @@
 package br.com.classroompb.model.entities.Usuario;
 
-import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
-import br.com.classroompb.model.entities.GestaoAcademica.Turma;
-import br.com.classroompb.model.enums.TipoUsuario;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.classroompb.model.enums.TipoUsuario;
+
 public class Aluno extends Usuario {
 
-    private List<Disciplina> disciplinasConcluidas;
-    private List<Turma> turmasMatriculadas;
+    private List<String> disciplinasConcluidas;
+    private List<String> turmasMatriculadas;
 
     public Aluno() {
         super();
@@ -38,7 +36,7 @@ public class Aluno extends Usuario {
         this.disciplinasConcluidas = new ArrayList<>();
     }
 
-    public List<Disciplina> getDisciplinasConcluidas(){
+    public List<String> getDisciplinasConcluidas(){
         return disciplinasConcluidas;
     }
 
@@ -46,7 +44,7 @@ public class Aluno extends Usuario {
         this.turmasMatriculadas = new ArrayList<>();
     }
 
-    public List<Turma> getTurmasMatriculadas(){
+    public List<String> getTurmasMatriculadas(){
         return turmasMatriculadas;
     }
 
