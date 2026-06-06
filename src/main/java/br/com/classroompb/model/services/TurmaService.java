@@ -1,5 +1,13 @@
 package br.com.classroompb.model.services;
 
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
 import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
@@ -7,19 +15,11 @@ import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
-import br.com.classroompb.model.exception.TurmaCheiaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.TurmaRepository;
 import br.com.classroompb.model.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class TurmaService {
 
@@ -133,14 +133,39 @@ public class TurmaService {
     public void cadastrarAlunoEmTurma(String codigoTurma, Aluno alunoLogado){
             validarCodigoTurma(codigoTurma);
 
-            validarDisponibilidadeDeTurma(codigoTurma);
+            Turma turma = buscarTurmaPorCodigo(codigoTurma);
 
-            validarEntradaAlunoEmTurma(alunoLogado, codigoTurma);
+            validarEntradaAlunoEmTurma(alunoLogado, turma);
 
-            //SUJEIRO A MUDANÇA
-            alunoLogado.getTurmasMatriculadas().add(buscarTurmaPorCodigo(codigoTurma));
+            if(validarDisponibilidadeDeTurma(turma)){
+                //SUJEIRO A MUDANÇA
+                adicionarAlunoTurma(alunoLogado, turma);
+            }else{
+                adicionarAlunoListaEspera(alunoLogado, turma);
+            }
     }
 
+    private void adicionarAlunoListaEspera(Aluno alunoLogado, Turma turma){
+        validarAlunoNaListaEspera(alunoLogado, turma);
+
+        turma.getListaEspera().add(alunoLogado.getMatricula());
+        turmaRepository.atualizarTurma(turma);
+    }
+
+    private void adicionarAlunoTurma(Aluno alunoLogado, Turma turma){
+        turma.getMatriculados().add(alunoLogado);
+        alunoLogado.getTurmasMatriculadas().add(turma);
+        turmaRepository.atualizarTurma(turma);
+        userRepository.atualizarUsuario(alunoLogado);
+    }
+
+    private void validarAlunoNaListaEspera(Aluno alunoLogado, Turma turma){
+        if(turma.getListaEspera().contains(alunoLogado.getMatricula())){
+            throw new EntradaInvalidaException(
+                "Aluno já está na lista de espera."
+            );
+        }
+    }
 
     private void validarTurma(Turma turma) {
         if (turma == null) {
@@ -209,28 +234,22 @@ public class TurmaService {
         }
     }
 
-    private void validarDisponibilidadeDeTurma(String codigoTurma){
-
-        Turma turma = buscarTurmaPorCodigo(codigoTurma);
-
-        if(turma.getLimiteVagas() == turma.getMatriculados().size()){
-            throw new TurmaCheiaException();
-        }
+    private boolean validarDisponibilidadeDeTurma(Turma turma) {
+        return turma.getLimiteVagas() > turma.getMatriculados().size();
     }
 
-    private void validarEntradaAlunoEmTurma(Aluno aluno, String codigoTurma){
+    private void validarEntradaAlunoEmTurma(Aluno aluno, Turma turma) {
         List<Disciplina> disciplinasConcluidas = aluno.getDisciplinasConcluidas();
-        Turma turma = buscarTurmaPorCodigo(codigoTurma);
 
         Disciplina disciplina = disciplinaRepository.buscarPorCodigo(turma.getCodigoDisciplina());
+        
+        // alterei getNome por getCodigo, ja que no atributo de preRequisitos sao armazenados os códigos das disciplinas e nao o nome
+        Set<String> codigosDisciplinasConcluidas = disciplinasConcluidas.stream().map(Disciplina::getCodigo).collect(Collectors.toSet());
 
-        Set<String> nomeDisciplinasConcluidas = disciplinasConcluidas.stream().map(Disciplina::getNome).collect(Collectors.toSet());
-
-        validarDisciplinasConcluidas(nomeDisciplinasConcluidas, disciplina);
-
-        validarAlunoJaMatriculado(aluno, codigoTurma);
-
-        validarHorariosDeTurma(aluno, codigoTurma);
+        validarDisciplinasConcluidas(codigosDisciplinasConcluidas, disciplina);
+        validarAlunoJaAprovadoNaDisciplina(codigosDisciplinasConcluidas, disciplina);
+        validarAlunoJaMatriculado(aluno, turma);
+        validarHorariosDeTurma(aluno, turma);
     }
 
     private void validarDisciplinasConcluidas(Set<String> nomeDisciplinasConcluidas, Disciplina disciplina){
@@ -244,29 +263,29 @@ public class TurmaService {
         }
     }
 
-    private void validarHorariosDeTurma(Aluno aluno, String codigoTurma){
-
-        Turma turma = buscarTurmaPorCodigo(codigoTurma);
-
-
-        for(Turma turmaAluno : aluno.getTurmasMatriculadas()){
-            if(turmaAluno.getHorario().equalsIgnoreCase(turma.getHorario())){
+    private void validarHorariosDeTurma(Aluno aluno, Turma turma) {
+        for (Turma turmaAluno : aluno.getTurmasMatriculadas()) {
+            if (turmaAluno.getHorario().equalsIgnoreCase(turma.getHorario())) {
                 throw new AlunoNaoCumprePreRequisitosException("Turmas com choque de horário.");
             }
         }
-
     }
 
-    private void validarAlunoJaMatriculado(Aluno aluno, String codigoTurma){
-
-        for(Turma turma : aluno.getTurmasMatriculadas()){
-
-            if(turma.getCodigo().equals(codigoTurma)){
-                throw new AlunoNaoCumprePreRequisitosException("O aluno ja está matriculado nessa turma.");
+    private void validarAlunoJaMatriculado(Aluno aluno, Turma turma) {
+        for (Turma turmaAluno : aluno.getTurmasMatriculadas()) {
+            if (turmaAluno.getCodigo().equals(turma.getCodigo())) {
+                throw new AlunoNaoCumprePreRequisitosException("O aluno já está matriculado nessa turma.");
             }
         }
     }
 
+    private void validarAlunoJaAprovadoNaDisciplina(Set<String> codigosDisciplinasConcluidas, Disciplina disciplina) {
+        if (codigosDisciplinasConcluidas.contains(disciplina.getCodigo())) {
+            throw new EntradaInvalidaException(
+                "Aluno já foi aprovado na disciplina '" + disciplina.getNome() + "' e não pode se matricular novamente."
+            );
+        }
+    }
 
     private String gerarCodigoTurma() {
         int contador = turmaRepository.listarTurmas().size();

@@ -1,10 +1,10 @@
 package br.com.classroompb.model.entities.GestaoAcademica;
 
-import br.com.classroompb.model.entities.Usuario.Aluno;
-import br.com.classroompb.model.exception.EntradaInvalidaException;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import br.com.classroompb.model.entities.Usuario.Aluno;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
 
 public class Turma {
 
@@ -16,6 +16,7 @@ public class Turma {
     private String horario;
     private String sala;
     private List<Aluno> matriculados;
+    private List<String> listaEspera;
 
     public Turma() {
     }
@@ -28,6 +29,7 @@ public class Turma {
         setHorario(horario);
         setSala(sala);
         setMatriculados();
+        setListaEspera();
     }
 
     public Turma(String codigo, String codigoDisciplina, String periodoLetivo, String matriculaProfessor, int limiteVagas, String horario, String sala) {
@@ -39,6 +41,7 @@ public class Turma {
         setHorario(horario);
         setSala(sala);
         setMatriculados();
+        setListaEspera();
     }
 
     public String getCodigo() {
@@ -110,6 +113,14 @@ public class Turma {
 
     public void setMatriculados(){
         this.matriculados = new ArrayList<>();
+    }
+
+    public void setListaEspera(){
+        this.matriculados = new ArrayList<>();
+    }
+
+    public List<String> getListaEspera(){
+        return this.listaEspera;
     }
 
     public void validarDadosBasicos() {
