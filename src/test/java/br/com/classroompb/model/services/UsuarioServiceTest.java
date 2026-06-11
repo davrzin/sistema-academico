@@ -342,6 +342,29 @@ public class UsuarioServiceTest {
     }
 
     @Test
+    public void deveBuscarAlunoPorMatriculaCorretamente(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+        service.cadastrarUsuario(aluno);
+
+        Aluno alunoBuscado = service.buscarAlunoPorMatricula(aluno.getMatricula());
+
+        Assertions.assertNotNull(alunoBuscado);
+        Assertions.assertEquals(alunoBuscado.getNome(), aluno.getNome());
+    }
+
+    @Test
+    public void deveLancarUsuarioNaoEncontradoException(){
+        UserRepository repository = criarRepository();
+        UsuarioService service = criarService(repository);
+
+        Assertions.assertThrows(UsuarioNaoEncontradoException.class, () -> service.buscarAlunoPorMatricula("1231"));
+    }
+
+    @Test
     public void deveListarTodosOsUsuariosCadastrados(){
         UserRepository repository = criarRepository();
         UsuarioService service = criarService(repository);

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
@@ -65,7 +66,7 @@ public class TurmaService {
         Turma turmaCadastrada = turmaRepository.buscarPorCodigo(codigo);
 
         if (turmaCadastrada == null) {
-            throw new EntradaInvalidaException("Turma não encontrada.");
+            throw new TurmaNaoEncontradaException();
         }
 
         validarTurma(turmaAtualizada);
@@ -105,9 +106,8 @@ public class TurmaService {
         Turma turma = turmaRepository.buscarPorCodigo(codigo);
 
         if (turma == null) {
-            throw new EntradaInvalidaException("Turma não encontrada.");
+            throw new TurmaNaoEncontradaException();
         }
-
         return turma;
     }
 
@@ -132,18 +132,16 @@ public class TurmaService {
     }
 
     public void cadastrarAlunoEmTurma(String codigoTurma, Aluno alunoLogado){
-            validarCodigoTurma(codigoTurma);
+        Turma turma = buscarTurmaPorCodigo(codigoTurma);
 
-            Turma turma = buscarTurmaPorCodigo(codigoTurma);
+        validarEntradaAlunoEmTurma(alunoLogado, turma);
 
-            validarEntradaAlunoEmTurma(alunoLogado, turma);
-
-            if(validarDisponibilidadeDeTurma(turma)){
-                //SUJEIRO A MUDANÇA
-                adicionarAlunoTurma(alunoLogado, turma);
-            }else{
-                adicionarAlunoListaEspera(alunoLogado, turma);
-            }
+        if(validarDisponibilidadeDeTurma(turma)){
+            //SUJEIRO A MUDANÇA
+            adicionarAlunoTurma(alunoLogado, turma);
+        }else{
+            adicionarAlunoListaEspera(alunoLogado, turma);
+        }
     }
 
     private void adicionarAlunoListaEspera(Aluno alunoLogado, Turma turma){
@@ -155,7 +153,7 @@ public class TurmaService {
 
     private void adicionarAlunoTurma(Aluno alunoLogado, Turma turma){
         String matriculaAluno = alunoLogado.getMatricula();
-        turma.getMatriculados().add(matriculaAluno);
+        turma.getMatriculados().add(alunoLogado.getMatricula());
         alunoLogado.getTurmasMatriculadas().add(turma.getCodigo());
         turmaRepository.atualizarTurma(turma);
         userRepository.atualizarUsuario(alunoLogado);

@@ -6,6 +6,8 @@ import br.com.classroompb.model.entities.GestaoAcademica.Turma;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Professor;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
+import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.TurmaRepository;
@@ -274,7 +276,7 @@ public class TurmaServiceTest {
         Turma turmaAtualizada = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
 
         Assertions.assertThrows(
-                EntradaInvalidaException.class,
+                TurmaNaoEncontradaException.class,
                 () -> service.alterarTurma("tur99", turmaAtualizada)
         );
     }
@@ -347,6 +349,45 @@ public class TurmaServiceTest {
     }
 
     @Test
+    public void deveListarTurmasPorCodigo(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        Turma turma1 = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+        Turma turma2 = new Turma("dis01", "2026.2", "pr00", 30, "TER 10:00-12:00", "LAB 02");
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+        service.ofertarTurma(turma1);
+        service.ofertarTurma(turma2);
+
+        Turma turmaBuscada = service.buscarTurmaPorCodigo(turma1.getCodigo());
+
+        Assertions.assertNotNull(turmaBuscada);
+        Assertions.assertEquals(turmaBuscada.getCodigo(), turma1.getCodigo());
+    }
+
+    @Test
+    public void deveLancarTurmaNaoEncontradaException(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+
+        Assertions.assertThrows(TurmaNaoEncontradaException.class, () -> service.buscarTurmaPorCodigo("f23ff"));
+
+
+    }
+
+    @Test
     public void deveListarTurmasPorProfessor() {
         TurmaRepository turmaRepository = criarTurmaRepository();
         DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
@@ -365,6 +406,20 @@ public class TurmaServiceTest {
     }
 
     @Test
+    public void deveLancarEntradaInvalidaExceptionAoListarTurmasComProfessorNull(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Assertions.assertThrows(EntradaInvalidaException.class, () -> service.listarTurmasPorProfessor(null));
+    }
+
+    @Test
     public void deveListarTurmasPorPeriodoLetivo() {
         TurmaRepository turmaRepository = criarTurmaRepository();
         DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
@@ -378,5 +433,201 @@ public class TurmaServiceTest {
         List<Turma> turmas = service.listarTurmasPorPeriodoLetivo("2026.2");
 
         Assertions.assertEquals(1, turmas.size());
+    }
+
+    @Test
+    public void deveLancarEntradaInvalidaExceptionAoListarTurmasComPeriodoNulo(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Assertions.assertThrows(EntradaInvalidaException.class, () -> service.listarTurmasPorPeriodoLetivo(null));
+    }
+
+    @Test
+    public void deveCadastrarAlunoCorretamenteEmTurma(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+        service.ofertarTurma(turma);
+
+        Aluno aluno = new Aluno( "Maria", "maria@email.com", "al00", "senha123");
+        userRepository.salvarUsuario(aluno);
+
+        service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
+
+        Turma turmaAtualizada = service.buscarTurmaPorCodigo(turma.getCodigo());
+
+        Assertions.assertEquals(1, turmaAtualizada.getMatriculados().size());
+        Assertions.assertEquals("al00", turmaAtualizada.getMatriculados().getFirst());
+        Assertions.assertEquals(1, aluno.getTurmasMatriculadas().size());
+        Assertions.assertEquals("tur00", aluno.getTurmasMatriculadas().getFirst());
+    }
+
+    @Test
+    public void deveLancarcEntradaInvalidaExceptionEmCadastrarAlunoComTurmaNull(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Aluno aluno = new Aluno( "Maria", "maria@email.com", "al00", "senha123");
+        userRepository.salvarUsuario(aluno);
+
+        Assertions.assertThrows(EntradaInvalidaException.class, () -> service.cadastrarAlunoEmTurma(null, aluno));
+
+    }
+
+    @Test
+    public void deveLancarTurmaNaoEncontradaExceptionEmCadastrarAlunoComTurmaInexistente(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Aluno aluno = new Aluno( "Maria", "maria@email.com", "al00", "senha123");
+        userRepository.salvarUsuario(aluno);
+
+        Assertions.assertThrows(TurmaNaoEncontradaException.class, () -> service.cadastrarAlunoEmTurma("123ds", aluno));
+
+    }
+
+    @Test
+    public void deveLancarNullPointerExceptionExceptionEmCadastrarAlunoComAlunoNull(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+        service.ofertarTurma(turma);
+
+        Assertions.assertThrows(NullPointerException.class, () -> service.cadastrarAlunoEmTurma(turma.getCodigo(), null));
+
+    }
+
+    @Test
+    public void deveCadastrarAlunoCorretamenteNaListaDeEspera(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 1, "SEG 08:00-10:00", "LAB 01");
+        service.ofertarTurma(turma);
+
+        Aluno aluno = new Aluno( "Maria", "maria@email.com", "al00", "senha123");
+        userRepository.salvarUsuario(aluno);
+
+        Aluno aluno2 = new Aluno( "Joao", "joao@email.com", "al01", "senha123");
+        userRepository.salvarUsuario(aluno);
+
+        service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
+        service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno2);
+
+        Turma turmaAtualizada = service.buscarTurmaPorCodigo(turma.getCodigo());
+
+        Assertions.assertEquals(1, turmaAtualizada.getListaEspera().size());
+    }
+
+    @Test
+    public void deveCancelarAlunoTurmaCorretamente(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+        service.ofertarTurma(turma);
+
+        Aluno aluno = new Aluno( "Maria", "maria@email.com", "al00", "senha123");
+        userRepository.salvarUsuario(aluno);
+
+        service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
+
+        service.cancelarAlunoTurma(turma.getCodigo(), aluno);
+
+        Turma turmaAtualizada = service.buscarTurmaPorCodigo(turma.getCodigo());
+
+        Assertions.assertEquals(0, aluno.getTurmasMatriculadas().size());
+        Assertions.assertEquals(0, turma.getMatriculados().size());
+    }
+
+    @Test
+    public void deveLancarcEntradaInvalidaExceptionEmCancelarAlunoComTurmaNull(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+        service.ofertarTurma(turma);
+
+        Aluno aluno = new Aluno( "Maria", "maria@email.com", "al00", "senha123");
+        userRepository.salvarUsuario(aluno);
+
+        service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
+
+        Assertions.assertThrows(EntradaInvalidaException.class, () -> service.cancelarAlunoTurma(null, aluno));
+
+    }
+
+    @Test
+    public void deveLancarcEntradaInvalidaExceptionEmCancelarAlunoComTurmaInexistente(){
+        TurmaRepository turmaRepository = criarTurmaRepository();
+        DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+        PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+        UserRepository userRepository = criarUserRepository();
+        prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+        disciplinaRepository.salvarDisciplina(new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+
+        TurmaService service = criarService(turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+        Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+        service.ofertarTurma(turma);
+
+        Aluno aluno = new Aluno( "Maria", "maria@email.com", "al00", "senha123");
+        userRepository.salvarUsuario(aluno);
+
+        service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
+
+        Assertions.assertThrows(TurmaNaoEncontradaException.class, () -> service.cancelarAlunoTurma("asda", aluno));
+
     }
 }

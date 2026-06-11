@@ -115,7 +115,7 @@ public class Turma {
     }
 
     public void setListaEspera(){
-        this.matriculados = new ArrayList<>();
+        this.listaEspera = new ArrayList<>();
     }
 
     public List<String> getListaEspera(){

@@ -110,7 +110,7 @@ public class TurmaRepository {
         }
 
         for (Turma turma : listarTurmas()) {
-            if (turma.getCodigo() != null && turma.getCodigo().equalsIgnoreCase(codigo.trim())) {
+            if (turma.getCodigo() != null && turma.getCodigo().trim().equalsIgnoreCase(codigo.trim())) {
                 return turma;
             }
         }
