@@ -15,7 +15,6 @@ public class UsuarioTela {
 
     private final Scanner scanner;
     private final UsuarioService usuarioService = new UsuarioService();
-
     public UsuarioTela(Scanner scanner) {
         this.scanner = scanner;
     }

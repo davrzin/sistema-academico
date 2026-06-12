@@ -134,6 +134,26 @@ public class TurmaTela {
         }
     }
 
+    public void adicionarFrequencia(){
+
+        System.out.println("Informe o código da turma que deseja adicionar frequência: ");
+        String codigoTurma = scanner.nextLine();
+
+        Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma);
+
+        List<String> alunosMatriculados = turma.getMatriculados();
+
+        System.out.println("A turma tem "+ alunosMatriculados.size() + " alunos");
+        for(String aluno : alunosMatriculados){
+
+            System.out.print(aluno + " - ");
+            int numeroDeFaltas = scanner.nextInt();
+            
+            scanner.nextLine(); //RECEBE A QUEBRA DE LINHA GERADA PELO scanner.nextInt() PARA EVITAR ERROS FUTUROS EM OUTROS SCANNERS
+        }
+    }
+
+
     private Turma lerDadosTurma() {
         System.out.println("Informe o código da disciplina:");
         String codigoDisciplina = scanner.nextLine();

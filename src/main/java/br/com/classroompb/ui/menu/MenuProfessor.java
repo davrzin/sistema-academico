@@ -55,7 +55,8 @@ public class MenuProfessor {
                     break;
 
                 case 5:
-                    System.out.println("Funcionalidade de lançar frequência ainda não implementada.");
+                    turmaTela.listarMinhasTurmas(usuarioLogado);
+                    turmaTela.adicionarFrequencia();
                     break;
 
                 case 6:
