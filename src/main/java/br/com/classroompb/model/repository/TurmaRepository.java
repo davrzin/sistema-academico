@@ -1,14 +1,15 @@
 package br.com.classroompb.model.repository;
 
-import br.com.classroompb.model.entities.GestaoAcademica.Turma;
-import br.com.classroompb.model.exception.PersistenciaException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import br.com.classroompb.model.entities.GestaoAcademica.Turma;
+import br.com.classroompb.model.exception.PersistenciaException;
 
 public class TurmaRepository {
 

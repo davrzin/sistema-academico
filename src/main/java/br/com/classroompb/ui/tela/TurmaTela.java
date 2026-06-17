@@ -1,8 +1,13 @@
 package br.com.classroompb.ui.tela;
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.UUID;
 
+import br.com.classroompb.model.entities.GestaoAcademica.Aula;
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Usuario;
@@ -134,23 +139,49 @@ public class TurmaTela {
         }
     }
 
-    public void adicionarFrequencia(){
+    public void adicionarFrequencia() {
 
-        System.out.println("Informe o código da turma que deseja adicionar frequência: ");
+        System.out.println("Informe o código da turma:");
         String codigoTurma = scanner.nextLine();
 
         Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma);
 
+        if (turma == null) {
+            System.out.println("Turma não encontrada.");
+            return;
+        }
+
+        Aula aula = new Aula();
+
+        aula.setId(UUID.randomUUID().toString());
+        aula.setCodigoTurma(codigoTurma);
+        aula.setData(LocalDate.now());
+
+        Map<String, Boolean> presencas = new HashMap<>();
+
         List<String> alunosMatriculados = turma.getMatriculados();
 
-        System.out.println("A turma tem "+ alunosMatriculados.size() + " alunos");
-        for(String aluno : alunosMatriculados){
+        System.out.println("\nRegistro de frequência");
+        System.out.println("Digite P para Presente ou F para Falta\n");
 
-            System.out.print(aluno + " - ");
-            int numeroDeFaltas = scanner.nextInt();
-            
-            scanner.nextLine(); //RECEBE A QUEBRA DE LINHA GERADA PELO scanner.nextInt() PARA EVITAR ERROS FUTUROS EM OUTROS SCANNERS
+        for (String matriculaAluno : alunosMatriculados) {
+
+            System.out.print(matriculaAluno + ": ");
+            String resposta = scanner.nextLine().trim().toUpperCase();
+
+            boolean presente = resposta.equals("P");
+
+            presencas.put(matriculaAluno, presente);
         }
+
+        aula.setPresencas(presencas);
+
+        // aulaService.salvar(aula);
+
+        // turma.getIdsAulas().add(aula.getId());
+        // turmaService.atualizar(turma);
+
+        System.out.println("Frequência registrada com sucesso.");
     }
 
 

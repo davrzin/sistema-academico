@@ -16,6 +16,7 @@ public class Turma {
     private String sala;
     private List<String> matriculados;
     private List<String> listaEspera;
+    private List<String> aulas;
 
     public Turma() {
     }
@@ -29,6 +30,7 @@ public class Turma {
         setSala(sala);
         setMatriculados();
         setListaEspera();
+        setAulas();
     }
 
     public Turma(String codigo, String codigoDisciplina, String periodoLetivo, String matriculaProfessor, int limiteVagas, String horario, String sala) {
@@ -41,6 +43,7 @@ public class Turma {
         setSala(sala);
         setMatriculados();
         setListaEspera();
+        setAulas();
     }
 
     public String getCodigo() {
@@ -120,6 +123,14 @@ public class Turma {
 
     public List<String> getListaEspera(){
         return this.listaEspera;
+    }
+
+    public void setAulas(){
+        this.aulas = new ArrayList<>();
+    }
+
+    public List<String> getAulas(){
+        return this.aulas;
     }
 
     public void validarDadosBasicos() {

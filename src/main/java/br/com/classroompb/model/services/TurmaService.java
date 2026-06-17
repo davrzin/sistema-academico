@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
@@ -15,6 +14,7 @@ import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
