@@ -1,24 +1,32 @@
 package br.com.classroompb.model.entities.GestaoAcademica;
 
-import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Aula {
     private String id;
     private String codigoTurma;
-    private LocalDate data;
+    private String data;
     private String horario;
     private Map<String, Boolean> presencas;
 
     public Aula() {
     }
 
-    public Aula(String id, String codigoTurma, LocalDate data, String horario, Map<String, Boolean> presencas) {
+    public Aula(String id, String codigoTurma, String data, String horario, Map<String, Boolean> presencas) {
         setId(id);
         setCodigoTurma(codigoTurma);
         setData(data);
         setHorario(horario);
         setPresencas(presencas);
+    }
+
+    public Aula(String id, String codigoTurma, String data, String horario) {
+        setId(id);
+        setCodigoTurma(codigoTurma);
+        setData(data);
+        setHorario(horario);
+        setPresencas(new HashMap<>());
     }
 
     public String getId(){
@@ -37,15 +45,15 @@ public class Aula {
         this.codigoTurma = codigoTurma;
     }
 
-    public LocalDate getData(){
+    public String getData(){
         return this.data; 
     } 
 
-    public void setData(LocalDate data){
+    public void setData(String data){
         this.data = data;
     }
 
-    public String horario(){
+    public String getHorario(){
         return this.horario; 
     } 
 

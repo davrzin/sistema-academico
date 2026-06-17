@@ -1,11 +1,9 @@
 package br.com.classroompb.ui.tela;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.UUID;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Aula;
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
@@ -15,12 +13,14 @@ import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.exception.TurmaCheiaException;
+import br.com.classroompb.model.services.AulaService;
 import br.com.classroompb.model.services.TurmaService;
 
 public class TurmaTela {
 
     private final Scanner scanner;
     private final TurmaService turmaService = new TurmaService();
+    private final AulaService aulaService = new AulaService();
 
     public TurmaTela(Scanner scanner) {
         this.scanner = scanner;
@@ -144,18 +144,24 @@ public class TurmaTela {
         System.out.println("Informe o código da turma:");
         String codigoTurma = scanner.nextLine();
 
-        Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma);
-
-        if (turma == null) {
-            System.out.println("Turma não encontrada.");
+        if(codigoTurma.isBlank()){
+            System.out.println("Código da turma não pode ser vazio.");
             return;
         }
 
-        Aula aula = new Aula();
+        Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma);
 
-        aula.setId(UUID.randomUUID().toString());
-        aula.setCodigoTurma(codigoTurma);
-        aula.setData(LocalDate.now());
+        if(turma == null){
+            System.out.println("Turma não encontrada.");
+            return; 
+        }
+
+        if(turma.getMatriculados().isEmpty()){
+            System.out.println("A turma não possui alunos matriculados.");
+            return;
+        }
+
+        Aula aula = aulaService.gerarAula(turma);
 
         Map<String, Boolean> presencas = new HashMap<>();
 
@@ -165,25 +171,32 @@ public class TurmaTela {
         System.out.println("Digite P para Presente ou F para Falta\n");
 
         for (String matriculaAluno : alunosMatriculados) {
+            while (true){
+                System.out.print(matriculaAluno + " (P/F): ");
+                String resposta = scanner.nextLine().trim().toUpperCase();
 
-            System.out.print(matriculaAluno + ": ");
-            String resposta = scanner.nextLine().trim().toUpperCase();
+                if (resposta.equals("P")){
+                    presencas.put(matriculaAluno, true);
+                    break;
+                }
 
-            boolean presente = resposta.equals("P");
+                if (resposta.equals("F")){
+                    presencas.put(matriculaAluno, false);
+                    break;
+                }
 
-            presencas.put(matriculaAluno, presente);
+                System.out.println("Opção inválida. Digite apenas P ou F.");
+            }
         }
-
         aula.setPresencas(presencas);
 
-        // aulaService.salvar(aula);
+        aulaService.salvarAula(aula);
 
-        // turma.getIdsAulas().add(aula.getId());
-        // turmaService.atualizar(turma);
+        // turma.getAulas().add(aula.getId());
+        // turmaService.alterarTurma(codigoTurma, turma); acredito que nao preciso alterar na turma, já que ela so guarda ids de aulas
 
         System.out.println("Frequência registrada com sucesso.");
     }
-
 
     private Turma lerDadosTurma() {
         System.out.println("Informe o código da disciplina:");
