@@ -2,6 +2,7 @@ package br.com.classroompb.model.services;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -32,8 +33,8 @@ public class AulaService {
     }
 
     public Aula gerarAula(Turma turma){
-        Aula aula = new Aula(gerarCodigoAula(), turma.getCodigo(), LocalDate.now().toString(), turma.getHorario());
-        return aula;    
+        return new Aula(gerarCodigoAula(), turma.getCodigo(), LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), turma.getHorario());
+
     }
 
     public void salvarAula(Aula aula){
