@@ -1,9 +1,17 @@
 package br.com.classroompb.model.entities.GestaoAcademica;
 
+import br.com.classroompb.model.exception.EntradaInvalidaException;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Aula {
+
+    private static final DateTimeFormatter FORMATADOR_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     private String id;
     private String codigoTurma;
     private String data;
@@ -34,6 +42,7 @@ public class Aula {
     } 
 
     public void setId(String id){
+        validarCodigo(id);
         this.id = id;
     }
 
@@ -42,6 +51,7 @@ public class Aula {
     } 
 
     public void setCodigoTurma(String codigoTurma){
+        validarCodigoTurma(codigoTurma);
         this.codigoTurma = codigoTurma;
     }
 
@@ -50,6 +60,7 @@ public class Aula {
     } 
 
     public void setData(String data){
+        validarData(data);
         this.data = data;
     }
 
@@ -58,6 +69,7 @@ public class Aula {
     } 
 
     public void setHorario(String horario){
+        validarHorario(horario);
         this.horario = horario;
     }
 
@@ -66,6 +78,44 @@ public class Aula {
     } 
 
     public void setPresencas(Map<String, Boolean> presencas){
+        validarPresencas(presencas);
         this.presencas = presencas;
+    }
+
+    private void validarCodigo(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            throw new EntradaInvalidaException("Código da aula não pode ser vazio.");
+        }
+    }
+
+    private void validarCodigoTurma(String codigoTurma) {
+        if (codigoTurma == null || codigoTurma.isBlank()) {
+            throw new EntradaInvalidaException("Código da turma não pode ser vazio.");
+        }
+    }
+
+    private void validarData(String data){
+        if(data == null || data.isBlank()){
+            throw new EntradaInvalidaException("Data não pode ser vazia");
+        }
+
+        try {
+            LocalDate.parse(data, FORMATADOR_DATA);
+        } catch (DateTimeParseException e) {
+            throw new EntradaInvalidaException("Formato de data inválido. Use o formato dd/MM/yyyy.");
+        }
+    }
+
+    private void validarHorario(String horario){
+        if(horario == null || horario.isBlank()){
+            throw new EntradaInvalidaException("Horario não pode ser vazio");
+        }
+    }
+
+    private void validarPresencas(Map<String, Boolean> presencas){
+
+        if(presencas == null){
+            throw new EntradaInvalidaException("Atributo não pode ser nulo");
+        }
     }
 }
