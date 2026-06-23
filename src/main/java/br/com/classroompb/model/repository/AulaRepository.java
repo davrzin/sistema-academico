@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.classroompb.model.exception.EntradaInvalidaException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Aula;
@@ -37,7 +38,7 @@ public class AulaRepository {
         return diretorioAulas;
     }
 
-    public void salvarAula(Aula aula) {
+    public boolean salvarAula(Aula aula) {
         if (aula == null) {
             throw new IllegalArgumentException("Aula não pode ser nula.");
         }
@@ -45,6 +46,8 @@ public class AulaRepository {
         List<Aula> aulas = listarAulas();
         aulas.add(aula);
         salvarListaAulas(aulas);
+
+        return true;
     }
 
     public boolean atualizarAula(Aula aulaAtualizada) {
@@ -91,9 +94,9 @@ public class AulaRepository {
         }
     }
 
-    public Aula buscarAulaPorId(String id) {
+    public Aula buscarAulaPorId(String id) throws EntradaInvalidaException{
         if (id == null || id.isBlank()) {
-            return null;
+            throw new EntradaInvalidaException("Código de aula não pode ser vazio.");
         }
 
         for (Aula aula : listarAulas()) {
