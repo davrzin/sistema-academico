@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import br.com.classroompb.model.entities.GestaoAcademica.Aula;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
@@ -150,6 +152,16 @@ public class TurmaRepository {
         }
 
         return turmasDoPeriodo;
+    }
+
+    public List<String> buscarAulasDeTurma(String codigoTurma){
+        if(codigoTurma == null  || codigoTurma.isBlank()){
+            throw new EntradaInvalidaException("Código de turma não pode ser null.");
+        }
+
+        Turma turma = buscarPorCodigo(codigoTurma);
+
+        return turma.getAulas();
     }
 
     private void salvarListaTurmas(List<Turma> turmas) {

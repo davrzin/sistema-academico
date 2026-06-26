@@ -6,11 +6,13 @@ import java.util.Map;
 import java.util.Scanner;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Aula;
+import br.com.classroompb.model.entities.GestaoAcademica.Boletim;
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.exception.*;
 import br.com.classroompb.model.services.AulaService;
+import br.com.classroompb.model.services.BoletimService;
 import br.com.classroompb.model.services.TurmaService;
 import br.com.classroompb.model.services.UsuarioService;
 
@@ -20,6 +22,7 @@ public class TurmaTela {
     private final TurmaService turmaService = new TurmaService();
     private final AulaService aulaService = new AulaService();
     private final UsuarioService usuarioService = new UsuarioService();
+    private final BoletimService boletimService = new BoletimService();
 
     public TurmaTela(Scanner scanner) {
         this.scanner = scanner;
@@ -110,6 +113,10 @@ public class TurmaTela {
 
             turmaService.cadastrarAlunoEmTurma(codigoTurma, alunoLogado);
 
+            Boletim boletim = new Boletim(alunoLogado.getMatricula(), codigoTurma);
+
+            boletimService.criarBoletim(boletim);
+
             System.out.println("Aluno matriculado com sucesso!");
         }catch(AlunoNaoCumprePreRequisitosException | TurmaCheiaException | PersistenciaException | EntradaInvalidaException e){
             //INSERIR TELA PARA ENTRADA EM UMA LISTA DE ESPERA
@@ -183,6 +190,10 @@ public class TurmaTela {
             aula.setPresencas(presencas);
 
             aulaService.salvarAula(aula);
+
+            turmaService.cadastrarNovaAula(aula, codigoTurma);
+
+            turmaService.atualizarFrequenciaTurma(codigoTurma);
 
         }
         catch(TurmaNaoEncontradaException e){

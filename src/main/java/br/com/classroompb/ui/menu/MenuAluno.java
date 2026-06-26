@@ -5,6 +5,7 @@ import java.util.Scanner;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.ui.tela.DisciplinaTela;
 import br.com.classroompb.ui.tela.TurmaTela;
+import br.com.classroompb.ui.tela.UsuarioTela;
 
 public class MenuAluno {
 
@@ -12,6 +13,7 @@ public class MenuAluno {
     private Aluno usuarioLogado;
     private final DisciplinaTela disciplinaTela = new DisciplinaTela(scanner);
     private final TurmaTela turmaTela = new TurmaTela(scanner);
+    private final UsuarioTela usuarioTela = new UsuarioTela(scanner);
 
     public MenuAluno(Aluno usuarioLogado) {
         this.usuarioLogado = usuarioLogado;
@@ -60,7 +62,7 @@ public class MenuAluno {
                     break;
 
                 case 4:
-                    System.out.println("Funcionalidade de listar boletim ainda não implementada.");
+                    usuarioTela.exibirBoletinAluno(usuarioLogado);
                     break;
 
                 case 5:

@@ -3,18 +3,22 @@ package br.com.classroompb.ui.tela;
 import java.util.List;
 import java.util.Scanner;
 
+import br.com.classroompb.model.entities.GestaoAcademica.Boletim;
 import br.com.classroompb.model.entities.Usuario.Administrador;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Coordenador;
 import br.com.classroompb.model.entities.Usuario.Professor;
 import br.com.classroompb.model.entities.Usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
+import br.com.classroompb.model.services.BoletimService;
 import br.com.classroompb.model.services.UsuarioService;
 
 public class UsuarioTela {
 
     private final Scanner scanner;
     private final UsuarioService usuarioService = new UsuarioService();
+    private final BoletimService boletimService = new BoletimService();
+
     public UsuarioTela(Scanner scanner) {
         this.scanner = scanner;
     }
@@ -119,6 +123,20 @@ public class UsuarioTela {
 
         } catch (RuntimeException e) {
             System.out.println("Erro ao atualizar usuário: " + e.getMessage());
+        }
+    }
+
+    public void exibirBoletinAluno(Aluno aluno){
+
+        List<Boletim> boletins = boletimService.buscarBoletinsPorAluno(aluno.getMatricula());
+
+        for(Boletim boletim : boletins){
+
+            System.out.println("==================BOLETIM====================");
+            System.out.println("Disciplina: " + boletim.getCodigoTurma());
+            System.out.println("Nota da primeira unidade: " + boletim.getPrimeiraNota());
+            System.out.println("Nota da segunda unidade: " + boletim.getSegundaNota());
+            System.out.println("Frequência: " + String.format("%.2f", boletim.getFrequencia()) + "%");
         }
     }
 

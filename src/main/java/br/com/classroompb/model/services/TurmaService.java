@@ -1,25 +1,18 @@
 package br.com.classroompb.model.services;
 
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import br.com.classroompb.model.entities.GestaoAcademica.*;
+import br.com.classroompb.model.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
-import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
-import br.com.classroompb.model.entities.GestaoAcademica.Turma;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
-import br.com.classroompb.model.repository.DisciplinaRepository;
-import br.com.classroompb.model.repository.PeriodoLetivoRepository;
-import br.com.classroompb.model.repository.TurmaRepository;
-import br.com.classroompb.model.repository.UserRepository;
 
 public class TurmaService {
 
@@ -27,11 +20,15 @@ public class TurmaService {
     private static final Path DIRETORIO_DISCIPLINAS = Path.of(System.getProperty("user.dir"), "disciplinas");
     private static final Path DIRETORIO_PERIODOS = Path.of(System.getProperty("user.dir"), "periodos");
     private static final Path DIRETORIO_USUARIOS = Path.of(System.getProperty("user.dir"), "usuarios");
+    private static final Path DIRETORIO_BOLETINS = Path.of(System.getProperty("user.dir"), "boletins");
+    private  static final Path DIRETORIO_AULAS = Path.of(System.getProperty("user.dir"), "aulas");
 
     private final TurmaRepository turmaRepository;
     private final DisciplinaRepository disciplinaRepository;
     private final PeriodoLetivoRepository periodoLetivoRepository;
     private final UserRepository userRepository;
+    private final BoletimRepository boletimRepository;
+    private final AulaRepository aulaRepository;
 
     private UsuarioService usuarioService;
 
@@ -40,13 +37,17 @@ public class TurmaService {
         this.disciplinaRepository = new DisciplinaRepository(new ObjectMapper(), DIRETORIO_DISCIPLINAS.toString());
         this.periodoLetivoRepository = new PeriodoLetivoRepository(new ObjectMapper(), DIRETORIO_PERIODOS.toString());
         this.userRepository = new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString());
+        this.boletimRepository = new BoletimRepository(new ObjectMapper(), DIRETORIO_BOLETINS.toString());
+        this.aulaRepository = new AulaRepository(new ObjectMapper(), DIRETORIO_AULAS.toString());
     }
 
-    public TurmaService( TurmaRepository turmaRepository, DisciplinaRepository disciplinaRepository, PeriodoLetivoRepository periodoLetivoRepository, UserRepository userRepository) {
+    public TurmaService( TurmaRepository turmaRepository, DisciplinaRepository disciplinaRepository, PeriodoLetivoRepository periodoLetivoRepository, UserRepository userRepository, BoletimRepository boletimRepository, AulaRepository aulaRepository) {
         this.turmaRepository = turmaRepository;
         this.disciplinaRepository = disciplinaRepository;
         this.periodoLetivoRepository = periodoLetivoRepository;
         this.userRepository = userRepository;
+        this.boletimRepository = boletimRepository;
+        this.aulaRepository = aulaRepository;
     }
 
     public void ofertarTurma(Turma turma) {
@@ -144,9 +145,50 @@ public class TurmaService {
         }
     }
 
+    public void cadastrarNovaAula(Aula aula, String codigoTurma){
+        Turma turma = buscarTurmaPorCodigo(codigoTurma);
+
+        turma.getAulas().add(aula.getId());
+
+        turmaRepository.atualizarTurma(turma);
+    }
+
     public boolean naoExisteAlunosMatriculados(Turma turma){
 
         return turma.getMatriculados().isEmpty();
+    }
+
+    public void atualizarFrequenciaTurma(String codigoTurma){
+        List<Boletim> boletinsTurma = boletimRepository.buscarBoletinsPorTurma(codigoTurma);
+
+        List<String> codigoAulas = turmaRepository.buscarAulasDeTurma(codigoTurma);
+
+        int quantidadeDeAulas = codigoAulas.size();
+
+        List<Aula> aulasTurma = new ArrayList<>();
+
+        for(String codigoAula : codigoAulas){
+            aulasTurma.add(aulaRepository.buscarAulaPorId(codigoAula));
+        }
+
+        for(Boletim boletim : boletinsTurma){
+
+            int contadorDeFaltas = 0;
+
+            for(Aula aula : aulasTurma){
+                Map<String, Boolean> presencas = aula.getPresencas();
+
+                Boolean estaPresente = presencas.get(boletim.getMatriculaAluno());
+
+                if(!estaPresente){
+                    contadorDeFaltas += 2;
+                }
+            }
+
+            boletim.calcularFrequencia(contadorDeFaltas, quantidadeDeAulas);
+            boletimRepository.atualizarBoletins(boletim);
+        }
+
     }
 
     private void adicionarAlunoListaEspera(Aluno alunoLogado, Turma turma){
