@@ -100,7 +100,7 @@ public class TurmaService {
         }
     }
 
-    public Turma buscarTurmaPorCodigo(String codigo) {
+    public Turma buscarTurmaPorCodigo(String codigo) throws TurmaNaoEncontradaException{
         validarCodigoTurma(codigo);
 
         Turma turma = turmaRepository.buscarPorCodigo(codigo);
@@ -142,6 +142,11 @@ public class TurmaService {
         }else{
             adicionarAlunoListaEspera(alunoLogado, turma);
         }
+    }
+
+    public boolean naoExisteAlunosMatriculados(Turma turma){
+
+        return turma.getMatriculados().isEmpty();
     }
 
     private void adicionarAlunoListaEspera(Aluno alunoLogado, Turma turma){
@@ -238,7 +243,7 @@ public class TurmaService {
         return turma.getLimiteVagas() > turma.getMatriculados().size();
     }
 
-        private void validarEntradaAlunoEmTurma(Aluno aluno, Turma turma) {
+    private void validarEntradaAlunoEmTurma(Aluno aluno, Turma turma) {
         Set<String> codigosDisciplinasConcluidas = new HashSet<>(aluno.getDisciplinasConcluidas());
 
         Disciplina disciplina = disciplinaRepository.buscarPorCodigo(turma.getCodigoDisciplina());

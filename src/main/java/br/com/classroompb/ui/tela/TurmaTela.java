@@ -9,18 +9,17 @@ import br.com.classroompb.model.entities.GestaoAcademica.Aula;
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Usuario;
-import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
-import br.com.classroompb.model.exception.EntradaInvalidaException;
-import br.com.classroompb.model.exception.PersistenciaException;
-import br.com.classroompb.model.exception.TurmaCheiaException;
+import br.com.classroompb.model.exception.*;
 import br.com.classroompb.model.services.AulaService;
 import br.com.classroompb.model.services.TurmaService;
+import br.com.classroompb.model.services.UsuarioService;
 
 public class TurmaTela {
 
     private final Scanner scanner;
     private final TurmaService turmaService = new TurmaService();
     private final AulaService aulaService = new AulaService();
+    private final UsuarioService usuarioService = new UsuarioService();
 
     public TurmaTela(Scanner scanner) {
         this.scanner = scanner;
@@ -144,56 +143,51 @@ public class TurmaTela {
         System.out.println("Informe o código da turma:");
         String codigoTurma = scanner.nextLine();
 
-        if(codigoTurma.isBlank()){
-            System.out.println("Código da turma não pode ser vazio.");
-            return;
-        }
+        try{
+            Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma);
 
-        Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma);
-
-        if(turma == null){
-            System.out.println("Turma não encontrada.");
-            return; 
-        }
-
-        if(turma.getMatriculados().isEmpty()){
-            System.out.println("A turma não possui alunos matriculados.");
-            return;
-        }
-
-        Aula aula = aulaService.gerarAula(turma);
-
-        Map<String, Boolean> presencas = new HashMap<>();
-
-        List<String> alunosMatriculados = turma.getMatriculados();
-
-        System.out.println("\nRegistro de frequência");
-        System.out.println("Digite P para Presente ou F para Falta\n");
-
-        for (String matriculaAluno : alunosMatriculados) {
-            while (true){
-                System.out.print(matriculaAluno + " (P/F): ");
-                String resposta = scanner.nextLine().trim().toUpperCase();
-
-                if (resposta.equals("P")){
-                    presencas.put(matriculaAluno, true);
-                    break;
-                }
-
-                if (resposta.equals("F")){
-                    presencas.put(matriculaAluno, false);
-                    break;
-                }
-
-                System.out.println("Opção inválida. Digite apenas P ou F.");
+            if(turmaService.naoExisteAlunosMatriculados(turma)){
+                System.out.println("A turma não possui alunos matriculados.");
+                return;
             }
+
+            Aula aula = aulaService.gerarAula(turma);
+
+            Map<String, Boolean> presencas = new HashMap<>();
+
+            List<String> alunosMatriculados = turma.getMatriculados();
+
+            System.out.println("\nRegistro de frequência");
+            System.out.println("Digite P para Presente ou F para Falta\n");
+
+            for (String matriculaAluno : alunosMatriculados) {
+                while (true){
+                    Aluno aluno = usuarioService.buscarAlunoPorMatricula(matriculaAluno);
+
+                    System.out.print(aluno.getNome() + " (P/F): ");
+                    String resposta = scanner.nextLine().trim().toUpperCase();
+
+                    if (resposta.equals("P")){
+                        presencas.put(matriculaAluno, true);
+                        break;
+                    }
+
+                    if (resposta.equals("F")){
+                        presencas.put(matriculaAluno, false);
+                        break;
+                    }
+
+                    System.out.println("Opção inválida. Digite apenas P ou F.");
+                }
+            }
+            aula.setPresencas(presencas);
+
+            aulaService.salvarAula(aula);
+
         }
-        aula.setPresencas(presencas);
-
-        aulaService.salvarAula(aula);
-
-        // turma.getAulas().add(aula.getId());
-        // turmaService.alterarTurma(codigoTurma, turma); acredito que nao preciso alterar na turma, já que ela so guarda ids de aulas
+        catch(TurmaNaoEncontradaException e){
+            System.out.println(e.getMessage());
+        }
 
         System.out.println("Frequência registrada com sucesso.");
     }
