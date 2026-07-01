@@ -37,9 +37,9 @@ public class BoletimRepository {
         return diretorioBoletins;
     }
 
-    public void salvarBoletim(Boletim boletim) throws IllegalArgumentException, PersistenciaException{
+    public void salvarBoletim(Boletim boletim) {
         if(boletim == null){
-            throw new IllegalArgumentException("Boletim não pode ser nulo.");
+            throw new EntradaInvalidaException("Boletim não pode ser nulo.");
         }
 
         List<Boletim> boletins = listarBoletins();
@@ -48,7 +48,7 @@ public class BoletimRepository {
 
     }
 
-    public void salvarListaBoletins(List<Boletim> boletins){
+    private void salvarListaBoletins(List<Boletim> boletins){
         String caminhoArquivo = getCaminhoArquivo();
 
         try {
@@ -91,6 +91,7 @@ public class BoletimRepository {
     }
 
     public Boletim buscarBoletimPorCodigo(String codigo){
+        validarCodigo(codigo);
         List<Boletim> boletins = this.listarBoletins();
 
         for(Boletim boletim : boletins){
@@ -103,6 +104,7 @@ public class BoletimRepository {
     }
 
     public List<Boletim> buscarBoletinsPorTurma(String codigoTurma){
+        validarCodigo(codigoTurma);
         List<Boletim> boletins = listarBoletins();
 
         List<Boletim> boletinsMesmaTurma = new ArrayList<>();
@@ -117,6 +119,7 @@ public class BoletimRepository {
     }
 
     public List<Boletim> buscarBoletinsPorAluno(String matriculaAluno){
+        validarCodigo(matriculaAluno);
         List<Boletim> boletins = listarBoletins();
 
         List<Boletim> boletinsPorAluno = new ArrayList<>();
@@ -128,6 +131,12 @@ public class BoletimRepository {
         }
 
         return boletinsPorAluno;
+    }
+
+    private void validarCodigo(String codigo){
+        if(codigo == null || codigo.isBlank()){
+            throw new EntradaInvalidaException("Código não pode ser null.");
+        }
     }
 
 
