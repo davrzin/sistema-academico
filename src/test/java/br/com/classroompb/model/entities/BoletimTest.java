@@ -140,14 +140,14 @@ public class BoletimTest {
     public void deveCalcularFrequenciaMáximaSemNenhumaAula(){
         double frequenciaEsperada = 100.0;
 
-        Assertions.assertEquals(frequenciaEsperada, boletimTeste.calcularFrequencia(0,0));
+        Assertions.assertEquals(frequenciaEsperada, boletimTeste.calcularFrequencia(0,0,30));
     }
 
     @Test
     public void deveCalcularFrequenciaCorretamente(){
         double frequenciaEsperada = 90.0;
 
-        Assertions.assertEquals(frequenciaEsperada, boletimTeste.calcularFrequencia(3, 30));
+        Assertions.assertEquals(frequenciaEsperada, boletimTeste.calcularFrequencia(3, 30, 30));
     }
 
 }

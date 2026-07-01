@@ -42,8 +42,6 @@ public class BoletimService {
         if(boletim == null){
             throw new EntradaInvalidaException("Boletim não pode ser null.");
         }
-
-        boletim.validarDadosBasicos();
     }
 
     private String gerarCodigoBoletim(){

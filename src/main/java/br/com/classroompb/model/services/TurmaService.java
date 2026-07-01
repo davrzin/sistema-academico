@@ -32,6 +32,16 @@ public class TurmaService {
 
     private UsuarioService usuarioService;
 
+    public TurmaService(TurmaRepository turmaRepository, DisciplinaRepository disciplinaRepository, PeriodoLetivoRepository periodoLetivoRepository, UserRepository userRepository) {
+        this.turmaRepository = turmaRepository;
+        this.disciplinaRepository = disciplinaRepository;
+        this.periodoLetivoRepository = periodoLetivoRepository;
+        this.userRepository = userRepository;
+        this.boletimRepository = new BoletimRepository(new ObjectMapper(), DIRETORIO_BOLETINS.toString());
+        this.aulaRepository = new AulaRepository(new ObjectMapper(), DIRETORIO_AULAS.toString());
+
+    }
+
     public TurmaService() {
         this.turmaRepository = new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString());
         this.disciplinaRepository = new DisciplinaRepository(new ObjectMapper(), DIRETORIO_DISCIPLINAS.toString());
@@ -185,7 +195,11 @@ public class TurmaService {
                 }
             }
 
-            boletim.calcularFrequencia(contadorDeFaltas, quantidadeDeAulas);
+            Turma turma = turmaRepository.buscarPorCodigo(boletim.getCodigoTurma());
+
+            Disciplina disciplina = disciplinaRepository.buscarPorCodigo(turma.getCodigoDisciplina());
+
+            boletim.calcularFrequencia(contadorDeFaltas, quantidadeDeAulas, disciplina.getCargaHoraria());
             boletimRepository.atualizarBoletins(boletim);
         }
 
