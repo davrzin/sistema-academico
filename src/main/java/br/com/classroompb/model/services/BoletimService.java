@@ -21,13 +21,19 @@ public class BoletimService {
         this.repository = repository;
     }
 
-    public void criarBoletim(Boletim boletim){
+    public BoletimRepository getRepository() {
+        return repository;
+    }
+
+    public Boletim criarBoletim(Boletim boletim){
         validarBoletim(boletim);
 
         String codigo = gerarCodigoBoletim();
         boletim.setIdBoletim(codigo);
 
         repository.salvarBoletim(boletim);
+
+        return boletim;
     }
 
     public List<Boletim> buscarBoletinsPorAluno(String matriculaAluno){
@@ -39,7 +45,7 @@ public class BoletimService {
     }
 
     private void validarBoletim(Boletim boletim){
-        if(boletim == null){
+        if(boletim == null || boletim.getClass() != Boletim.class){
             throw new EntradaInvalidaException("Boletim não pode ser null.");
         }
     }
@@ -49,7 +55,7 @@ public class BoletimService {
         String codigo;
 
         do{
-            codigo = "cur" + String.format("%02d", contador);
+            codigo = "bol" + String.format("%02d", contador);
             contador++;
         } while(repository.buscarBoletimPorCodigo(codigo) != null);
 
