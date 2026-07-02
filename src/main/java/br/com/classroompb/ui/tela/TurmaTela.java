@@ -153,7 +153,7 @@ public class TurmaTela {
         try{
             Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma);
 
-            if(turmaService.naoExisteAlunosMatriculados(turma)){
+            if(turmaService.existeAlunosMatriculados(turma)){
                 System.out.println("A turma não possui alunos matriculados.");
                 return;
             }

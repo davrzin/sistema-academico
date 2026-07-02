@@ -74,7 +74,7 @@ public class TurmaService {
     public void alterarTurma(String codigo, Turma turmaAtualizada) {
         validarCodigoTurma(codigo);
 
-        Turma turmaCadastrada = turmaRepository.buscarPorCodigo(codigo);
+        Turma turmaCadastrada = turmaRepository.buscarTurmaPorCodigo(codigo);
 
         if (turmaCadastrada == null) {
             throw new TurmaNaoEncontradaException();
@@ -98,7 +98,7 @@ public class TurmaService {
     public void cancelarTurma(String codigo) {
         validarCodigoTurma(codigo);
 
-        Turma turma = turmaRepository.buscarPorCodigo(codigo);
+        Turma turma = turmaRepository.buscarTurmaPorCodigo(codigo);
 
         if (turma == null) {
             throw new EntradaInvalidaException("Turma não encontrada.");
@@ -114,7 +114,7 @@ public class TurmaService {
     public Turma buscarTurmaPorCodigo(String codigo) throws TurmaNaoEncontradaException{
         validarCodigoTurma(codigo);
 
-        Turma turma = turmaRepository.buscarPorCodigo(codigo);
+        Turma turma = turmaRepository.buscarTurmaPorCodigo(codigo);
 
         if (turma == null) {
             throw new TurmaNaoEncontradaException();
@@ -131,7 +131,7 @@ public class TurmaService {
             throw new EntradaInvalidaException("Matrícula do professor não pode ser vazia.");
         }
 
-        return turmaRepository.buscarPorProfessor(matriculaProfessor);
+        return turmaRepository.buscarTurmaPorMatriculaDeProfessor(matriculaProfessor);
     }
 
     public List<Turma> listarTurmasPorPeriodoLetivo(String periodoLetivo) {
@@ -139,7 +139,7 @@ public class TurmaService {
             throw new EntradaInvalidaException("Período letivo não pode ser vazio.");
         }
 
-        return turmaRepository.buscarPorPeriodoLetivo(periodoLetivo);
+        return turmaRepository.buscarTurmaPorPeriodoLetivo(periodoLetivo);
     }
 
     public void cadastrarAlunoEmTurma(String codigoTurma, Aluno alunoLogado){
@@ -163,7 +163,7 @@ public class TurmaService {
         turmaRepository.atualizarTurma(turma);
     }
 
-    public boolean naoExisteAlunosMatriculados(Turma turma){
+    public boolean existeAlunosMatriculados(Turma turma){
 
         return turma.getMatriculados().isEmpty();
     }
@@ -195,7 +195,7 @@ public class TurmaService {
                 }
             }
 
-            Turma turma = turmaRepository.buscarPorCodigo(boletim.getCodigoTurma());
+            Turma turma = turmaRepository.buscarTurmaPorCodigo(boletim.getCodigoTurma());
 
             Disciplina disciplina = disciplinaRepository.buscarPorCodigo(turma.getCodigoDisciplina());
 
@@ -273,7 +273,7 @@ public class TurmaService {
     }
 
     private void validarConflitoHorarioProfessor(Turma novaTurma, String codigoTurmaIgnorada) {
-        List<Turma> turmasDoProfessor = turmaRepository.buscarPorProfessor(novaTurma.getMatriculaProfessor());
+        List<Turma> turmasDoProfessor = turmaRepository.buscarTurmaPorMatriculaDeProfessor(novaTurma.getMatriculaProfessor());
 
         for (Turma turmaCadastrada : turmasDoProfessor) {
             boolean mesmaTurma = codigoTurmaIgnorada != null
@@ -323,7 +323,7 @@ public class TurmaService {
 
     private void validarHorariosDeTurma(Aluno aluno, Turma turma) {
         for (String codigoTurmaAluno : aluno.getTurmasMatriculadas()) {
-            Turma turmaAluno = turmaRepository.buscarPorCodigo(codigoTurmaAluno);
+            Turma turmaAluno = turmaRepository.buscarTurmaPorCodigo(codigoTurmaAluno);
 
             if (turmaAluno != null && turmaAluno.getHorario().equalsIgnoreCase(turma.getHorario())) {
                 throw new AlunoNaoCumprePreRequisitosException("Turmas com choque de horário.");
@@ -393,7 +393,7 @@ public class TurmaService {
         do {
             codigo = "tur" + String.format("%02d", contador);
             contador++;
-        } while (turmaRepository.buscarPorCodigo(codigo) != null);
+        } while (turmaRepository.buscarTurmaPorCodigo(codigo) != null);
 
         return codigo;
     }

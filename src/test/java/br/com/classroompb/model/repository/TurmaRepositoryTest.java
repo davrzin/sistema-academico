@@ -1,6 +1,8 @@
 package br.com.classroompb.model.repository;
 
+import br.com.classroompb.model.entities.GestaoAcademica.Aula;
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -37,6 +39,13 @@ public class TurmaRepositoryTest {
                 new ObjectMapper(),
                 tempDir.resolve("turmas").toString()
         );
+    }
+
+    @Test
+    public void deveCriarRepositorySomenteComObjectMapper(){
+        TurmaRepository repository = new TurmaRepository(new ObjectMapper());
+
+        Assertions.assertEquals(TurmaRepository.class, repository.getClass());
     }
 
     @Test
@@ -91,7 +100,7 @@ public class TurmaRepositoryTest {
 
         repository.salvarTurma(turma);
 
-        Turma turmaEncontrada = repository.buscarPorCodigo("tur00");
+        Turma turmaEncontrada = repository.buscarTurmaPorCodigo("tur00");
 
         Assertions.assertNotNull(turmaEncontrada);
         Assertions.assertEquals("dis00", turmaEncontrada.getCodigoDisciplina());
@@ -104,7 +113,7 @@ public class TurmaRepositoryTest {
 
         repository.salvarTurma(turma);
 
-        Assertions.assertNull(repository.buscarPorCodigo("tur99"));
+        Assertions.assertNull(repository.buscarTurmaPorCodigo("tur99"));
     }
 
     @Test
@@ -114,7 +123,7 @@ public class TurmaRepositoryTest {
         repository.salvarTurma(new Turma("tur01", "dis01", "2026.2", "pr00", 25, "TER 08:00-10:00", "LAB 02"));
         repository.salvarTurma(new Turma("tur02", "dis02", "2026.2", "pr01", 20, "QUA 08:00-10:00", "LAB 03"));
 
-        List<Turma> turmasDoProfessor = repository.buscarPorProfessor("pr00");
+        List<Turma> turmasDoProfessor = repository.buscarTurmaPorMatriculaDeProfessor("pr00");
 
         Assertions.assertEquals(2, turmasDoProfessor.size());
     }
@@ -126,7 +135,7 @@ public class TurmaRepositoryTest {
         repository.salvarTurma(new Turma("tur01", "dis01", "2026.2", "pr00", 25, "TER 08:00-10:00", "LAB 02"));
         repository.salvarTurma(new Turma("tur02", "dis02", "2026.2", "pr01", 20, "QUA 08:00-10:00", "LAB 03"));
 
-        List<Turma> turmasDoPeriodo = repository.buscarPorPeriodoLetivo("2026.2");
+        List<Turma> turmasDoPeriodo = repository.buscarTurmaPorPeriodoLetivo("2026.2");
 
         Assertions.assertEquals(2, turmasDoPeriodo.size());
     }
@@ -140,7 +149,7 @@ public class TurmaRepositoryTest {
         repository.salvarTurma(turma);
         boolean atualizou = repository.atualizarTurma(turmaAtualizada);
 
-        Turma turmaEncontrada = repository.buscarPorCodigo("tur00");
+        Turma turmaEncontrada = repository.buscarTurmaPorCodigo("tur00");
 
         Assertions.assertTrue(atualizou);
         Assertions.assertEquals(1, repository.listarTurmas().size());
@@ -170,8 +179,8 @@ public class TurmaRepositoryTest {
 
         Assertions.assertTrue(removeu);
         Assertions.assertEquals(1, repository.listarTurmas().size());
-        Assertions.assertNull(repository.buscarPorCodigo("tur00"));
-        Assertions.assertNotNull(repository.buscarPorCodigo("tur01"));
+        Assertions.assertNull(repository.buscarTurmaPorCodigo("tur00"));
+        Assertions.assertNotNull(repository.buscarTurmaPorCodigo("tur01"));
     }
 
     @Test
@@ -183,5 +192,31 @@ public class TurmaRepositoryTest {
 
         Assertions.assertFalse(removeu);
         Assertions.assertEquals(1, repository.listarTurmas().size());
+    }
+
+    @Test
+    public void deveBuscarAulasPorTurmaCorretamente(){
+        TurmaRepository repository = criarRepository();
+
+        List<String> aulas = repository.buscarAulasDeTurma("tur00");
+
+        Assertions.assertNull(aulas);
+    }
+
+    @Test
+    public void deveLancarEntradaInvalidaExceptionAoBuscarAulasDeTurmaComCodigoNull() {
+
+        TurmaRepository repository = criarRepository();
+
+        Assertions.assertThrows(EntradaInvalidaException.class, () -> repository.buscarAulasDeTurma(null));
+
+    }
+
+    @Test
+    public void deveLancarEntradaInvalidaExceptionAoBuscarAulasDeTurmaComCodigoVazio(){
+
+        TurmaRepository repository = criarRepository();
+
+        Assertions.assertThrows(EntradaInvalidaException.class, () -> repository.buscarAulasDeTurma(""));
     }
 }

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import br.com.classroompb.model.entities.GestaoAcademica.Aula;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -107,7 +106,7 @@ public class TurmaRepository {
         }
     }
 
-    public Turma buscarPorCodigo(String codigo) {
+    public Turma buscarTurmaPorCodigo(String codigo) {
         if (codigo == null || codigo.isBlank()) {
             return null;
         }
@@ -121,7 +120,7 @@ public class TurmaRepository {
         return null;
     }
 
-    public List<Turma> buscarPorProfessor(String matriculaProfessor) {
+    public List<Turma> buscarTurmaPorMatriculaDeProfessor(String matriculaProfessor) {
         List<Turma> turmasDoProfessor = new ArrayList<>();
 
         if (matriculaProfessor == null || matriculaProfessor.isBlank()) {
@@ -138,7 +137,7 @@ public class TurmaRepository {
         return turmasDoProfessor;
     }
 
-    public List<Turma> buscarPorPeriodoLetivo(String periodoLetivo) {
+    public List<Turma> buscarTurmaPorPeriodoLetivo(String periodoLetivo) {
         List<Turma> turmasDoPeriodo = new ArrayList<>();
 
         if (periodoLetivo == null || periodoLetivo.isBlank()) {
@@ -155,14 +154,19 @@ public class TurmaRepository {
     }
 
     public List<String> buscarAulasDeTurma(String codigoTurma){
-        if(codigoTurma == null  || codigoTurma.isBlank()){
-            throw new EntradaInvalidaException("Código de turma não pode ser null.");
-        }
+        validarCodigoTurma(codigoTurma);
 
-        Turma turma = buscarPorCodigo(codigoTurma);
+        Turma turma = buscarTurmaPorCodigo(codigoTurma);
 
         return turma.getAulas();
     }
+
+    private void validarCodigoTurma(String codigoTurma){
+        if(codigoTurma == null  || codigoTurma.isBlank()){
+            throw new EntradaInvalidaException("Código de turma não pode ser null.");
+        }
+    }
+
 
     private void salvarListaTurmas(List<Turma> turmas) {
         String caminhoArquivo = getCaminhoArquivo();
