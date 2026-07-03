@@ -150,6 +150,17 @@ mvn test
 
 ---
 
+## 🎨 Padrão de Código (Google Java Style)
+
+- Indentação de **2 espaços** (sem uso de tabs)
+- Limite de **100 caracteres** por linha
+- Chaves obrigatórias em blocos `if`, `for`, `while`, mesmo com uma única instrução
+- Nomenclatura `UpperCamelCase` para classes e `lowerCamelCase` para métodos/variáveis
+- Um único `import` por linha, sem uso de `import` com wildcard (`*`)
+- Javadoc obrigatório em classes e métodos públicos
+
+---
+
 ## 📁 Estrutura do Projeto
 
 ```bash
