@@ -40,6 +40,7 @@ public class MenuCoordenador {
             ║ 9 - Atualizar turma               ║
             ║ 10 - Cancelar turma               ║
             ║ 11 - Buscar aluno/professor       ║
+            ║ 12 - Ver lista de espera          ║
             ║ 0 - Voltar                        ║
             ╚═══════════════════════════════════╝
             """);
@@ -90,6 +91,9 @@ public class MenuCoordenador {
                 case 11:
                     usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
                     break;
+
+                case 12:
+                    turmaTela.mostrarListaEsperaTurmas();
 
                 case 0:
                     System.out.println("Voltando...");

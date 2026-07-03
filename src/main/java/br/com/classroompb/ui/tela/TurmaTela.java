@@ -10,7 +10,11 @@ import br.com.classroompb.model.entities.GestaoAcademica.Boletim;
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.entities.Usuario.Usuario;
-import br.com.classroompb.model.exception.*;
+import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.PersistenciaException;
+import br.com.classroompb.model.exception.TurmaCheiaException;
+import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import br.com.classroompb.model.services.AulaService;
 import br.com.classroompb.model.services.BoletimService;
 import br.com.classroompb.model.services.TurmaService;
@@ -102,6 +106,47 @@ public class TurmaTela {
         }
     }
 
+    public void mostrarListaEsperaTurmas() {
+        try {
+            listarTurmas();
+
+            System.out.println("======================================");
+            System.out.println("Informe o código da turma:");
+            String codigoTurma = scanner.nextLine();
+
+            Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma);
+
+            exibirListaEspera(turma);
+
+        } catch (TurmaNaoEncontradaException | EntradaInvalidaException | PersistenciaException e) {
+            System.out.println("Ocorreu um erro ao consultar a lista de espera: " + e.getMessage());
+        }
+    }
+
+    private void exibirListaEspera(Turma turma) {
+        List<String> listaEspera = turma.getListaEspera();
+
+        System.out.println("\nLista de espera da turma " + turma.getCodigo() + ":");
+
+        if (listaEspera == null || listaEspera.isEmpty()) {
+            System.out.println("Nenhum aluno na lista de espera.");
+            return;
+        }
+
+        int posicao = 1;
+
+        for (String matriculaAluno : listaEspera) {
+            try {
+                Aluno aluno = usuarioService.buscarAlunoPorMatricula(matriculaAluno);
+                System.out.println(posicao + "º - " + aluno.getNome() + " (matrícula: " + matriculaAluno + ")");
+            } catch (EntradaInvalidaException e) {
+                System.out.println(posicao + "º - Matrícula " + matriculaAluno + " (aluno não encontrado)");
+            }
+
+            posicao++;
+        }
+    }
+
     public void cadastrarNovoAluno(Aluno alunoLogado){
         try{
             listarTurmas();
@@ -111,15 +156,19 @@ public class TurmaTela {
             String codigoTurma = scanner.nextLine();
 
 
-            turmaService.cadastrarAlunoEmTurma(codigoTurma, alunoLogado);
+            int listaEsperaCond = turmaService.cadastrarAlunoEmTurma(codigoTurma, alunoLogado);
 
             Boletim boletim = new Boletim(alunoLogado.getMatricula(), codigoTurma);
 
             boletimService.criarBoletim(boletim);
 
-            System.out.println("Aluno matriculado com sucesso!");
+            if(listaEsperaCond == 0){
+                System.out.println("Aluno matriculado com sucesso!");
+            }else{
+                System.out.println("Aluno na lista de espera!");
+            }
+            
         }catch(AlunoNaoCumprePreRequisitosException | TurmaCheiaException | PersistenciaException | EntradaInvalidaException e){
-            //INSERIR TELA PARA ENTRADA EM UMA LISTA DE ESPERA
             System.out.println("Ocorreu um erro ao realizar matrícula: "+ e.getMessage());
         }
 

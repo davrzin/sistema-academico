@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import br.com.classroompb.model.exception.EntradaInvalidaException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.classroompb.model.entities.GestaoAcademica.Turma;
+import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
 
 public class TurmaRepository {
@@ -157,6 +157,10 @@ public class TurmaRepository {
         validarCodigoTurma(codigoTurma);
 
         Turma turma = buscarTurmaPorCodigo(codigoTurma);
+
+        if (turma == null) {
+            return null;
+        }
 
         return turma.getAulas();
     }

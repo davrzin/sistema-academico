@@ -1,18 +1,31 @@
 package br.com.classroompb.model.services;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import br.com.classroompb.model.entities.GestaoAcademica.*;
-import br.com.classroompb.model.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.com.classroompb.model.entities.GestaoAcademica.Aula;
+import br.com.classroompb.model.entities.GestaoAcademica.Boletim;
+import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
+import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
+import br.com.classroompb.model.entities.GestaoAcademica.Turma;
 import br.com.classroompb.model.entities.Usuario.Aluno;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
+import br.com.classroompb.model.repository.AulaRepository;
+import br.com.classroompb.model.repository.BoletimRepository;
+import br.com.classroompb.model.repository.DisciplinaRepository;
+import br.com.classroompb.model.repository.PeriodoLetivoRepository;
+import br.com.classroompb.model.repository.TurmaRepository;
+import br.com.classroompb.model.repository.UserRepository;
 
 public class TurmaService {
 
@@ -142,7 +155,7 @@ public class TurmaService {
         return turmaRepository.buscarTurmaPorPeriodoLetivo(periodoLetivo);
     }
 
-    public void cadastrarAlunoEmTurma(String codigoTurma, Aluno alunoLogado){
+    public int cadastrarAlunoEmTurma(String codigoTurma, Aluno alunoLogado){
         Turma turma = buscarTurmaPorCodigo(codigoTurma);
 
         validarEntradaAlunoEmTurma(alunoLogado, turma);
@@ -150,8 +163,10 @@ public class TurmaService {
         if(validarDisponibilidadeDeTurma(turma)){
             //SUJEIRO A MUDANÇA
             adicionarAlunoTurma(alunoLogado, turma);
+            return 0;
         }else{
             adicionarAlunoListaEspera(alunoLogado, turma);
+            return 1;
         }
     }
 
@@ -190,8 +205,8 @@ public class TurmaService {
 
                 Boolean estaPresente = presencas.get(boletim.getMatriculaAluno());
 
-                if(!estaPresente){
-                    contadorDeFaltas += 2;
+                if(!Boolean.TRUE.equals(estaPresente)){
+                    contadorDeFaltas += 1;
                 }
             }
 
