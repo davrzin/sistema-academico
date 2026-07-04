@@ -1,222 +1,232 @@
 package br.com.classroompb.model.repository;
 
-import br.com.classroompb.model.entities.GestaoAcademica.Aula;
-import br.com.classroompb.model.entities.GestaoAcademica.Turma;
+import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.List;
-
+/**
+ * Testes do repositorio de turmas.
+ */
 public class TurmaRepositoryTest {
 
-    @TempDir
-    Path tempDir;
+  @TempDir Path tempDir;
 
-    @AfterEach
-    public void tearDown() {
-        File diretorio = tempDir.resolve("turmas").toFile();
-        File[] arquivos = diretorio.listFiles();
+  /**
+   * Limpa os arquivos gerados pelos testes.
+   */
+  @AfterEach
+  public void tearDown() {
+    File diretorio = tempDir.resolve("turmas").toFile();
+    File[] arquivos = diretorio.listFiles();
 
-        if (arquivos != null) {
-            for (File arquivo : arquivos) {
-                arquivo.delete();
-            }
-        }
-
-        if (diretorio.exists() && diretorio.isDirectory()) {
-            diretorio.delete();
-        }
+    if (arquivos != null) {
+      for (File arquivo : arquivos) {
+        arquivo.delete();
+      }
     }
 
-    private TurmaRepository criarRepository() {
-        return new TurmaRepository(
-                new ObjectMapper(),
-                tempDir.resolve("turmas").toString()
-        );
+    if (diretorio.exists() && diretorio.isDirectory()) {
+      diretorio.delete();
     }
+  }
 
-    @Test
-    public void deveCriarRepositorySomenteComObjectMapper(){
-        TurmaRepository repository = new TurmaRepository(new ObjectMapper());
+  private TurmaRepository criarRepository() {
+    return new TurmaRepository(new ObjectMapper(), tempDir.resolve("turmas").toString());
+  }
 
-        Assertions.assertEquals(TurmaRepository.class, repository.getClass());
-    }
+  @Test
+  public void deveCriarRepositorySomenteComObjectMapper() {
+    TurmaRepository repository = new TurmaRepository(new ObjectMapper());
 
-    @Test
-    public void deveRetornarObjectMapper() {
-        TurmaRepository repository = criarRepository();
+    Assertions.assertEquals(TurmaRepository.class, repository.getClass());
+  }
 
-        Assertions.assertNotNull(repository.getObjectMapper());
-    }
+  @Test
+  public void deveRetornarObjectMapper() {
+    TurmaRepository repository = criarRepository();
 
-    @Test
-    public void deveRetornarDiretorioDasTurmas() {
-        TurmaRepository repository = criarRepository();
+    Assertions.assertNotNull(repository.getObjectMapper());
+  }
 
-        Assertions.assertNotNull(repository.getDiretorioTurmas());
-    }
+  @Test
+  public void deveRetornarDiretorioDasTurmas() {
+    TurmaRepository repository = criarRepository();
 
-    @Test
-    public void deveSalvarTurmaEmArquivo() {
-        TurmaRepository repository = criarRepository();
-        Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    Assertions.assertNotNull(repository.getDiretorioTurmas());
+  }
 
-        repository.salvarTurma(turma);
+  @Test
+  public void deveSalvarTurmaEmArquivo() {
+    TurmaRepository repository = criarRepository();
+    Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
 
-        File arquivo = tempDir.resolve("turmas").resolve("turmas.json").toFile();
+    repository.salvarTurma(turma);
 
-        Assertions.assertTrue(arquivo.exists());
-        Assertions.assertEquals(1, repository.listarTurmas().size());
-        Assertions.assertEquals("tur00", repository.listarTurmas().get(0).getCodigo());
-    }
+    File arquivo = tempDir.resolve("turmas").resolve("turmas.json").toFile();
 
-    @Test
-    public void deveLancarIllegalArgumentExceptionAoSalvarTurmaNull() {
-        TurmaRepository repository = criarRepository();
+    Assertions.assertTrue(arquivo.exists());
+    Assertions.assertEquals(1, repository.listarTurmas().size());
+    Assertions.assertEquals("tur00", repository.listarTurmas().get(0).getCodigo());
+  }
 
-        Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> repository.salvarTurma(null)
-        );
-    }
+  @Test
+  public void deveLancarIllegalArgumentExceptionAoSalvarTurmaNull() {
+    TurmaRepository repository = criarRepository();
 
-    @Test
-    public void deveListarNenhumaTurmaQuandoArquivoNaoExiste() {
-        TurmaRepository repository = criarRepository();
+    Assertions.assertThrows(IllegalArgumentException.class, () -> repository.salvarTurma(null));
+  }
 
-        Assertions.assertEquals(0, repository.listarTurmas().size());
-    }
+  @Test
+  public void deveListarNenhumaTurmaQuandoArquivoNaoExiste() {
+    TurmaRepository repository = criarRepository();
 
-    @Test
-    public void deveBuscarTurmaPorCodigo() {
-        TurmaRepository repository = criarRepository();
-        Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    Assertions.assertEquals(0, repository.listarTurmas().size());
+  }
 
-        repository.salvarTurma(turma);
+  @Test
+  public void deveBuscarTurmaPorCodigo() {
+    TurmaRepository repository = criarRepository();
+    Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
 
-        Turma turmaEncontrada = repository.buscarTurmaPorCodigo("tur00");
+    repository.salvarTurma(turma);
 
-        Assertions.assertNotNull(turmaEncontrada);
-        Assertions.assertEquals("dis00", turmaEncontrada.getCodigoDisciplina());
-    }
+    Turma turmaEncontrada = repository.buscarTurmaPorCodigo("tur00");
 
-    @Test
-    public void naoDeveEncontrarTurmaComCodigoInexistente() {
-        TurmaRepository repository = criarRepository();
-        Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    Assertions.assertNotNull(turmaEncontrada);
+    Assertions.assertEquals("dis00", turmaEncontrada.getCodigoDisciplina());
+  }
 
-        repository.salvarTurma(turma);
+  @Test
+  public void naoDeveEncontrarTurmaComCodigoInexistente() {
+    TurmaRepository repository = criarRepository();
+    Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
 
-        Assertions.assertNull(repository.buscarTurmaPorCodigo("tur99"));
-    }
+    repository.salvarTurma(turma);
 
-    @Test
-    public void deveBuscarTurmasPorProfessor() {
-        TurmaRepository repository = criarRepository();
-        repository.salvarTurma(new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01"));
-        repository.salvarTurma(new Turma("tur01", "dis01", "2026.2", "pr00", 25, "TER 08:00-10:00", "LAB 02"));
-        repository.salvarTurma(new Turma("tur02", "dis02", "2026.2", "pr01", 20, "QUA 08:00-10:00", "LAB 03"));
+    Assertions.assertNull(repository.buscarTurmaPorCodigo("tur99"));
+  }
 
-        List<Turma> turmasDoProfessor = repository.buscarTurmaPorMatriculaDeProfessor("pr00");
+  @Test
+  public void deveBuscarTurmasPorProfessor() {
+    TurmaRepository repository = criarRepository();
+    repository.salvarTurma(
+        new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01"));
+    repository.salvarTurma(
+        new Turma("tur01", "dis01", "2026.2", "pr00", 25, "TER 08:00-10:00", "LAB 02"));
+    repository.salvarTurma(
+        new Turma("tur02", "dis02", "2026.2", "pr01", 20, "QUA 08:00-10:00", "LAB 03"));
 
-        Assertions.assertEquals(2, turmasDoProfessor.size());
-    }
+    List<Turma> turmasDoProfessor = repository.buscarTurmaPorMatriculaDeProfessor("pr00");
 
-    @Test
-    public void deveBuscarTurmasPorPeriodoLetivo() {
-        TurmaRepository repository = criarRepository();
-        repository.salvarTurma(new Turma("tur00", "dis00", "2026.1", "pr00", 30, "SEG 08:00-10:00", "LAB 01"));
-        repository.salvarTurma(new Turma("tur01", "dis01", "2026.2", "pr00", 25, "TER 08:00-10:00", "LAB 02"));
-        repository.salvarTurma(new Turma("tur02", "dis02", "2026.2", "pr01", 20, "QUA 08:00-10:00", "LAB 03"));
+    Assertions.assertEquals(2, turmasDoProfessor.size());
+  }
 
-        List<Turma> turmasDoPeriodo = repository.buscarTurmaPorPeriodoLetivo("2026.2");
+  @Test
+  public void deveBuscarTurmasPorPeriodoLetivo() {
+    TurmaRepository repository = criarRepository();
+    repository.salvarTurma(
+        new Turma("tur00", "dis00", "2026.1", "pr00", 30, "SEG 08:00-10:00", "LAB 01"));
+    repository.salvarTurma(
+        new Turma("tur01", "dis01", "2026.2", "pr00", 25, "TER 08:00-10:00", "LAB 02"));
+    repository.salvarTurma(
+        new Turma("tur02", "dis02", "2026.2", "pr01", 20, "QUA 08:00-10:00", "LAB 03"));
 
-        Assertions.assertEquals(2, turmasDoPeriodo.size());
-    }
+    List<Turma> turmasDoPeriodo = repository.buscarTurmaPorPeriodoLetivo("2026.2");
 
-    @Test
-    public void deveAtualizarTurmaEmArquivo() {
-        TurmaRepository repository = criarRepository();
-        Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
-        Turma turmaAtualizada = new Turma("tur00", "dis01", "2026.2", "pr01", 40, "TER 10:00-12:00", "LAB 02");
+    Assertions.assertEquals(2, turmasDoPeriodo.size());
+  }
 
-        repository.salvarTurma(turma);
-        boolean atualizou = repository.atualizarTurma(turmaAtualizada);
+  @Test
+  public void deveAtualizarTurmaEmArquivo() {
+    TurmaRepository repository = criarRepository();
+    Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    Turma turmaAtualizada =
+        new Turma("tur00", "dis01", "2026.2", "pr01", 40, "TER 10:00-12:00", "LAB 02");
 
-        Turma turmaEncontrada = repository.buscarTurmaPorCodigo("tur00");
+    repository.salvarTurma(turma);
+    boolean atualizou = repository.atualizarTurma(turmaAtualizada);
 
-        Assertions.assertTrue(atualizou);
-        Assertions.assertEquals(1, repository.listarTurmas().size());
-        Assertions.assertEquals("dis01", turmaEncontrada.getCodigoDisciplina());
-        Assertions.assertEquals("pr01", turmaEncontrada.getMatriculaProfessor());
-        Assertions.assertEquals(40, turmaEncontrada.getLimiteVagas());
-        Assertions.assertEquals("LAB 02", turmaEncontrada.getSala());
-    }
+    Turma turmaEncontrada = repository.buscarTurmaPorCodigo("tur00");
 
-    @Test
-    public void naoDeveAtualizarTurmaInexistente() {
-        TurmaRepository repository = criarRepository();
-        Turma turmaAtualizada = new Turma("tur99", "dis01", "2026.2", "pr01", 40, "TER 10:00-12:00", "LAB 02");
+    Assertions.assertTrue(atualizou);
+    Assertions.assertEquals(1, repository.listarTurmas().size());
+    Assertions.assertEquals("dis01", turmaEncontrada.getCodigoDisciplina());
+    Assertions.assertEquals("pr01", turmaEncontrada.getMatriculaProfessor());
+    Assertions.assertEquals(40, turmaEncontrada.getLimiteVagas());
+    Assertions.assertEquals("LAB 02", turmaEncontrada.getSala());
+  }
 
-        boolean atualizou = repository.atualizarTurma(turmaAtualizada);
+  @Test
+  public void naoDeveAtualizarTurmaInexistente() {
+    TurmaRepository repository = criarRepository();
+    Turma turmaAtualizada =
+        new Turma("tur99", "dis01", "2026.2", "pr01", 40, "TER 10:00-12:00", "LAB 02");
 
-        Assertions.assertFalse(atualizou);
-    }
+    boolean atualizou = repository.atualizarTurma(turmaAtualizada);
 
-    @Test
-    public void deveRemoverTurmaPorCodigo() {
-        TurmaRepository repository = criarRepository();
-        repository.salvarTurma(new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01"));
-        repository.salvarTurma(new Turma("tur01", "dis01", "2026.2", "pr01", 25, "TER 08:00-10:00", "LAB 02"));
+    Assertions.assertFalse(atualizou);
+  }
 
-        boolean removeu = repository.removerTurmaPorCodigo("tur00");
+  @Test
+  public void deveRemoverTurmaPorCodigo() {
+    TurmaRepository repository = criarRepository();
+    repository.salvarTurma(
+        new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01"));
+    repository.salvarTurma(
+        new Turma("tur01", "dis01", "2026.2", "pr01", 25, "TER 08:00-10:00", "LAB 02"));
 
-        Assertions.assertTrue(removeu);
-        Assertions.assertEquals(1, repository.listarTurmas().size());
-        Assertions.assertNull(repository.buscarTurmaPorCodigo("tur00"));
-        Assertions.assertNotNull(repository.buscarTurmaPorCodigo("tur01"));
-    }
+    boolean removeu = repository.removerTurmaPorCodigo("tur00");
 
-    @Test
-    public void naoDeveRemoverTurmaInexistente() {
-        TurmaRepository repository = criarRepository();
-        repository.salvarTurma(new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01"));
+    Assertions.assertTrue(removeu);
+    Assertions.assertEquals(1, repository.listarTurmas().size());
+    Assertions.assertNull(repository.buscarTurmaPorCodigo("tur00"));
+    Assertions.assertNotNull(repository.buscarTurmaPorCodigo("tur01"));
+  }
 
-        boolean removeu = repository.removerTurmaPorCodigo("tur99");
+  @Test
+  public void naoDeveRemoverTurmaInexistente() {
+    TurmaRepository repository = criarRepository();
+    repository.salvarTurma(
+        new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01"));
 
-        Assertions.assertFalse(removeu);
-        Assertions.assertEquals(1, repository.listarTurmas().size());
-    }
+    boolean removeu = repository.removerTurmaPorCodigo("tur99");
 
-    @Test
-    public void deveBuscarAulasPorTurmaCorretamente(){
-        TurmaRepository repository = criarRepository();
+    Assertions.assertFalse(removeu);
+    Assertions.assertEquals(1, repository.listarTurmas().size());
+  }
 
-        List<String> aulas = repository.buscarAulasDeTurma("tur00");
+  @Test
+  public void deveBuscarAulasPorTurmaCorretamente() {
+    TurmaRepository repository = criarRepository();
 
-        Assertions.assertNull(aulas);
-    }
+    List<String> aulas = repository.buscarAulasDeTurma("tur00");
 
-    @Test
-    public void deveLancarEntradaInvalidaExceptionAoBuscarAulasDeTurmaComCodigoNull() {
+    Assertions.assertNotNull(aulas);
+    Assertions.assertTrue(aulas.isEmpty());
+  }
 
-        TurmaRepository repository = criarRepository();
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoBuscarAulasDeTurmaComCodigoNull() {
 
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> repository.buscarAulasDeTurma(null));
+    TurmaRepository repository = criarRepository();
 
-    }
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> repository.buscarAulasDeTurma(null));
+  }
 
-    @Test
-    public void deveLancarEntradaInvalidaExceptionAoBuscarAulasDeTurmaComCodigoVazio(){
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoBuscarAulasDeTurmaComCodigoVazio() {
 
-        TurmaRepository repository = criarRepository();
+    TurmaRepository repository = criarRepository();
 
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> repository.buscarAulasDeTurma(""));
-    }
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> repository.buscarAulasDeTurma(""));
+  }
 }

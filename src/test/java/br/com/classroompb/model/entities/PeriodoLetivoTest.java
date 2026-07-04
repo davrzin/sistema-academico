@@ -1,158 +1,154 @@
 package br.com.classroompb.model.entities;
 
-import br.com.classroompb.model.entities.GestaoAcademica.PeriodoLetivo;
+import br.com.classroompb.model.entities.gestaoacademica.PeriodoLetivo;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Testes da entidade PeriodoLetivo.
+ */
 public class PeriodoLetivoTest {
 
+  @Test
+  public void deveCriarUmObjetoPeriodoLetivo() {
 
-    @Test
-    public void deveCriarUmObjetoPeriodoLetivo(){
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    Assertions.assertEquals(PeriodoLetivo.class, periodoLetivo.getClass());
+  }
 
-        Assertions.assertEquals(PeriodoLetivo.class, periodoLetivo.getClass());
-    }
+  @Test
+  public void deveLancarExceptionEmConstrutorComTresDadosVazios() {
 
-    @Test
-    public void deveLancarExceptionEmConstrutorComTresDadosVazios(){
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> new PeriodoLetivo("", "", ""));
+  }
 
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> new PeriodoLetivo("", "", ""));
-    }
+  @Test
+  public void deveLancarExceptionEmConstrutorComDoisDadosVazios() {
 
-    @Test
-    public void deveLancarExceptionEmConstrutorComDoisDadosVazios(){
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> new PeriodoLetivo("2026.1", "", ""));
+  }
 
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> new PeriodoLetivo("2026.1", "", ""));
-    }
+  @Test
+  public void deveLancarExceptionEmConstrutorComUmDadoVazio() {
 
-    @Test
-    public void deveLancarExceptionEmConstrutorComUmDadoVazio(){
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> new PeriodoLetivo("2026.1", "02/02/2026", ""));
+  }
 
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> new PeriodoLetivo("2026.1", "02/02/2026", ""));
-    }
+  @Test
+  public void deveRetornarPeriodo() {
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
+    Assertions.assertEquals("2026.1", periodoLetivo.getPeriodo());
+  }
 
-    @Test
-    public void deveRetornarPeriodo(){
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+  @Test
+  public void deveRetornarDataInicio() {
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-        Assertions.assertEquals("2026.1", periodoLetivo.getPeriodo());
-    }
+    Assertions.assertEquals("02/02/2026", periodoLetivo.getDataInicio());
+  }
 
-    @Test
-    public void deveRetornarDataInicio(){
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+  @Test
+  public void deveRetornarDataFim() {
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-        Assertions.assertEquals("02/02/2026", periodoLetivo.getDataInicio());
-    }
+    Assertions.assertEquals("15/09/2026", periodoLetivo.getDataFim());
+  }
 
-    @Test
-    public void deveRetornarDataFim(){
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+  @Test
+  public void deveRetornarPeriodoLetivoAtivo() {
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-        Assertions.assertEquals("15/09/2026", periodoLetivo.getDataFim());
-    }
+    Assertions.assertFalse(periodoLetivo.getPeriodoAtivo());
+  }
 
-    @Test
-    public void deveRetornarPeriodoLetivoAtivo(){
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+  @Test
+  public void deveAlterarPeriodo() {
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-        Assertions.assertFalse(periodoLetivo.getPeriodoAtivo());
-    }
+    periodoLetivo.setPeriodo("2026.2");
 
-    @Test
-    public void deveAlterarPeriodo(){
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    Assertions.assertEquals("2026.2", periodoLetivo.getPeriodo());
+  }
 
-        periodoLetivo.setPeriodo("2026.2");
+  @Test
+  public void deveLancarExceptionEmSetPeriodoDadoVazio() {
 
-        Assertions.assertEquals("2026.2", periodoLetivo.getPeriodo());
-    }
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-    @Test
-    public void deveLancarExceptionEmSetPeriodoDadoVazio(){
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setPeriodo(""));
+  }
 
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+  @Test
+  public void deveLancarExceptionEmSetPeriodoDadoErrado() {
 
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setPeriodo(""));
-    }
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setPeriodo("lasd"));
+  }
 
-    @Test
-    public void deveLancarExceptionEmSetPeriodoDadoErrado(){
+  @Test
+  public void deveAlterarDataInicio() {
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    periodoLetivo.setDataInicio("03/02/2026");
 
+    Assertions.assertEquals("03/02/2026", periodoLetivo.getDataInicio());
+  }
 
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setPeriodo("lasd"));
-    }
+  @Test
+  public void deveLancarExceptionEmSetDataInicioComDadoVazio() {
 
-    @Test
-    public void deveAlterarDataInicio(){
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-        periodoLetivo.setDataInicio("03/02/2026");
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setDataInicio(""));
+  }
 
-        Assertions.assertEquals("03/02/2026", periodoLetivo.getDataInicio());
+  @Test
+  public void deveLancarExceptionEmSetDataInicioComDadoErrado() {
 
-    }
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-    @Test
-    public void deveLancarExceptionEmSetDataInicioComDadoVazio(){
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> periodoLetivo.setDataInicio("asdasda"));
+  }
 
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+  @Test
+  public void deveAlterarDataFim() {
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
+    periodoLetivo.setDataInicio("16/09/2026");
 
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setDataInicio(""));
-    }
+    Assertions.assertEquals("16/09/2026", periodoLetivo.getDataInicio());
+  }
 
-    @Test
-    public void deveLancarExceptionEmSetDataInicioComDadoErrado(){
+  @Test
+  public void deveLancarExceptionEmSetDataFimComDadoVazio() {
 
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setDataFim(""));
+  }
 
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setDataInicio("asdasda"));
-    }
+  @Test
+  public void deveLancarExceptionEmSetDataFimComDadoErrado() {
 
-    @Test
-    public void deveAlterarDataFim(){
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-        periodoLetivo.setDataInicio("16/09/2026");
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> periodoLetivo.setDataFim("asdasd"));
+  }
 
-        Assertions.assertEquals("16/09/2026", periodoLetivo.getDataInicio());
-    }
+  @Test
+  public void deveAlterarPeriodoLetivoAtivo() {
+    PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
 
-    @Test
-    public void deveLancarExceptionEmSetDataFimComDadoVazio(){
+    periodoLetivo.setPeriodoAtivo(true);
 
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
-
-
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setDataFim(""));
-    }
-
-    @Test
-    public void deveLancarExceptionEmSetDataFimComDadoErrado(){
-
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
-
-
-        Assertions.assertThrows(EntradaInvalidaException.class, () -> periodoLetivo.setDataFim("asdasd"));
-    }
-
-    @Test
-    public void deveAlterarPeriodoLetivoAtivo(){
-        PeriodoLetivo periodoLetivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
-
-        periodoLetivo.setPeriodoAtivo(true);
-
-        Assertions.assertTrue(periodoLetivo.getPeriodoAtivo());
-    }
-
-
+    Assertions.assertTrue(periodoLetivo.getPeriodoAtivo());
+  }
 }

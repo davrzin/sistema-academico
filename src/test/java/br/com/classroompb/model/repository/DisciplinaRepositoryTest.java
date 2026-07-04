@@ -1,261 +1,259 @@
 package br.com.classroompb.model.repository;
 
+import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import br.com.classroompb.model.entities.GestaoAcademica.Disciplina;
-
+/**
+ * Testes do repositorio de disciplinas.
+ */
 public class DisciplinaRepositoryTest {
 
-    @TempDir
-    Path tempDir;
+  @TempDir Path tempDir;
 
-    @AfterEach
-    public void tearDown() {
-        File diretorio = tempDir.resolve("disciplinas").toFile();
-        File[] arquivos = diretorio.listFiles();
+  /**
+   * Limpa os arquivos gerados pelos testes.
+   */
+  @AfterEach
+  public void tearDown() {
+    File diretorio = tempDir.resolve("disciplinas").toFile();
+    File[] arquivos = diretorio.listFiles();
 
-        if (arquivos != null) {
-            for (File arquivo : arquivos) {
-                arquivo.delete();
-            }
-        }
-
-        if (diretorio.exists() && diretorio.isDirectory()) {
-            diretorio.delete();
-        }
+    if (arquivos != null) {
+      for (File arquivo : arquivos) {
+        arquivo.delete();
+      }
     }
 
-    private DisciplinaRepository criarRepository() {
-        return new DisciplinaRepository(
-                new ObjectMapper(),
-                tempDir.resolve("disciplinas").toString()
-        );
+    if (diretorio.exists() && diretorio.isDirectory()) {
+      diretorio.delete();
     }
+  }
 
-    private Disciplina criarDisciplina(String codigo, String nome, String codigoCurso) {
-        return new Disciplina(codigo, nome, 60, 3, 4, codigoCurso, new ArrayList<>());
-    }
+  private DisciplinaRepository criarRepository() {
+    return new DisciplinaRepository(new ObjectMapper(), tempDir.resolve("disciplinas").toString());
+  }
 
-    @Test
-    public void deveRetornarObjectMapper() {
-        DisciplinaRepository repository = criarRepository();
-        Assertions.assertNotNull(repository.getObjectMapper());
-    }
+  private Disciplina criarDisciplina(String codigo, String nome, String codigoCurso) {
+    return new Disciplina(codigo, nome, 60, 3, 4, codigoCurso, new ArrayList<>());
+  }
 
-    @Test
-    public void deveAlterarObjectMapper() {
-        DisciplinaRepository repository = criarRepository();
-        ObjectMapper novoMapper = new ObjectMapper();
-        repository.setObjectMapper(novoMapper);
-        Assertions.assertEquals(novoMapper, repository.getObjectMapper());
-    }
+  @Test
+  public void deveRetornarObjectMapper() {
+    DisciplinaRepository repository = criarRepository();
+    Assertions.assertNotNull(repository.getObjectMapper());
+  }
 
-    @Test
-    public void deveRetornarDiretorioDisciplinas() {
-        DisciplinaRepository repository = criarRepository();
-        Assertions.assertNotNull(repository.getDiretorioDisciplinas());
-    }
+  @Test
+  public void deveAlterarObjectMapper() {
+    DisciplinaRepository repository = criarRepository();
+    ObjectMapper novoMapper = new ObjectMapper();
+    repository.setObjectMapper(novoMapper);
+    Assertions.assertEquals(novoMapper, repository.getObjectMapper());
+  }
 
-    @Test
-    public void deveSalvarDisciplinaEmArquivo() {
-        DisciplinaRepository repository = criarRepository();
-        Disciplina disciplina = criarDisciplina("DIS001", "Estrutura de Dados", "cur01");
+  @Test
+  public void deveRetornarDiretorioDisciplinas() {
+    DisciplinaRepository repository = criarRepository();
+    Assertions.assertNotNull(repository.getDiretorioDisciplinas());
+  }
 
-        repository.salvarDisciplina(disciplina);
+  @Test
+  public void deveSalvarDisciplinaEmArquivo() {
+    DisciplinaRepository repository = criarRepository();
+    Disciplina disciplina = criarDisciplina("DIS001", "Estrutura de Dados", "cur01");
 
-        File arquivo = tempDir.resolve("disciplinas").resolve("disciplinas.json").toFile();
+    repository.salvarDisciplina(disciplina);
 
-        Assertions.assertTrue(arquivo.exists());
-        Assertions.assertEquals(1, repository.listarDisciplinas().size());
-    }
+    File arquivo = tempDir.resolve("disciplinas").resolve("disciplinas.json").toFile();
 
-    @Test
-    public void deveSalvarMultiplasDisciplinasEmArquivo() {
-        DisciplinaRepository repository = criarRepository();
+    Assertions.assertTrue(arquivo.exists());
+    Assertions.assertEquals(1, repository.listarDisciplinas().size());
+  }
 
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
-        repository.salvarDisciplina(criarDisciplina("DIS002", "Algoritmos", "cur01"));
-        repository.salvarDisciplina(criarDisciplina("DIS003", "Banco de Dados", "cur02"));
+  @Test
+  public void deveSalvarMultiplasDisciplinasEmArquivo() {
+    DisciplinaRepository repository = criarRepository();
 
-        Assertions.assertEquals(3, repository.listarDisciplinas().size());
-    }
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    repository.salvarDisciplina(criarDisciplina("DIS002", "Algoritmos", "cur01"));
+    repository.salvarDisciplina(criarDisciplina("DIS003", "Banco de Dados", "cur02"));
 
-    @Test
-    public void deveLancarIllegalArgumentExceptionAoSalvarDisciplinaNula() {
-        DisciplinaRepository repository = criarRepository();
+    Assertions.assertEquals(3, repository.listarDisciplinas().size());
+  }
 
-        Assertions.assertThrows(
-                IllegalArgumentException.class, () -> repository.salvarDisciplina(null)
-        );
-    }
+  @Test
+  public void deveLancarIllegalArgumentExceptionAoSalvarDisciplinaNula() {
+    DisciplinaRepository repository = criarRepository();
 
-    @Test
-    public void deveCriarDiretorioAoSalvarQuandoNaoExiste() {
-        DisciplinaRepository repository = criarRepository();
-        Disciplina disciplina = criarDisciplina("DIS001", "Estrutura de Dados", "cur01");
+    Assertions.assertThrows(
+        IllegalArgumentException.class, () -> repository.salvarDisciplina(null));
+  }
 
-        repository.salvarDisciplina(disciplina);
+  @Test
+  public void deveCriarDiretorioAoSalvarQuandoNaoExiste() {
+    DisciplinaRepository repository = criarRepository();
+    Disciplina disciplina = criarDisciplina("DIS001", "Estrutura de Dados", "cur01");
 
-        File diretorio = tempDir.resolve("disciplinas").toFile();
-        Assertions.assertTrue(diretorio.exists());
-    }
+    repository.salvarDisciplina(disciplina);
 
-    @Test
-    public void deveRetornarListaVaziaQuandoArquivoNaoExiste() {
-        DisciplinaRepository repository = criarRepository();
+    File diretorio = tempDir.resolve("disciplinas").toFile();
+    Assertions.assertTrue(diretorio.exists());
+  }
 
-        List<Disciplina> disciplinas = repository.listarDisciplinas();
+  @Test
+  public void deveRetornarListaVaziaQuandoArquivoNaoExiste() {
+    DisciplinaRepository repository = criarRepository();
 
-        Assertions.assertNotNull(disciplinas);
-        Assertions.assertEquals(0, disciplinas.size());
-    }
+    List<Disciplina> disciplinas = repository.listarDisciplinas();
 
-    @Test
-    public void deveListarTodasAsDisciplinasSalvas() {
-        DisciplinaRepository repository = criarRepository();
+    Assertions.assertNotNull(disciplinas);
+    Assertions.assertEquals(0, disciplinas.size());
+  }
 
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
-        repository.salvarDisciplina(criarDisciplina("DIS002", "Algoritmos", "cur01"));
+  @Test
+  public void deveListarTodasAsDisciplinasSalvas() {
+    DisciplinaRepository repository = criarRepository();
 
-        Assertions.assertEquals(2, repository.listarDisciplinas().size());
-    }
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    repository.salvarDisciplina(criarDisciplina("DIS002", "Algoritmos", "cur01"));
 
-    @Test
-    public void deveEncontrarDisciplinaPorCodigo() {
-        DisciplinaRepository repository = criarRepository();
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    Assertions.assertEquals(2, repository.listarDisciplinas().size());
+  }
 
-        Disciplina encontrada = repository.buscarPorCodigo("DIS001");
+  @Test
+  public void deveEncontrarDisciplinaPorCodigo() {
+    DisciplinaRepository repository = criarRepository();
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
 
-        Assertions.assertNotNull(encontrada);
-        Assertions.assertEquals("DIS001", encontrada.getCodigo());
-    }
+    Disciplina encontrada = repository.buscarPorCodigo("DIS001");
 
-    @Test
-    public void deveEncontrarDisciplinaPorCodigoIgnorandoCase() {
-        DisciplinaRepository repository = criarRepository();
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    Assertions.assertNotNull(encontrada);
+    Assertions.assertEquals("DIS001", encontrada.getCodigo());
+  }
 
-        Disciplina encontrada = repository.buscarPorCodigo("dis001");
+  @Test
+  public void deveEncontrarDisciplinaPorCodigoIgnorandoCase() {
+    DisciplinaRepository repository = criarRepository();
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
 
-        Assertions.assertNotNull(encontrada);
-        Assertions.assertEquals("DIS001", encontrada.getCodigo());
-    }
+    Disciplina encontrada = repository.buscarPorCodigo("dis001");
 
-    @Test
-    public void deveRetornarNuloAoBuscarPorCodigoInexistente() {
-        DisciplinaRepository repository = criarRepository();
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    Assertions.assertNotNull(encontrada);
+    Assertions.assertEquals("DIS001", encontrada.getCodigo());
+  }
 
-        Disciplina encontrada = repository.buscarPorCodigo("DIS999");
+  @Test
+  public void deveRetornarNuloAoBuscarPorCodigoInexistente() {
+    DisciplinaRepository repository = criarRepository();
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
 
-        Assertions.assertNull(encontrada);
-    }
+    Disciplina encontrada = repository.buscarPorCodigo("DIS999");
 
-    @Test
-    public void deveRetornarNuloAoBuscarPorCodigoComListaVazia() {
-        DisciplinaRepository repository = criarRepository();
+    Assertions.assertNull(encontrada);
+  }
 
-        Disciplina encontrada = repository.buscarPorCodigo("DIS001");
+  @Test
+  public void deveRetornarNuloAoBuscarPorCodigoComListaVazia() {
+    DisciplinaRepository repository = criarRepository();
 
-        Assertions.assertNull(encontrada);
-    }
+    Disciplina encontrada = repository.buscarPorCodigo("DIS001");
 
-    @Test
-    public void deveEncontrarDisciplinaPorNome() {
-        DisciplinaRepository repository = criarRepository();
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    Assertions.assertNull(encontrada);
+  }
 
-        Disciplina encontrada = repository.buscarPorNome("Estrutura de Dados");
+  @Test
+  public void deveEncontrarDisciplinaPorNome() {
+    DisciplinaRepository repository = criarRepository();
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
 
-        Assertions.assertNotNull(encontrada);
-        Assertions.assertEquals("Estrutura de Dados", encontrada.getNome());
-    }
+    Disciplina encontrada = repository.buscarPorNome("Estrutura de Dados");
 
-    @Test
-    public void deveEncontrarDisciplinaPorNomeIgnorandoCase() {
-        DisciplinaRepository repository = criarRepository();
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    Assertions.assertNotNull(encontrada);
+    Assertions.assertEquals("Estrutura de Dados", encontrada.getNome());
+  }
 
-        Disciplina encontrada = repository.buscarPorNome("estrutura de dados");
+  @Test
+  public void deveEncontrarDisciplinaPorNomeIgnorandoCase() {
+    DisciplinaRepository repository = criarRepository();
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
 
-        Assertions.assertNotNull(encontrada);
-        Assertions.assertEquals("Estrutura de Dados", encontrada.getNome());
-    }
+    Disciplina encontrada = repository.buscarPorNome("estrutura de dados");
 
-    @Test
-    public void deveRetornarNuloAoBuscarPorNomeInexistente() {
-        DisciplinaRepository repository = criarRepository();
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    Assertions.assertNotNull(encontrada);
+    Assertions.assertEquals("Estrutura de Dados", encontrada.getNome());
+  }
 
-        Disciplina encontrada = repository.buscarPorNome("Cálculo Diferencial");
+  @Test
+  public void deveRetornarNuloAoBuscarPorNomeInexistente() {
+    DisciplinaRepository repository = criarRepository();
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
 
-        Assertions.assertNull(encontrada);
-    }
+    Disciplina encontrada = repository.buscarPorNome("Cálculo Diferencial");
 
-    @Test
-    public void deveRetornarNuloAoBuscarPorNomeComListaVazia() {
-        DisciplinaRepository repository = criarRepository();
+    Assertions.assertNull(encontrada);
+  }
 
-        Disciplina encontrada = repository.buscarPorNome("Estrutura de Dados");
+  @Test
+  public void deveRetornarNuloAoBuscarPorNomeComListaVazia() {
+    DisciplinaRepository repository = criarRepository();
 
-        Assertions.assertNull(encontrada);
-    }
+    Disciplina encontrada = repository.buscarPorNome("Estrutura de Dados");
 
-    @Test
-    public void deveEncontrarDisciplinasDoCurso() {
-        DisciplinaRepository repository = criarRepository();
+    Assertions.assertNull(encontrada);
+  }
 
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
-        repository.salvarDisciplina(criarDisciplina("DIS002", "Algoritmos", "cur01"));
-        repository.salvarDisciplina(criarDisciplina("DIS003", "Banco de Dados", "cur02"));
+  @Test
+  public void deveEncontrarDisciplinasDoCurso() {
+    DisciplinaRepository repository = criarRepository();
 
-        List<Disciplina> disciplinasCur01 = repository.buscarPorCurso("cur01");
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    repository.salvarDisciplina(criarDisciplina("DIS002", "Algoritmos", "cur01"));
+    repository.salvarDisciplina(criarDisciplina("DIS003", "Banco de Dados", "cur02"));
 
-        Assertions.assertEquals(2, disciplinasCur01.size());
-    }
+    List<Disciplina> disciplinasCur01 = repository.buscarPorCurso("cur01");
 
-    @Test
-    public void deveEncontrarDisciplinasDoCursoIgnorandoCase() {
-        DisciplinaRepository repository = criarRepository();
+    Assertions.assertEquals(2, disciplinasCur01.size());
+  }
 
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
-        repository.salvarDisciplina(criarDisciplina("DIS002", "Algoritmos", "cur01"));
+  @Test
+  public void deveEncontrarDisciplinasDoCursoIgnorandoCase() {
+    DisciplinaRepository repository = criarRepository();
 
-        List<Disciplina> encontradas = repository.buscarPorCurso("CUR01");
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+    repository.salvarDisciplina(criarDisciplina("DIS002", "Algoritmos", "cur01"));
 
-        Assertions.assertEquals(2, encontradas.size());
-    }
+    List<Disciplina> encontradas = repository.buscarPorCurso("CUR01");
 
-    @Test
-    public void deveRetornarListaVaziaAoBuscarPorCursoInexistente() {
-        DisciplinaRepository repository = criarRepository();
+    Assertions.assertEquals(2, encontradas.size());
+  }
 
-        repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
+  @Test
+  public void deveRetornarListaVaziaAoBuscarPorCursoInexistente() {
+    DisciplinaRepository repository = criarRepository();
 
-        List<Disciplina> encontradas = repository.buscarPorCurso("cur99");
+    repository.salvarDisciplina(criarDisciplina("DIS001", "Estrutura de Dados", "cur01"));
 
-        Assertions.assertNotNull(encontradas);
-        Assertions.assertTrue(encontradas.isEmpty());
-    }
+    List<Disciplina> encontradas = repository.buscarPorCurso("cur99");
 
-    @Test
-    public void deveRetornarListaVaziaAoBuscarPorCursoComRepositorioVazio() {
-        DisciplinaRepository repository = criarRepository();
+    Assertions.assertNotNull(encontradas);
+    Assertions.assertTrue(encontradas.isEmpty());
+  }
 
-        List<Disciplina> encontradas = repository.buscarPorCurso("cur01");
+  @Test
+  public void deveRetornarListaVaziaAoBuscarPorCursoComRepositorioVazio() {
+    DisciplinaRepository repository = criarRepository();
 
-        Assertions.assertNotNull(encontradas);
-        Assertions.assertTrue(encontradas.isEmpty());
-    }
+    List<Disciplina> encontradas = repository.buscarPorCurso("cur01");
+
+    Assertions.assertNotNull(encontradas);
+    Assertions.assertTrue(encontradas.isEmpty());
+  }
 }
