@@ -49,6 +49,11 @@ public class BoletimService {
     this.turmaRepository = turmaRepository;
   }
 
+  /**
+   * Retorna o repositorio de boletins usado pelo servico.
+   *
+   * @return repositorio de boletins.
+   */
   public BoletimRepository getRepository() {
     return repository;
   }
@@ -133,6 +138,7 @@ public class BoletimService {
    * @param codigoTurma codigo da turma.
    * @param primeiraNota primeira nota.
    * @param segundaNota segunda nota.
+   * @param matriculaProfessor matricula do professor.
    */
   public void lancarNotas(
       String codigoTurma,
