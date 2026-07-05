@@ -35,6 +35,32 @@ public class TurmaTela {
   private final UsuarioService usuarioService = new UsuarioService();
   private final DisciplinaService disciplinaService = new DisciplinaService();
 
+  private static class OpcaoMatricula {
+    private final Turma turma;
+    private final String motivo;
+
+    OpcaoMatricula(Turma turma, String motivo) {
+      this.turma = turma;
+      this.motivo = motivo;
+    }
+  }
+
+  private static class ClassificacaoMatricula {
+    private final List<OpcaoMatricula> matriculaDireta = new ArrayList<>();
+    private final List<OpcaoMatricula> listaEspera = new ArrayList<>();
+    private final List<OpcaoMatricula> indisponiveis = new ArrayList<>();
+  }
+
+  private static class ProfessorIndisponivel {
+    private final Professor professor;
+    private final Turma turmaConflitante;
+
+    ProfessorIndisponivel(Professor professor, Turma turmaConflitante) {
+      this.professor = professor;
+      this.turmaConflitante = turmaConflitante;
+    }
+  }
+
   /**
    * Cria a tela de turmas.
    *
@@ -56,6 +82,9 @@ public class TurmaTela {
       System.out.println("Turma cadastrada com sucesso.");
       System.out.println("Código da turma: " + novaTurma.getCodigo());
 
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Cadastro de turma cancelado.");
+
     } catch (PersistenciaException | EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao cadastrar turma: " + e.getMessage());
 
@@ -72,12 +101,15 @@ public class TurmaTela {
   public void cadastrarTurma(Coordenador coordenadorLogado) {
     try {
       validarCoordenadorComCurso(coordenadorLogado);
-      Turma novaTurma = lerDadosTurma(coordenadorLogado.getCodigoCurso());
+      Turma novaTurma = lerDadosNovaTurma(coordenadorLogado.getCodigoCurso());
 
       turmaService.ofertarTurma(novaTurma, coordenadorLogado.getCodigoCurso());
 
       System.out.println("Turma cadastrada com sucesso.");
       System.out.println("Codigo da turma: " + novaTurma.getCodigo());
+
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Cadastro de turma cancelado.");
 
     } catch (PersistenciaException | EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao cadastrar turma: " + e.getMessage());
@@ -140,7 +172,7 @@ public class TurmaTela {
   public void listarMinhasTurmas(Usuario usuarioLogado) {
     try {
       List<Turma> turmas = turmaService.listarTurmasPorProfessor(usuarioLogado.getMatricula());
-      exibirListaTurmasDetalhada(turmas);
+      exibirListaMinhasTurmasProfessor(turmas);
 
     } catch (RuntimeException e) {
       System.out.println("Ocorreu um erro ao listar turmas: " + e.getMessage());
@@ -154,7 +186,7 @@ public class TurmaTela {
     try {
       listarTurmas();
 
-      System.out.println("Informe o código da turma que deseja atualizar:");
+      System.out.print("Informe o codigo da turma que deseja atualizar: ");
       String codigo = scanner.nextLine();
 
       Turma turmaAtualizada = lerDadosTurma();
@@ -162,6 +194,9 @@ public class TurmaTela {
       turmaService.alterarTurma(codigo, turmaAtualizada);
 
       System.out.println("Turma atualizada com sucesso.");
+
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Atualizacao de turma cancelada.");
 
     } catch (PersistenciaException | EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao atualizar turma: " + e.getMessage());
@@ -181,12 +216,16 @@ public class TurmaTela {
       validarCoordenadorComCurso(coordenadorLogado);
       Turma turmaSelecionada = selecionarTurmaParaAtualizacao(coordenadorLogado.getCodigoCurso());
 
-      Turma turmaAtualizada = lerDadosTurma(coordenadorLogado.getCodigoCurso());
+      Turma turmaAtualizada =
+          lerDadosTurma(coordenadorLogado.getCodigoCurso(), turmaSelecionada);
 
       turmaService.alterarTurma(
           turmaSelecionada.getCodigo(), turmaAtualizada, coordenadorLogado.getCodigoCurso());
 
       System.out.println("Turma atualizada com sucesso.");
+
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Atualizacao de turma cancelada.");
 
     } catch (PersistenciaException | EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao atualizar turma: " + e.getMessage());
@@ -209,7 +248,7 @@ public class TurmaTela {
       exibirOpcaoTurmaAtualizacao(i + 1, turmas.get(i));
     }
 
-    System.out.println("Informe o numero da turma que deseja atualizar:");
+    System.out.print("Informe o numero da turma que deseja atualizar: ");
     int opcao = lerOpcaoNumerada(turmas.size());
 
     return turmas.get(opcao - 1);
@@ -218,14 +257,12 @@ public class TurmaTela {
   private void exibirOpcaoTurmaAtualizacao(int numeroOpcao, Turma turma) {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
-    System.out.println("\nOpcao " + numeroOpcao + ":");
-    System.out.println(
-        "Disciplina: " + turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-    System.out.println(
-        "Professor: " + turmaService.buscarNomeProfessor(turma.getMatriculaProfessor()));
-    System.out.println("Periodo letivo: " + turma.getPeriodoLetivo());
-    System.out.println("Horario: " + turma.getHorario());
-    System.out.println("Sala: " + turma.getSala());
+    System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
+    System.out.println("Codigo interno: " + formatarValor(turma.getCodigo()));
+    System.out.println("Professor: " + buscarNomeProfessorTurma(turma));
+    System.out.println("Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("Sala: " + formatarValor(turma.getSala()));
     System.out.println("Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
   }
 
@@ -236,7 +273,7 @@ public class TurmaTela {
     try {
       listarTurmas();
 
-      System.out.println("Informe o código da turma que deseja cancelar:");
+      System.out.print("Informe o codigo da turma que deseja cancelar: ");
       String codigo = scanner.nextLine();
 
       turmaService.cancelarTurma(codigo);
@@ -281,7 +318,7 @@ public class TurmaTela {
       exibirOpcaoTurmaAtualizacao(i + 1, turmas.get(i));
     }
 
-    System.out.println("Informe o numero da turma que deseja cancelar:");
+    System.out.print("Informe o numero da turma que deseja cancelar: ");
     int opcao = lerOpcaoNumerada(turmas.size());
 
     return turmas.get(opcao - 1);
@@ -295,7 +332,7 @@ public class TurmaTela {
       listarTurmas();
 
       System.out.println("======================================");
-      System.out.println("Informe o código da turma:");
+      System.out.print("Informe o codigo da turma: ");
       String codigoTurma = scanner.nextLine();
 
       Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma);
@@ -340,7 +377,7 @@ public class TurmaTela {
       exibirOpcaoTurmaAtualizacao(i + 1, turmas.get(i));
     }
 
-    System.out.println("Informe o numero da turma para visualizar a lista de espera:");
+    System.out.print("Informe o numero da turma para visualizar a lista de espera: ");
     int opcao = lerOpcaoNumerada(turmas.size());
 
     return turmas.get(opcao - 1);
@@ -349,7 +386,8 @@ public class TurmaTela {
   private void exibirListaEspera(Turma turma) {
     List<String> listaEspera = turma.getListaEspera();
 
-    System.out.println("\nLista de espera da turma " + turma.getCodigo() + ":");
+    System.out.println("\nLista de espera da turma " + nomeAmigavelTurma(turma) + ":");
+    System.out.println("Codigo interno: " + formatarValor(turma.getCodigo()));
 
     if (listaEspera == null || listaEspera.isEmpty()) {
       System.out.println("Nenhum aluno na lista de espera.");
@@ -413,38 +451,274 @@ public class TurmaTela {
       return null;
     }
 
+    ClassificacaoMatricula classificacao = classificarTurmasParaMatricula(alunoLogado, turmas);
+    List<Turma> turmasSelecionaveis = montarListaTurmasSelecionaveis(classificacao);
+
     System.out.println("======================================");
-    System.out.println("Turmas disponiveis para matricula:");
+    exibirClassificacaoMatricula(classificacao);
 
-    for (int i = 0; i < turmas.size(); i++) {
-      exibirOpcaoTurmaMatricula(i + 1, turmas.get(i));
+    if (turmasSelecionaveis.isEmpty()) {
+      System.out.println("Nenhuma turma disponivel para matricula ou lista de espera no momento.");
+      return null;
     }
 
-    System.out.println("Informe o numero da turma que deseja se matricular:");
-    int opcao = Integer.parseInt(scanner.nextLine());
+    System.out.println();
+    System.out.println("0 - Voltar");
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner,
+            "Informe o numero da turma que deseja se matricular: ",
+            turmasSelecionaveis.size());
 
-    if (opcao < 1 || opcao > turmas.size()) {
-      throw new EntradaInvalidaException("Opcao invalida. Escolha uma turma da lista.");
+    if (opcao == 0) {
+      System.out.println("Voltando...");
+      return null;
     }
 
-    return turmas.get(opcao - 1);
+    return turmasSelecionaveis.get(opcao - 1);
   }
 
-  private void exibirOpcaoTurmaMatricula(int numeroOpcao, Turma turma) {
-    int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
-    String situacao =
-        vagasOcupadas >= turma.getLimiteVagas() ? "cheia - lista de espera" : "vagas disponiveis";
+  private ClassificacaoMatricula classificarTurmasParaMatricula(
+      Aluno alunoLogado, List<Turma> turmas) {
+    ClassificacaoMatricula classificacao = new ClassificacaoMatricula();
 
-    System.out.println("\nOpcao " + numeroOpcao + ":");
-    System.out.println(
-        "Disciplina: " + turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-    System.out.println(
-        "Professor: " + turmaService.buscarNomeProfessor(turma.getMatriculaProfessor()));
-    System.out.println("Periodo letivo: " + turma.getPeriodoLetivo());
-    System.out.println("Horario: " + turma.getHorario());
-    System.out.println("Sala: " + turma.getSala());
+    for (Turma turma : turmas) {
+      String motivoIndisponibilidade = identificarMotivoIndisponibilidade(alunoLogado, turma);
+
+      if (!motivoIndisponibilidade.isBlank()) {
+        classificacao.indisponiveis.add(new OpcaoMatricula(turma, motivoIndisponibilidade));
+      } else if (turmaCheia(turma)) {
+        classificacao.listaEspera.add(new OpcaoMatricula(turma, "turma cheia"));
+      } else {
+        classificacao.matriculaDireta.add(new OpcaoMatricula(turma, ""));
+      }
+    }
+
+    return classificacao;
+  }
+
+  private List<Turma> montarListaTurmasSelecionaveis(ClassificacaoMatricula classificacao) {
+    List<Turma> turmasSelecionaveis = new ArrayList<>();
+
+    for (OpcaoMatricula opcao : classificacao.matriculaDireta) {
+      turmasSelecionaveis.add(opcao.turma);
+    }
+
+    for (OpcaoMatricula opcao : classificacao.listaEspera) {
+      turmasSelecionaveis.add(opcao.turma);
+    }
+
+    return turmasSelecionaveis;
+  }
+
+  private void exibirClassificacaoMatricula(ClassificacaoMatricula classificacao) {
+    int numeroOpcao = 1;
+
+    System.out.println("Turmas com matricula direta:");
+    if (classificacao.matriculaDireta.isEmpty()) {
+      System.out.println("Nenhuma turma com matricula direta disponivel.");
+    } else {
+      for (OpcaoMatricula opcao : classificacao.matriculaDireta) {
+        exibirOpcaoTurmaMatricula(numeroOpcao, opcao.turma, "");
+        numeroOpcao++;
+      }
+    }
+
+    System.out.println();
+    System.out.println("Turmas com lista de espera:");
+    if (classificacao.listaEspera.isEmpty()) {
+      System.out.println("Nenhuma turma com lista de espera disponivel.");
+    } else {
+      for (OpcaoMatricula opcao : classificacao.listaEspera) {
+        exibirOpcaoTurmaMatricula(numeroOpcao, opcao.turma, opcao.motivo);
+        numeroOpcao++;
+      }
+    }
+
+    if (!classificacao.indisponiveis.isEmpty()) {
+      System.out.println();
+      System.out.println("Turmas indisponiveis:");
+      for (OpcaoMatricula opcao : classificacao.indisponiveis) {
+        System.out.println("- " + nomeAmigavelTurma(opcao.turma) + " - " + opcao.motivo);
+      }
+    }
+  }
+
+  private void exibirOpcaoTurmaMatricula(int numeroOpcao, Turma turma, String motivo) {
+    int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
+
+    System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
+    System.out.println("Professor: " + buscarNomeProfessorTurma(turma));
+    System.out.println("Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("Sala: " + formatarValor(turma.getSala()));
     System.out.println("Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
-    System.out.println("Situacao: " + situacao);
+    if (motivo != null && !motivo.isBlank()) {
+      System.out.println("Motivo: " + motivo);
+    }
+  }
+
+  private String identificarMotivoIndisponibilidade(Aluno alunoLogado, Turma turma) {
+    Disciplina disciplina = buscarDisciplinaPorCodigo(turma.getCodigoDisciplina());
+
+    if (disciplina == null) {
+      return "disciplina nao encontrada";
+    }
+
+    if (!turmaEstaEmPeriodoLetivoAtivo(turma)) {
+      return "periodo letivo encerrado";
+    }
+
+    if (alunoJaConcluiuDisciplina(alunoLogado, disciplina)) {
+      return "disciplina ja concluida";
+    }
+
+    List<String> preRequisitosPendentes = listarPreRequisitosPendentes(alunoLogado, disciplina);
+    if (!preRequisitosPendentes.isEmpty()) {
+      return formatarPreRequisitosPendentes(preRequisitosPendentes);
+    }
+
+    if (alunoJaParticipaDestaTurma(alunoLogado, turma)) {
+      return "aluno ja esta matriculado ou em lista de espera nesta turma";
+    }
+
+    if (alunoJaParticipaDeOutraTurmaDaDisciplinaNoPeriodo(alunoLogado, turma)) {
+      return "voce ja esta matriculado ou em lista de espera em outra turma desta disciplina "
+          + "neste periodo";
+    }
+
+    Turma turmaComChoque = buscarTurmaComChoqueHorario(alunoLogado, turma);
+    if (turmaComChoque != null) {
+      return "choque de horario com " + nomeAmigavelTurma(turmaComChoque);
+    }
+
+    return "";
+  }
+
+  private Disciplina buscarDisciplinaPorCodigo(String codigoDisciplina) {
+    if (codigoDisciplina == null || codigoDisciplina.isBlank()) {
+      return null;
+    }
+
+    for (Disciplina disciplina : disciplinaService.listarDisciplinas()) {
+      if (disciplina.getCodigo() != null
+          && disciplina.getCodigo().equalsIgnoreCase(codigoDisciplina.trim())) {
+        return disciplina;
+      }
+    }
+
+    return null;
+  }
+
+  private boolean alunoJaConcluiuDisciplina(Aluno alunoLogado, Disciplina disciplina) {
+    return alunoLogado.getDisciplinasConcluidas() != null
+        && alunoLogado.getDisciplinasConcluidas().contains(disciplina.getCodigo());
+  }
+
+  private List<String> listarPreRequisitosPendentes(Aluno alunoLogado, Disciplina disciplina) {
+    List<String> preRequisitosPendentes = new ArrayList<>();
+
+    if (disciplina.getPreRequisitos() == null || disciplina.getPreRequisitos().isEmpty()) {
+      return preRequisitosPendentes;
+    }
+
+    List<String> disciplinasConcluidas = alunoLogado.getDisciplinasConcluidas();
+
+    for (String codigoPreRequisito : disciplina.getPreRequisitos()) {
+      if (disciplinasConcluidas == null || !disciplinasConcluidas.contains(codigoPreRequisito)) {
+        preRequisitosPendentes.add(buscarNomeDisciplina(codigoPreRequisito));
+      }
+    }
+
+    return preRequisitosPendentes;
+  }
+
+  private String formatarPreRequisitosPendentes(List<String> preRequisitosPendentes) {
+    if (preRequisitosPendentes.size() == 1) {
+      return "pre-requisito nao cumprido: " + preRequisitosPendentes.getFirst();
+    }
+
+    return "pre-requisitos nao cumpridos: " + String.join(", ", preRequisitosPendentes);
+  }
+
+  private String buscarNomeDisciplina(String codigoDisciplina) {
+    Disciplina disciplina = buscarDisciplinaPorCodigo(codigoDisciplina);
+    if (disciplina == null) {
+      return formatarValor(codigoDisciplina);
+    }
+    return formatarValor(disciplina.getNome());
+  }
+
+  private boolean alunoJaParticipaDestaTurma(Aluno alunoLogado, Turma turma) {
+    return contemMatricula(turma.getMatriculados(), alunoLogado.getMatricula())
+        || contemMatricula(turma.getListaEspera(), alunoLogado.getMatricula())
+        || contemMatricula(alunoLogado.getTurmasMatriculadas(), turma.getCodigo());
+  }
+
+  private boolean alunoJaParticipaDeOutraTurmaDaDisciplinaNoPeriodo(
+      Aluno alunoLogado, Turma turmaDestino) {
+    for (Turma turma : turmaService.listarTurmas()) {
+      if (mesmaTurma(turma, turmaDestino)) {
+        continue;
+      }
+
+      if (mesmaDisciplinaMesmoPeriodo(turma, turmaDestino)
+          && (contemMatricula(turma.getMatriculados(), alunoLogado.getMatricula())
+              || contemMatricula(turma.getListaEspera(), alunoLogado.getMatricula())
+              || contemMatricula(alunoLogado.getTurmasMatriculadas(), turma.getCodigo()))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private Turma buscarTurmaComChoqueHorario(Aluno alunoLogado, Turma turmaDestino) {
+    if (alunoLogado.getTurmasMatriculadas() == null) {
+      return null;
+    }
+
+    for (String codigoTurmaAluno : alunoLogado.getTurmasMatriculadas()) {
+      try {
+        Turma turmaAluno = turmaService.buscarTurmaPorCodigo(codigoTurmaAluno);
+        if (turmaAluno != null
+            && turmaAluno.getHorario() != null
+            && turmaDestino.getHorario() != null
+            && turmaAluno.getHorario().equalsIgnoreCase(turmaDestino.getHorario())) {
+          return turmaAluno;
+        }
+      } catch (RuntimeException e) {
+        // Ignora referencias antigas para manter a tela resiliente.
+      }
+    }
+
+    return null;
+  }
+
+  private boolean turmaEstaEmPeriodoLetivoAtivo(Turma turma) {
+    String periodoAtivo = turmaService.buscarPeriodoLetivoAtivo();
+
+    return periodoAtivo != null
+        && turma.getPeriodoLetivo() != null
+        && periodoAtivo.equalsIgnoreCase(turma.getPeriodoLetivo());
+  }
+
+  private boolean mesmaDisciplinaMesmoPeriodo(Turma primeiraTurma, Turma segundaTurma) {
+    return primeiraTurma.getCodigoDisciplina() != null
+        && segundaTurma.getCodigoDisciplina() != null
+        && primeiraTurma.getPeriodoLetivo() != null
+        && segundaTurma.getPeriodoLetivo() != null
+        && primeiraTurma.getCodigoDisciplina().equalsIgnoreCase(segundaTurma.getCodigoDisciplina())
+        && primeiraTurma.getPeriodoLetivo().equalsIgnoreCase(segundaTurma.getPeriodoLetivo());
+  }
+
+  private boolean turmaCheia(Turma turma) {
+    int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
+    return vagasOcupadas >= turma.getLimiteVagas();
+  }
+
+  private boolean contemMatricula(List<String> matriculas, String matricula) {
+    return matriculas != null && matricula != null && matriculas.contains(matricula);
   }
 
   /**
@@ -492,11 +766,17 @@ public class TurmaTela {
       exibirOpcaoTurmaCancelamento(i + 1, turmasMatriculadas.get(i));
     }
 
-    System.out.println("Informe o numero da turma que deseja cancelar:");
-    int opcao = Integer.parseInt(scanner.nextLine());
+    System.out.println();
+    System.out.println("0 - Voltar");
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner,
+            "Informe o numero da turma que deseja cancelar: ",
+            turmasMatriculadas.size());
 
-    if (opcao < 1 || opcao > turmasMatriculadas.size()) {
-      throw new EntradaInvalidaException("Opcao invalida. Escolha uma turma da lista.");
+    if (opcao == 0) {
+      System.out.println("Voltando...");
+      return null;
     }
 
     return turmasMatriculadas.get(opcao - 1);
@@ -517,14 +797,11 @@ public class TurmaTela {
   }
 
   private void exibirOpcaoTurmaCancelamento(int numeroOpcao, Turma turma) {
-    System.out.println("\nOpcao " + numeroOpcao + ":");
-    System.out.println(
-        "Disciplina: " + turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-    System.out.println(
-        "Professor: " + turmaService.buscarNomeProfessor(turma.getMatriculaProfessor()));
-    System.out.println("Periodo letivo: " + turma.getPeriodoLetivo());
-    System.out.println("Horario: " + turma.getHorario());
-    System.out.println("Sala: " + turma.getSala());
+    System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
+    System.out.println("Professor: " + buscarNomeProfessorTurma(turma));
+    System.out.println("Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("Sala: " + formatarValor(turma.getSala()));
   }
 
   /**
@@ -538,21 +815,24 @@ public class TurmaTela {
 
       List<Turma> turmasCurso = turmaService.listarTurmasPorCurso(alunoLogado.getCodigoCurso());
       boolean encontrou = false;
+      int numero = 1;
 
       for (Turma turma : turmasCurso) {
         if (turma.getMatriculados() != null
             && turma.getMatriculados().contains(alunoLogado.getMatricula())) {
-          exibirTurmaAluno(turma, "matriculado");
+          exibirTurmaAluno(numero, turma, "matriculado");
+          numero++;
           encontrou = true;
         } else if (turma.getListaEspera() != null
             && turma.getListaEspera().contains(alunoLogado.getMatricula())) {
-          exibirTurmaAluno(turma, "lista de espera");
+          exibirTurmaAluno(numero, turma, "lista de espera");
+          numero++;
           encontrou = true;
         }
       }
 
       if (!encontrou) {
-        System.out.println("Aluno nao possui matriculas ou entradas em lista de espera.");
+        System.out.println("Nenhuma matricula encontrada para este aluno.");
       }
 
     } catch (PersistenciaException | EntradaInvalidaException e) {
@@ -568,6 +848,9 @@ public class TurmaTela {
   public void adicionarFrequencia(Professor professorLogado) {
     try {
       Turma turmaSelecionada = selecionarTurmaParaFrequencia(professorLogado);
+      if (turmaSelecionada == null) {
+        return;
+      }
       String codigoTurma = turmaSelecionada.getCodigo();
 
       Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma, professorLogado.getMatricula());
@@ -635,8 +918,16 @@ public class TurmaTela {
       exibirOpcaoTurmaProfessor(i + 1, turmas.get(i));
     }
 
-    System.out.println("Informe o numero da turma para lancar frequencia:");
-    int opcao = lerOpcaoNumerada(turmas.size());
+    System.out.println();
+    System.out.println("0 - Voltar");
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner, "Informe o numero da turma para lancar frequencia: ", turmas.size());
+
+    if (opcao == 0) {
+      System.out.println("Voltando...");
+      return null;
+    }
 
     return turmas.get(opcao - 1);
   }
@@ -644,12 +935,10 @@ public class TurmaTela {
   private void exibirOpcaoTurmaProfessor(int numeroOpcao, Turma turma) {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
-    System.out.println("\nOpcao " + numeroOpcao + ":");
-    System.out.println(
-        "Disciplina: " + turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-    System.out.println("Periodo letivo: " + turma.getPeriodoLetivo());
-    System.out.println("Horario: " + turma.getHorario());
-    System.out.println("Sala: " + turma.getSala());
+    System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
+    System.out.println("Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("Sala: " + formatarValor(turma.getSala()));
     System.out.println("Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
   }
 
@@ -661,6 +950,9 @@ public class TurmaTela {
   public void adicionarNotas(Professor professorLogado) {
     try {
       Turma turmaSelecionada = selecionarTurmaParaNotas(professorLogado);
+      if (turmaSelecionada == null) {
+        return;
+      }
       String codigoTurma = turmaSelecionada.getCodigo();
 
       Turma turma = turmaService.buscarTurmaPorCodigo(codigoTurma, professorLogado.getMatricula());
@@ -671,21 +963,85 @@ public class TurmaTela {
       }
 
       String matriculaAluno = selecionarAlunoParaNotas(turma);
+      if (matriculaAluno == null) {
+        return;
+      }
 
-      System.out.println("Informe a nota da primeira unidade:");
-      float primeiraNota = Float.parseFloat(scanner.nextLine());
+      int opcaoLancamento = selecionarOpcaoLancamentoNotas();
+      if (opcaoLancamento == 0) {
+        return;
+      }
 
-      System.out.println("Informe a nota da segunda unidade:");
-      float segundaNota = Float.parseFloat(scanner.nextLine());
-
-      boletimService.lancarNotas(
-          codigoTurma, matriculaAluno, primeiraNota, segundaNota, professorLogado.getMatricula());
-
-      System.out.println("Notas registradas com sucesso.");
+      lancarNotasSelecionadas(codigoTurma, matriculaAluno, professorLogado, opcaoLancamento);
     } catch (TurmaNaoEncontradaException | EntradaInvalidaException | PersistenciaException e) {
       System.out.println(e.getMessage());
+    }
+  }
+
+  private int selecionarOpcaoLancamentoNotas() {
+    System.out.println();
+    System.out.println("O que deseja lancar?");
+    System.out.println("1 - Primeira nota");
+    System.out.println("2 - Segunda nota");
+    System.out.println("3 - Primeira e segunda nota");
+    System.out.println("0 - Voltar");
+    System.out.print("Escolha uma opcao: ");
+
+    try {
+      int opcao = Integer.parseInt(scanner.nextLine());
+      if (opcao >= 0 && opcao <= 3) {
+        return opcao;
+      }
     } catch (NumberFormatException e) {
-      System.out.println("Nota invalida.");
+      // Trata abaixo como opcao invalida.
+    }
+
+    throw new EntradaInvalidaException("Opcao invalida. Escolha 0, 1, 2 ou 3.");
+  }
+
+  private void lancarNotasSelecionadas(
+      String codigoTurma, String matriculaAluno, Professor professorLogado, int opcaoLancamento) {
+    String matriculaProfessor = professorLogado.getMatricula();
+
+    if (opcaoLancamento == 1) {
+      float primeiraNota = lerNota("Nota da primeira unidade: ");
+      boletimService.lancarPrimeiraNota(
+          codigoTurma, matriculaAluno, primeiraNota, matriculaProfessor);
+      System.out.println("Nota lancada com sucesso.");
+      return;
+    }
+
+    if (opcaoLancamento == 2) {
+      float segundaNota = lerNota("Nota da segunda unidade: ");
+      boletimService.lancarSegundaNota(
+          codigoTurma, matriculaAluno, segundaNota, matriculaProfessor);
+      System.out.println("Nota lancada com sucesso.");
+      return;
+    }
+
+    float primeiraNota = lerNota("Nota da primeira unidade: ");
+    float segundaNota = lerNota("Nota da segunda unidade: ");
+    boletimService.lancarNotas(
+        codigoTurma, matriculaAluno, primeiraNota, segundaNota, matriculaProfessor);
+    System.out.println("Notas lancadas com sucesso.");
+  }
+
+  private float lerNota(String rotulo) {
+    while (true) {
+      System.out.print(rotulo);
+      String valor = scanner.nextLine();
+
+      try {
+        float nota = Float.parseFloat(valor.replace(',', '.'));
+        if (nota >= 0 && nota <= 10) {
+          return nota;
+        }
+      } catch (NumberFormatException e) {
+        // Trata abaixo como nota invalida.
+      }
+
+      System.out.println("Nota invalida. Informe um valor entre 0 e 10.");
+      System.out.println();
     }
   }
 
@@ -702,8 +1058,16 @@ public class TurmaTela {
       exibirOpcaoTurmaProfessor(i + 1, turmas.get(i));
     }
 
-    System.out.println("Informe o numero da turma para lancar notas:");
-    int opcao = lerOpcaoNumerada(turmas.size());
+    System.out.println();
+    System.out.println("0 - Voltar");
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner, "Informe o numero da turma para lancar notas: ", turmas.size());
+
+    if (opcao == 0) {
+      System.out.println("Voltando...");
+      return null;
+    }
 
     return turmas.get(opcao - 1);
   }
@@ -719,41 +1083,56 @@ public class TurmaTela {
 
     for (int i = 0; i < alunosMatriculados.size(); i++) {
       Aluno aluno = usuarioService.buscarAlunoPorMatricula(alunosMatriculados.get(i));
-      System.out.println("\nOpcao " + (i + 1) + ":");
-      System.out.println("Aluno: " + aluno.getNome());
-      System.out.println("Matricula: " + aluno.getMatricula());
+      System.out.println("\n" + (i + 1) + " - " + aluno.getNome());
+      System.out.println("    Matricula: " + aluno.getMatricula());
     }
 
-    System.out.println("Informe o numero do aluno:");
-    int opcao = lerOpcaoNumerada(alunosMatriculados.size());
+    System.out.println();
+    System.out.println("0 - Voltar");
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner, "Informe o numero do aluno: ", alunosMatriculados.size());
+
+    if (opcao == 0) {
+      System.out.println("Voltando...");
+      return null;
+    }
 
     return alunosMatriculados.get(opcao - 1);
   }
 
   private Turma lerDadosTurma() {
-    System.out.println("Informe o código da disciplina:");
-    final String codigoDisciplina = scanner.nextLine();
+    final String codigoDisciplina =
+        EntradaTela.lerTextoObrigatorioOuCancelar(
+            scanner, "Informe o codigo da disciplina: ", "Disciplina");
 
-    System.out.println("Informe o período letivo da turma. Exemplo: 2026.2");
-    final String periodoLetivo = scanner.nextLine();
+    final String periodoLetivo =
+          EntradaTela.lerTextoObrigatorioOuCancelar(
+            scanner,
+            "Informe o periodo letivo da turma. Exemplo: 2026.2: ",
+            "Periodo letivo");
 
-    System.out.println("Informe a matrícula do professor responsável:");
-    final String matriculaProfessor = scanner.nextLine();
+    final String matriculaProfessor =
+        EntradaTela.lerTextoObrigatorioOuCancelar(
+            scanner,
+            "Informe a matricula do professor responsavel: ",
+            "Professor");
 
-    System.out.println("Informe o limite de vagas:");
-    final int limiteVagas = Integer.parseInt(scanner.nextLine());
+    final int limiteVagas =
+        EntradaTela.lerInteiroPositivoOuCancelar(scanner, "Informe o limite de vagas: ");
 
-    System.out.println("Informe o horário da turma. Exemplo: SEG 08:00-10:00");
-    final String horario = scanner.nextLine();
+    final String horario =
+        EntradaTela.lerTextoObrigatorioOuCancelar(
+            scanner, "Informe o horario da turma. Exemplo: SEG 08:00-10:00: ", "Horario");
 
-    System.out.println("Informe a sala da turma:");
-    final String sala = scanner.nextLine();
+    final String sala =
+        EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Informe a sala da turma: ", "Sala");
 
     return new Turma(
         codigoDisciplina, periodoLetivo, matriculaProfessor, limiteVagas, horario, sala);
   }
 
-  private Turma lerDadosTurma(String codigoCurso) {
+  private Turma lerDadosTurma(String codigoCurso, Turma turmaAtual) {
     Disciplina disciplinaSelecionada = selecionarDisciplinaDoCurso(codigoCurso);
     final String codigoDisciplina = disciplinaSelecionada.getCodigo();
 
@@ -762,29 +1141,80 @@ public class TurmaTela {
 
     if (periodoAtivo != null && !periodoAtivo.isBlank()) {
       System.out.println("Periodo letivo ativo: " + periodoAtivo);
-      System.out.println(
-          "Pressione ENTER para usar o periodo ativo ou informe outro periodo letivo:");
+      System.out.print(
+          "Pressione ENTER para usar o periodo ativo ou informe outro periodo letivo: ");
       String entradaPeriodo = scanner.nextLine();
+      if ("0".equals(entradaPeriodo.trim())) {
+        throw new EntradaTela.EntradaCanceladaException();
+      }
       periodoLetivo = entradaPeriodo.isBlank() ? periodoAtivo : entradaPeriodo;
     } else {
-      System.out.println("Informe o periodo letivo da turma. Exemplo: 2026.2");
-      periodoLetivo = scanner.nextLine();
+      periodoLetivo =
+          EntradaTela.lerTextoObrigatorioOuCancelar(
+              scanner,
+              "Informe o periodo letivo da turma. Exemplo: 2026.2: ",
+              "Periodo letivo");
     }
 
-    Professor professorSelecionado = selecionarProfessorDoCurso(codigoCurso);
+    final int limiteVagas =
+        EntradaTela.lerInteiroPositivoOuCancelar(scanner, "Informe o limite de vagas: ");
+
+    final String horario =
+        EntradaTela.lerTextoObrigatorioOuCancelar(
+            scanner, "Informe o horario da turma. Exemplo: SEG 08:00-10:00: ", "Horario");
+
+    final String sala =
+        EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Informe a sala da turma: ", "Sala");
+
+    String codigoTurmaIgnorada = turmaAtual == null ? null : turmaAtual.getCodigo();
+    Professor professorSelecionado =
+        selecionarProfessorDisponivelDoCurso(
+            codigoCurso, periodoLetivo, horario, codigoTurmaIgnorada, "0 - Cancelar atualizacao");
     final String matriculaProfessor = professorSelecionado.getMatricula();
-
-    System.out.println("Informe o limite de vagas:");
-    final int limiteVagas = Integer.parseInt(scanner.nextLine());
-
-    System.out.println("Informe o horario da turma. Exemplo: SEG 08:00-10:00");
-    final String horario = scanner.nextLine();
-
-    System.out.println("Informe a sala da turma:");
-    final String sala = scanner.nextLine();
 
     return new Turma(
         codigoDisciplina, periodoLetivo, matriculaProfessor, limiteVagas, horario, sala);
+  }
+
+  private Turma lerDadosNovaTurma(String codigoCurso) {
+    Disciplina disciplinaSelecionada = selecionarDisciplinaDoCurso(codigoCurso);
+    final String codigoDisciplina = disciplinaSelecionada.getCodigo();
+    final String periodoLetivo = lerPeriodoLetivoDaTurma();
+    final int limiteVagas =
+        EntradaTela.lerInteiroPositivoOuCancelar(scanner, "Informe o limite de vagas: ");
+    final String horario =
+        EntradaTela.lerTextoObrigatorioOuCancelar(
+            scanner, "Informe o horario da turma. Exemplo: SEG 08:00-10:00: ", "Horario");
+    final String sala =
+        EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Informe a sala da turma: ", "Sala");
+
+    Professor professorSelecionado =
+        selecionarProfessorDisponivelDoCurso(
+            codigoCurso, periodoLetivo, horario, null, "0 - Cancelar cadastro");
+    final String matriculaProfessor = professorSelecionado.getMatricula();
+
+    return new Turma(
+        codigoDisciplina, periodoLetivo, matriculaProfessor, limiteVagas, horario, sala);
+  }
+
+  private String lerPeriodoLetivoDaTurma() {
+    final String periodoAtivo = turmaService.buscarPeriodoLetivoAtivo();
+
+    if (periodoAtivo != null && !periodoAtivo.isBlank()) {
+      System.out.println("Periodo letivo ativo: " + periodoAtivo);
+      System.out.print(
+          "Pressione ENTER para usar o periodo ativo ou informe outro periodo letivo: ");
+      String entradaPeriodo = scanner.nextLine();
+      if ("0".equals(entradaPeriodo.trim())) {
+        throw new EntradaTela.EntradaCanceladaException();
+      }
+      return entradaPeriodo.isBlank() ? periodoAtivo : entradaPeriodo;
+    }
+
+    return EntradaTela.lerTextoObrigatorioOuCancelar(
+        scanner,
+        "Informe o periodo letivo da turma. Exemplo: 2026.2: ",
+        "Periodo letivo");
   }
 
   private Disciplina selecionarDisciplinaDoCurso(String codigoCurso) {
@@ -795,64 +1225,160 @@ public class TurmaTela {
     }
 
     System.out.println("Disciplinas do curso:");
+    System.out.println("0 - Cancelar cadastro");
 
     for (int i = 0; i < disciplinas.size(); i++) {
       exibirOpcaoDisciplina(i + 1, disciplinas.get(i));
     }
 
-    System.out.println("Informe o numero da disciplina:");
-    int opcao = lerOpcaoNumerada(disciplinas.size());
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner, "Informe o numero da disciplina: ", disciplinas.size());
+    if (opcao == 0) {
+      throw new EntradaTela.EntradaCanceladaException();
+    }
 
     return disciplinas.get(opcao - 1);
   }
 
-  private Professor selecionarProfessorDoCurso(String codigoCurso) {
+  private Professor selecionarProfessorDisponivelDoCurso(
+      String codigoCurso,
+      String periodoLetivo,
+      String horario,
+      String codigoTurmaIgnorada,
+      String textoCancelar) {
     List<Professor> professores = turmaService.listarProfessoresPorCurso(codigoCurso);
 
     if (professores == null || professores.isEmpty()) {
       throw new EntradaInvalidaException("Nenhum professor cadastrado para o curso.");
     }
 
-    System.out.println("Professores do curso:");
+    List<Professor> professoresDisponiveis = new ArrayList<>();
+    List<ProfessorIndisponivel> professoresIndisponiveis = new ArrayList<>();
 
-    for (int i = 0; i < professores.size(); i++) {
-      exibirOpcaoProfessor(i + 1, professores.get(i));
+    for (Professor professor : professores) {
+      Turma turmaConflitante =
+          buscarTurmaComChoqueProfessor(professor, periodoLetivo, horario, codigoTurmaIgnorada);
+
+      if (turmaConflitante == null) {
+        professoresDisponiveis.add(professor);
+      } else {
+        professoresIndisponiveis.add(new ProfessorIndisponivel(professor, turmaConflitante));
+      }
     }
 
-    System.out.println("Informe o numero do professor responsavel:");
-    int opcao = lerOpcaoNumerada(professores.size());
+    exibirProfessoresDisponiveis(professoresDisponiveis, textoCancelar);
+    exibirProfessoresIndisponiveis(professoresIndisponiveis);
 
-    return professores.get(opcao - 1);
+    if (professoresDisponiveis.isEmpty()) {
+      throw new EntradaInvalidaException("Nenhum professor disponivel para esse horario.");
+    }
+
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner,
+            "Informe o numero do professor ou 0 para cancelar: ",
+            professoresDisponiveis.size());
+    if (opcao == 0) {
+      throw new EntradaTela.EntradaCanceladaException();
+    }
+
+    return professoresDisponiveis.get(opcao - 1);
+  }
+
+  private Turma buscarTurmaComChoqueProfessor(
+      Professor professor, String periodoLetivo, String horario, String codigoTurmaIgnorada) {
+    for (Turma turma : turmaService.listarTurmasPorProfessor(professor.getMatricula())) {
+      if (mesmaTurmaPorCodigo(turma, codigoTurmaIgnorada)) {
+        continue;
+      }
+
+      boolean mesmoPeriodo =
+          turma.getPeriodoLetivo() != null
+              && periodoLetivo != null
+              && turma.getPeriodoLetivo().equalsIgnoreCase(periodoLetivo);
+      boolean mesmoHorario =
+          turma.getHorario() != null
+              && horario != null
+              && turma.getHorario().equalsIgnoreCase(horario);
+
+      if (mesmoPeriodo && mesmoHorario) {
+        return turma;
+      }
+    }
+
+    return null;
+  }
+
+  private boolean mesmaTurmaPorCodigo(Turma turma, String codigoTurmaIgnorada) {
+    return turma != null
+        && turma.getCodigo() != null
+        && codigoTurmaIgnorada != null
+        && turma.getCodigo().equalsIgnoreCase(codigoTurmaIgnorada);
+  }
+
+  private void exibirProfessoresDisponiveis(
+      List<Professor> professoresDisponiveis, String textoCancelar) {
+    System.out.println();
+    System.out.println("Professores disponiveis:");
+
+    if (professoresDisponiveis.isEmpty()) {
+      System.out.println("Nenhum professor disponivel para esse horario.");
+      return;
+    }
+
+    System.out.println(textoCancelar);
+
+    for (int i = 0; i < professoresDisponiveis.size(); i++) {
+      Professor professor = professoresDisponiveis.get(i);
+      System.out.println();
+      System.out.println((i + 1) + " - " + professor.getNome());
+      System.out.println("    Email: " + professor.getEmail());
+    }
+  }
+
+  private void exibirProfessoresIndisponiveis(
+      List<ProfessorIndisponivel> professoresIndisponiveis) {
+    if (professoresIndisponiveis.isEmpty()) {
+      return;
+    }
+
+    System.out.println();
+    System.out.println("Professores indisponiveis:");
+
+    for (ProfessorIndisponivel professorIndisponivel : professoresIndisponiveis) {
+      System.out.println(
+          "- "
+              + professorIndisponivel.professor.getNome()
+              + " - choque de horario com "
+              + nomeAmigavelTurma(professorIndisponivel.turmaConflitante));
+    }
   }
 
   private int lerOpcaoNumerada(int quantidadeOpcoes) {
-    int opcao;
+    while (true) {
+      String entrada = scanner.nextLine();
 
-    try {
-      opcao = Integer.parseInt(scanner.nextLine());
-    } catch (NumberFormatException e) {
-      throw new EntradaInvalidaException("Opcao invalida. Digite o numero de uma opcao listada.");
+      try {
+        int opcao = Integer.parseInt(entrada);
+        if (opcao >= 1 && opcao <= quantidadeOpcoes) {
+          return opcao;
+        }
+      } catch (NumberFormatException e) {
+        // Trata abaixo como opcao invalida.
+      }
+
+      System.out.println("Opcao invalida. Escolha uma opcao da lista.");
+      System.out.println();
+      System.out.print("Escolha uma opcao: ");
     }
-
-    if (opcao < 1 || opcao > quantidadeOpcoes) {
-      throw new EntradaInvalidaException("Opcao invalida. Escolha uma opcao da lista.");
-    }
-
-    return opcao;
   }
 
   private void exibirOpcaoDisciplina(int numeroOpcao, Disciplina disciplina) {
-    System.out.println("\nOpcao " + numeroOpcao + ":");
-    System.out.println("Disciplina: " + disciplina.getNome());
-    System.out.println("Codigo: " + disciplina.getCodigo());
-    System.out.println("Carga horaria: " + disciplina.getCargaHoraria());
-    System.out.println("Creditos: " + disciplina.getCreditos());
-  }
-
-  private void exibirOpcaoProfessor(int numeroOpcao, Professor professor) {
-    System.out.println("\nOpcao " + numeroOpcao + ":");
-    System.out.println("Professor: " + professor.getNome());
-    System.out.println("Matricula: " + professor.getMatricula());
+    System.out.println("\n" + numeroOpcao + " - " + disciplina.getNome());
+    System.out.println("    Codigo interno: " + disciplina.getCodigo());
+    System.out.println("    Carga horaria: " + disciplina.getCargaHoraria() + "h");
+    System.out.println("    Creditos: " + disciplina.getCreditos());
   }
 
   private void validarCoordenadorComCurso(Coordenador coordenadorLogado) {
@@ -877,8 +1403,8 @@ public class TurmaTela {
       return;
     }
 
-    for (Turma turma : turmas) {
-      exibirTurma(turma);
+    for (int i = 0; i < turmas.size(); i++) {
+      exibirTurmaDetalhada(i + 1, turmas.get(i));
     }
   }
 
@@ -888,8 +1414,19 @@ public class TurmaTela {
       return;
     }
 
-    for (Turma turma : turmas) {
-      exibirTurmaDetalhada(turma);
+    for (int i = 0; i < turmas.size(); i++) {
+      exibirTurmaDetalhada(i + 1, turmas.get(i));
+    }
+  }
+
+  private void exibirListaMinhasTurmasProfessor(List<Turma> turmas) {
+    if (turmas == null || turmas.isEmpty()) {
+      System.out.println("Professor nao possui turmas cadastradas.");
+      return;
+    }
+
+    for (int i = 0; i < turmas.size(); i++) {
+      exibirMinhaTurmaProfessor(i + 1, turmas.get(i));
     }
   }
 
@@ -899,69 +1436,135 @@ public class TurmaTela {
       return;
     }
 
-    for (Turma turma : turmas) {
-      exibirTurmaDisponivelAluno(turma);
+    for (int i = 0; i < turmas.size(); i++) {
+      exibirTurmaDisponivelAluno(i + 1, turmas.get(i));
     }
   }
 
-  private void exibirTurmaDisponivelAluno(Turma turma) {
+  private void exibirTurmaDisponivelAluno(int numero, Turma turma) {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
     String situacao =
         vagasOcupadas >= turma.getLimiteVagas() ? "cheia - lista de espera" : "vagas disponiveis";
 
-    System.out.println("\nTurma:");
-    System.out.println("Codigo: " + turma.getCodigo());
-    System.out.println(
-        "Disciplina: " + turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-    System.out.println(
-        "Professor: " + turmaService.buscarNomeProfessor(turma.getMatriculaProfessor()));
-    System.out.println("Periodo letivo: " + turma.getPeriodoLetivo());
-    System.out.println("Horario: " + turma.getHorario());
-    System.out.println("Sala: " + turma.getSala());
-    System.out.println("Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
-    System.out.println("Situacao: " + situacao);
-    System.out.println();
+    System.out.println("\n" + numero + " - " + nomeAmigavelTurma(turma));
+    System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
+    System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("    Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("    Sala: " + formatarValor(turma.getSala()));
+    System.out.println("    Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
+    System.out.println("    Situacao: " + situacao);
   }
 
-  private void exibirTurmaAluno(Turma turma, String situacao) {
-    System.out.println("\nMatricula:");
-    System.out.println("Turma: " + turma.getCodigo());
-    System.out.println(
-        "Disciplina: " + turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-    System.out.println(
-        "Professor: " + turmaService.buscarNomeProfessor(turma.getMatriculaProfessor()));
-    System.out.println("Periodo letivo: " + turma.getPeriodoLetivo());
-    System.out.println("Horario: " + turma.getHorario());
-    System.out.println("Sala: " + turma.getSala());
-    System.out.println("Situacao: " + situacao);
-    System.out.println();
-  }
-
-  private void exibirTurmaDetalhada(Turma turma) {
+  private void exibirMinhaTurmaProfessor(int numero, Turma turma) {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
-    System.out.println("\nTurma:");
-    System.out.println("Codigo: " + turma.getCodigo());
-    System.out.println(
-        "Disciplina: " + turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-    System.out.println(
-        "Professor: " + turmaService.buscarNomeProfessor(turma.getMatriculaProfessor()));
-    System.out.println("Periodo letivo: " + turma.getPeriodoLetivo());
-    System.out.println("Horario: " + turma.getHorario());
-    System.out.println("Sala: " + turma.getSala());
-    System.out.println("Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
-    System.out.println();
+    System.out.println("\n" + numero + " - " + nomeAmigavelTurma(turma));
+    System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("    Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("    Sala: " + formatarValor(turma.getSala()));
+    System.out.println("    Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
   }
 
-  private void exibirTurma(Turma turma) {
-    System.out.println("\nTurma:");
-    System.out.println("Código: " + turma.getCodigo());
-    System.out.println("Código da disciplina: " + turma.getCodigoDisciplina());
-    System.out.println("Período letivo: " + turma.getPeriodoLetivo());
-    System.out.println("Matrícula do professor: " + turma.getMatriculaProfessor());
-    System.out.println("Limite de vagas: " + turma.getLimiteVagas());
-    System.out.println("Horário: " + turma.getHorario());
-    System.out.println("Sala: " + turma.getSala());
-    System.out.println();
+  private void exibirTurmaAluno(int numero, Turma turma, String situacao) {
+    System.out.println("\n" + numero + " - " + nomeAmigavelTurma(turma));
+    System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
+    System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("    Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("    Sala: " + formatarValor(turma.getSala()));
+    System.out.println("    Situacao: " + situacao);
+  }
+
+  private void exibirTurmaDetalhada(int numero, Turma turma) {
+    int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
+
+    System.out.println("\n" + numero + " - " + nomeAmigavelTurma(turma));
+    System.out.println("    Codigo interno: " + formatarValor(turma.getCodigo()));
+    System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
+    System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("    Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("    Sala: " + formatarValor(turma.getSala()));
+    System.out.println("    Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
+  }
+
+  private String nomeAmigavelTurma(Turma turma) {
+    if (turma == null) {
+      return "-";
+    }
+
+    return buscarNomeDisciplinaTurma(turma) + " - Turma " + calcularNumeroTurmaDisciplina(turma);
+  }
+
+  private int calcularNumeroTurmaDisciplina(Turma turma) {
+    List<Turma> turmasMesmaDisciplina = listarTurmasMesmaDisciplina(turma);
+
+    for (int i = 0; i < turmasMesmaDisciplina.size(); i++) {
+      if (mesmaTurma(turmasMesmaDisciplina.get(i), turma)) {
+        return i + 1;
+      }
+    }
+
+    return 1;
+  }
+
+  private List<Turma> listarTurmasMesmaDisciplina(Turma turmaReferencia) {
+    List<Turma> turmasMesmaDisciplinaPeriodo = new ArrayList<>();
+
+    if (turmaReferencia == null
+        || turmaReferencia.getCodigoDisciplina() == null
+        || turmaReferencia.getPeriodoLetivo() == null) {
+      return turmasMesmaDisciplinaPeriodo;
+    }
+
+    for (Turma turma : turmaService.listarTurmas()) {
+      if (turma.getCodigoDisciplina() != null
+          && turma.getPeriodoLetivo() != null
+          && turma.getCodigoDisciplina().equalsIgnoreCase(turmaReferencia.getCodigoDisciplina())
+          && turma.getPeriodoLetivo().equalsIgnoreCase(turmaReferencia.getPeriodoLetivo())) {
+        turmasMesmaDisciplinaPeriodo.add(turma);
+      }
+    }
+
+    turmasMesmaDisciplinaPeriodo.sort(
+        (primeiraTurma, segundaTurma) ->
+            formatarValor(primeiraTurma.getCodigo())
+                .compareToIgnoreCase(formatarValor(segundaTurma.getCodigo())));
+
+    return turmasMesmaDisciplinaPeriodo;
+  }
+
+  private boolean mesmaTurma(Turma primeiraTurma, Turma segundaTurma) {
+    if (primeiraTurma == null || segundaTurma == null) {
+      return false;
+    }
+
+    if (primeiraTurma.getCodigo() == null || segundaTurma.getCodigo() == null) {
+      return primeiraTurma == segundaTurma;
+    }
+
+    return primeiraTurma.getCodigo().equalsIgnoreCase(segundaTurma.getCodigo());
+  }
+
+  private String buscarNomeDisciplinaTurma(Turma turma) {
+    if (turma == null) {
+      return "-";
+    }
+
+    return formatarValor(turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
+  }
+
+  private String buscarNomeProfessorTurma(Turma turma) {
+    if (turma == null) {
+      return "-";
+    }
+
+    return formatarValor(turmaService.buscarNomeProfessor(turma.getMatriculaProfessor()));
+  }
+
+  private String formatarValor(String valor) {
+    if (valor == null || valor.isBlank()) {
+      return "-";
+    }
+
+    return valor;
   }
 }

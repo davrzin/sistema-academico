@@ -32,14 +32,17 @@ public class CursoTela {
    */
   public void cadastrarCurso() {
     try {
-      System.out.println("Informe o nome do curso:");
-      String nome = scanner.nextLine();
+      String nome =
+          EntradaTela.lerTextoObrigatorioOuCancelar(
+              scanner, "Informe o nome do curso: ", "Nome");
 
-      System.out.println("Informe a quantidade de períodos:");
-      int quantidadePeriodos = Integer.parseInt(scanner.nextLine());
+      int quantidadePeriodos =
+          EntradaTela.lerInteiroPositivoOuCancelar(
+              scanner, "Informe a quantidade de periodos: ");
 
-      System.out.println("Informe a carga horária total:");
-      int cargaHorariaTotal = Integer.parseInt(scanner.nextLine());
+      int cargaHorariaTotal =
+          EntradaTela.lerInteiroPositivoOuCancelar(
+              scanner, "Informe a carga horaria total: ");
 
       String matriculaCoordenador = selecionarCoordenadorDoCurso();
 
@@ -49,6 +52,9 @@ public class CursoTela {
 
       System.out.println("Curso cadastrado com sucesso.");
       System.out.println("Código gerado: " + novoCurso.getCodigo());
+
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Cadastro de curso cancelado.");
 
     } catch (PersistenciaException | EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao cadastrar curso: " + e.getMessage());
@@ -72,19 +78,18 @@ public class CursoTela {
       return;
     }
 
-    for (Curso curso : cursos) {
-      exibirCurso(curso);
+    for (int i = 0; i < cursos.size(); i++) {
+      exibirCurso(i + 1, cursos.get(i));
     }
   }
 
-  private void exibirCurso(Curso curso) {
-    System.out.println("\nCurso:");
-    System.out.println("Código: " + curso.getCodigo());
-    System.out.println("Nome: " + curso.getNome());
-    System.out.println("Quantidade de períodos: " + curso.getQuantidadePeriodos());
-    System.out.println("Carga horária total: " + curso.getCargaHorariaTotal() + "h");
-    System.out.println("Matricula do coordenador: " + curso.getMatriculaCoordenador());
-    System.out.println();
+  private void exibirCurso(int numero, Curso curso) {
+    System.out.println("\n" + numero + " - " + curso.getNome());
+    System.out.println("    Codigo interno: " + curso.getCodigo());
+    System.out.println("    Periodos: " + curso.getQuantidadePeriodos());
+    System.out.println("    Carga horaria: " + curso.getCargaHorariaTotal() + "h");
+    System.out.println(
+        "    Coordenador: " + buscarNomeCoordenador(curso.getMatriculaCoordenador()));
   }
 
   private String selecionarCoordenadorDoCurso() {
@@ -113,7 +118,7 @@ public class CursoTela {
 
   private void listarCoordenadoresParaSelecao(List<Coordenador> coordenadores) {
     System.out.println("Coordenadores cadastrados:");
-    System.out.println("0 - Deixar sem coordenador por enquanto");
+    System.out.println("0 - Cancelar cadastro");
 
     for (int i = 0; i < coordenadores.size(); i++) {
       Coordenador coordenador = coordenadores.get(i);
@@ -136,19 +141,29 @@ public class CursoTela {
     }
   }
 
-  private int lerOpcaoCoordenador(int quantidadeCoordenadores) {
-    System.out.print("Escolha o numero do coordenador ou 0 para deixar sem coordenador: ");
-    String entrada = scanner.nextLine();
-    int opcao;
-
-    try {
-      opcao = Integer.parseInt(entrada);
-    } catch (NumberFormatException e) {
-      throw new EntradaInvalidaException("Opcao invalida. Digite o numero de uma opcao listada.");
+  private String buscarNomeCoordenador(String matriculaCoordenador) {
+    if (matriculaCoordenador == null || matriculaCoordenador.isBlank()) {
+      return "-";
     }
 
-    if (opcao < 0 || opcao > quantidadeCoordenadores) {
-      throw new EntradaInvalidaException("Opcao invalida. Escolha uma opcao da lista.");
+    for (Coordenador coordenador : usuarioService.listarCoordenadores()) {
+      if (matriculaCoordenador.equalsIgnoreCase(coordenador.getMatricula())) {
+        return coordenador.getNome();
+      }
+    }
+
+    return matriculaCoordenador;
+  }
+
+  private int lerOpcaoCoordenador(int quantidadeCoordenadores) {
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner,
+            "Escolha o numero do coordenador ou 0 para cancelar: ",
+            quantidadeCoordenadores);
+
+    if (opcao == 0) {
+      throw new EntradaTela.EntradaCanceladaException();
     }
 
     return opcao;

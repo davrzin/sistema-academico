@@ -38,6 +38,17 @@ public class BoletimService {
     this.turmaRepository = new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString());
   }
 
+  /**
+   * Cria o servico de boletins com repositorios informados.
+   *
+   * @param repository repositorio de boletins.
+   * @param turmaRepository repositorio de turmas.
+   */
+  public BoletimService(BoletimRepository repository, TurmaRepository turmaRepository) {
+    this.repository = repository;
+    this.turmaRepository = turmaRepository;
+  }
+
   public BoletimRepository getRepository() {
     return repository;
   }
@@ -129,6 +140,47 @@ public class BoletimService {
       float primeiraNota,
       float segundaNota,
       String matriculaProfessor) {
+    Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
+
+    boletim.setPrimeiraNota(primeiraNota);
+    boletim.setSegundaNota(segundaNota);
+    repository.atualizarBoletins(boletim);
+  }
+
+  /**
+   * Lanca apenas a primeira nota em um boletim.
+   *
+   * @param codigoTurma codigo da turma.
+   * @param matriculaAluno matricula do aluno.
+   * @param primeiraNota primeira nota.
+   * @param matriculaProfessor matricula do professor.
+   */
+  public void lancarPrimeiraNota(
+      String codigoTurma, String matriculaAluno, float primeiraNota, String matriculaProfessor) {
+    Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
+
+    boletim.setPrimeiraNota(primeiraNota);
+    repository.atualizarBoletins(boletim);
+  }
+
+  /**
+   * Lanca apenas a segunda nota em um boletim.
+   *
+   * @param codigoTurma codigo da turma.
+   * @param matriculaAluno matricula do aluno.
+   * @param segundaNota segunda nota.
+   * @param matriculaProfessor matricula do professor.
+   */
+  public void lancarSegundaNota(
+      String codigoTurma, String matriculaAluno, float segundaNota, String matriculaProfessor) {
+    Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
+
+    boletim.setSegundaNota(segundaNota);
+    repository.atualizarBoletins(boletim);
+  }
+
+  private Boletim buscarBoletimParaLancamento(
+      String codigoTurma, String matriculaAluno, String matriculaProfessor) {
     Turma turma = validarTurmaPertenceAoProfessor(codigoTurma, matriculaProfessor);
     validarAlunoMatriculadoNaTurma(turma, matriculaAluno);
 
@@ -138,9 +190,7 @@ public class BoletimService {
       throw new EntradaInvalidaException("Boletim do aluno nao encontrado para esta turma.");
     }
 
-    boletim.setPrimeiraNota(primeiraNota);
-    boletim.setSegundaNota(segundaNota);
-    repository.atualizarBoletins(boletim);
+    return boletim;
   }
 
   private void validarBoletim(Boletim boletim) {

@@ -56,7 +56,7 @@ public class PeriodoLetivoRepositoryTest {
   @Test
   public void deveCadastrarPeriodoLetivoEmArquivo() {
     PeriodoLetivoRepository repository = criarRepository();
-    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
 
     boolean salvou = repository.salvarPeriodoLetivo(periodo);
 
@@ -79,8 +79,8 @@ public class PeriodoLetivoRepositoryTest {
   public void deveAtualizarPeriodoLetivoEmArquivo() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
-    PeriodoLetivo periodoNovo = new PeriodoLetivo("2026.2", "03/02/2026", "16/09/2026");
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
+    PeriodoLetivo periodoNovo = new PeriodoLetivo("2026.2", "03/10/2026", "16/12/2026");
 
     repository.salvarPeriodoLetivo(periodo);
 
@@ -106,7 +106,7 @@ public class PeriodoLetivoRepositoryTest {
   public void deveListarTodosOsPeriodosSalvos() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
     PeriodoLetivo periodoNovo = new PeriodoLetivo("2026.2", "03/10/2026", "15/12/2026");
 
     repository.salvarPeriodoLetivo(periodo);
@@ -129,9 +129,9 @@ public class PeriodoLetivoRepositoryTest {
   public void deveRetornarTrueQuandoExistirPeriodoComMesmoPeriodo() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
+    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026"));
 
-    boolean existe = repository.existePeriodoComDados("2026.1", "03/02/2026", "16/09/2026");
+    boolean existe = repository.existePeriodoComDados("2026.1", "03/02/2026", "20/06/2026");
 
     Assertions.assertTrue(existe);
   }
@@ -140,9 +140,9 @@ public class PeriodoLetivoRepositoryTest {
   public void deveRetornarTrueQuandoExistirPeriodoComMesmaDataInicio() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
+    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026"));
 
-    boolean existe = repository.existePeriodoComDados("2026.2", "02/02/2026", "16/09/2026");
+    boolean existe = repository.existePeriodoComDados("2027.1", "02/02/2026", "20/06/2027");
 
     Assertions.assertTrue(existe);
   }
@@ -151,9 +151,9 @@ public class PeriodoLetivoRepositoryTest {
   public void deveRetornarTrueQuandoExistirPeriodoComMesmaDataFim() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
+    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026"));
 
-    boolean existe = repository.existePeriodoComDados("2026.2", "03/02/2026", "15/09/2026");
+    boolean existe = repository.existePeriodoComDados("2027.1", "03/02/2027", "30/06/2026");
 
     Assertions.assertTrue(existe);
   }
@@ -162,9 +162,9 @@ public class PeriodoLetivoRepositoryTest {
   public void deveRetornarFalseQuandoNaoExistirPeriodoComDadosIguais() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
+    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026"));
 
-    boolean existe = repository.existePeriodoComDados("2026.2", "03/02/2026", "16/09/2026");
+    boolean existe = repository.existePeriodoComDados("2026.2", "03/10/2026", "16/12/2026");
 
     Assertions.assertFalse(existe);
   }
@@ -173,11 +173,11 @@ public class PeriodoLetivoRepositoryTest {
   public void deveEncontrarPeriodoLetivoBuscado() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
     repository.salvarPeriodoLetivo(periodo);
 
     PeriodoLetivo periodoProcurado =
-        repository.buscarPeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+        repository.buscarPeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
 
     Assertions.assertNotNull(periodoProcurado);
     Assertions.assertEquals(periodo.getPeriodo(), periodoProcurado.getPeriodo());
@@ -189,10 +189,10 @@ public class PeriodoLetivoRepositoryTest {
   public void naoDeveEncontrarPeriodoLetivoBuscado() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
+    repository.salvarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026"));
 
     PeriodoLetivo periodoProcurado =
-        repository.buscarPeriodoLetivo("2027.1", "20/02/2027", "20/10/2027");
+        repository.buscarPeriodoLetivo("2027.1", "20/02/2027", "20/06/2027");
 
     Assertions.assertNull(periodoProcurado);
   }
@@ -201,7 +201,7 @@ public class PeriodoLetivoRepositoryTest {
   public void deveEncontrarPeriodoLetivoAtivo() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
     periodo.setPeriodoAtivo(true);
 
     repository.salvarPeriodoLetivo(periodo);
@@ -213,7 +213,7 @@ public class PeriodoLetivoRepositoryTest {
   public void naoDeveEncontrarPeriodoLetivoAtivo() {
     PeriodoLetivoRepository repository = criarRepository();
 
-    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
     repository.salvarPeriodoLetivo(periodo);
 
     Assertions.assertFalse(repository.existePeriodoLetivoAtivo());

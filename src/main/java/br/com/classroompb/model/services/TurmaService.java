@@ -707,6 +707,8 @@ public class TurmaService {
   }
 
   private void validarEntradaAlunoEmTurma(Aluno aluno, Turma turma) {
+    validarPeriodoLetivoAtivoParaMatricula(turma);
+
     Set<String> codigosDisciplinasConcluidas = new HashSet<>(aluno.getDisciplinasConcluidas());
 
     Disciplina disciplina = disciplinaRepository.buscarPorCodigo(turma.getCodigoDisciplina());
@@ -715,7 +717,19 @@ public class TurmaService {
     validarDisciplinasConcluidas(codigosDisciplinasConcluidas, disciplina);
     validarAlunoJaAprovadoNaDisciplina(codigosDisciplinasConcluidas, disciplina);
     validarAlunoJaMatriculado(aluno, turma);
+    validarAlunoEmOutraTurmaMesmaDisciplinaPeriodo(aluno, turma);
     validarHorariosDeTurma(aluno, turma);
+  }
+
+  private void validarPeriodoLetivoAtivoParaMatricula(Turma turma) {
+    String periodoAtivo = buscarPeriodoLetivoAtivo();
+
+    if (periodoAtivo == null
+        || turma.getPeriodoLetivo() == null
+        || !periodoAtivo.equalsIgnoreCase(turma.getPeriodoLetivo())) {
+      throw new EntradaInvalidaException(
+          "Periodo letivo da turma nao esta ativo para matricula.");
+    }
   }
 
   private void validarAlunoCursoTurma(Aluno aluno, Disciplina disciplina) {
@@ -774,6 +788,54 @@ public class TurmaService {
               + disciplina.getNome()
               + "' e não pode se matricular novamente.");
     }
+  }
+
+  private void validarAlunoEmOutraTurmaMesmaDisciplinaPeriodo(Aluno aluno, Turma turmaDestino) {
+    for (Turma turmaCadastrada : turmaRepository.listarTurmas()) {
+      if (mesmaTurma(turmaCadastrada, turmaDestino)) {
+        continue;
+      }
+
+      if (possuiMesmaDisciplinaNoMesmoPeriodo(turmaCadastrada, turmaDestino)
+          && alunoParticipaDaTurma(aluno, turmaCadastrada)) {
+        throw new AlunoNaoCumprePreRequisitosException(
+            "Aluno ja esta matriculado ou em lista de espera em outra turma "
+                + "desta disciplina neste periodo.");
+      }
+    }
+  }
+
+  private boolean mesmaTurma(Turma primeiraTurma, Turma segundaTurma) {
+    if (primeiraTurma == null || segundaTurma == null) {
+      return false;
+    }
+
+    return primeiraTurma.getCodigo() != null
+        && segundaTurma.getCodigo() != null
+        && primeiraTurma.getCodigo().equalsIgnoreCase(segundaTurma.getCodigo());
+  }
+
+  private boolean possuiMesmaDisciplinaNoMesmoPeriodo(
+      Turma turmaCadastrada, Turma turmaDestino) {
+    return turmaCadastrada.getCodigoDisciplina() != null
+        && turmaDestino.getCodigoDisciplina() != null
+        && turmaCadastrada.getPeriodoLetivo() != null
+        && turmaDestino.getPeriodoLetivo() != null
+        && turmaCadastrada
+            .getCodigoDisciplina()
+            .equalsIgnoreCase(turmaDestino.getCodigoDisciplina())
+        && turmaCadastrada.getPeriodoLetivo().equalsIgnoreCase(turmaDestino.getPeriodoLetivo());
+  }
+
+  private boolean alunoParticipaDaTurma(Aluno aluno, Turma turma) {
+    String matriculaAluno = aluno.getMatricula();
+
+    boolean estaMatriculado =
+        turma.getMatriculados() != null && turma.getMatriculados().contains(matriculaAluno);
+    boolean estaNaListaEspera =
+        turma.getListaEspera() != null && turma.getListaEspera().contains(matriculaAluno);
+
+    return estaMatriculado || estaNaListaEspera;
   }
 
   /**

@@ -5,6 +5,7 @@ import br.com.classroompb.model.entities.gestaoacademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Professor;
+import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import br.com.classroompb.model.repository.DisciplinaRepository;
@@ -97,8 +98,9 @@ public class TurmaServiceTest {
       UserRepository userRepository) {
     disciplinaRepository.salvarDisciplina(
         new Disciplina("dis00", "Algoritmos", 60, 1, 4, "cur00", List.of()));
-    periodoLetivoRepository.salvarPeriodoLetivo(
-        new PeriodoLetivo("2026.2", "01/08/2026", "20/12/2026"));
+    PeriodoLetivo periodoAtivo = new PeriodoLetivo("2026.2", "01/08/2026", "20/12/2026");
+    periodoAtivo.setPeriodoAtivo(true);
+    periodoLetivoRepository.salvarPeriodoLetivo(periodoAtivo);
 
     Professor professor = criarProfessor("João", "joao@email.com", "senha123", "pr00");
     userRepository.salvarUsuario(professor);
@@ -106,7 +108,7 @@ public class TurmaServiceTest {
 
   @Test
   public void deveOfertarTurmaComProfessorResponsavel() {
-    final TurmaRepository turmaRepository = criarTurmaRepository();
+    TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
     final UserRepository userRepository = criarUserRepository();
@@ -125,7 +127,7 @@ public class TurmaServiceTest {
 
   @Test
   public void deveLancarEntradaInvalidaExceptionAoOfertarTurmaNull() {
-    final TurmaRepository turmaRepository = criarTurmaRepository();
+    TurmaRepository turmaRepository = criarTurmaRepository();
     final DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
     UserRepository userRepository = criarUserRepository();
@@ -145,7 +147,7 @@ public class TurmaServiceTest {
 
   @Test
   public void deveLancarEntradaInvalidaExceptionQuandoProfessorNaoExistir() {
-    final TurmaRepository turmaRepository = criarTurmaRepository();
+    TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     final PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
     UserRepository userRepository = criarUserRepository();
@@ -261,7 +263,7 @@ public class TurmaServiceTest {
     Professor professor = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
     userRepository.salvarUsuario(professor);
 
-    TurmaRepository turmaRepository = criarTurmaRepository();
+    final TurmaRepository turmaRepository = criarTurmaRepository();
     TurmaService service =
         criarService(
             turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
@@ -280,7 +282,7 @@ public class TurmaServiceTest {
 
   @Test
   public void deveLancarEntradaInvalidaExceptionAoAlterarTurmaInexistente() {
-    TurmaRepository turmaRepository = criarTurmaRepository();
+    final TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
     UserRepository userRepository = criarUserRepository();
@@ -297,7 +299,7 @@ public class TurmaServiceTest {
 
   @Test
   public void deveIgnorarPropriaTurmaAoValidarConflitoNaAlteracao() {
-    TurmaRepository turmaRepository = criarTurmaRepository();
+    final TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
     UserRepository userRepository = criarUserRepository();
@@ -315,10 +317,10 @@ public class TurmaServiceTest {
 
   @Test
   public void deveLancarEntradaInvalidaExceptionAoAlterarTurmaGerandoConflitoDeHorario() {
-    TurmaRepository turmaRepository = criarTurmaRepository();
+    final TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
-    UserRepository userRepository = criarUserRepository();
+    final UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
     disciplinaRepository.salvarDisciplina(
         new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
@@ -541,6 +543,46 @@ public class TurmaServiceTest {
   }
 
   @Test
+  public void deveImpedirMatriculaEmTurmaDePeriodoLetivoEncerrado() {
+    final TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    disciplinaRepository.salvarDisciplina(
+        new Disciplina("dis00", "Algoritmos", 60, 1, 4, "cur00", List.of()));
+
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    PeriodoLetivo periodoEncerrado =
+        new PeriodoLetivo("2026.2", "01/08/2026", "20/12/2026");
+    periodoLetivoRepository.salvarPeriodoLetivo(periodoEncerrado);
+    PeriodoLetivo periodoAtivo = new PeriodoLetivo("2027.1", "01/02/2027", "20/06/2027");
+    periodoAtivo.setPeriodoAtivo(true);
+    periodoLetivoRepository.salvarPeriodoLetivo(periodoAtivo);
+
+    UserRepository userRepository = criarUserRepository();
+    Professor professor = criarProfessor("Joao", "joao@email.com", "senha123", "pr00");
+    userRepository.salvarUsuario(professor);
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+    Turma turmaEncerrada =
+        new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    service.ofertarTurma(turmaEncerrada);
+
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
+    userRepository.salvarUsuario(aluno);
+
+    EntradaInvalidaException excecao =
+        Assertions.assertThrows(
+            EntradaInvalidaException.class,
+            () -> service.cadastrarAlunoEmTurma(turmaEncerrada.getCodigo(), aluno));
+
+    Assertions.assertEquals(
+        "Periodo letivo da turma nao esta ativo para matricula.", excecao.getMessage());
+    Assertions.assertEquals(1, turmaRepository.listarTurmas().size());
+    Assertions.assertTrue(turmaRepository.listarTurmas().getFirst().getMatriculados().isEmpty());
+  }
+
+  @Test
   public void deveLancarcEntradaInvalidaExceptionEmCadastrarAlunoComTurmaNull() {
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
@@ -632,6 +674,192 @@ public class TurmaServiceTest {
     Turma turmaAtualizada = service.buscarTurmaPorCodigo(turma.getCodigo());
 
     Assertions.assertEquals(1, turmaAtualizada.getListaEspera().size());
+  }
+
+  @Test
+  public void deveImpedirAlunoEmDuasTurmasDaMesmaDisciplinaNoMesmoPeriodo() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+    Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
+    userRepository.salvarUsuario(professor2);
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+    Turma turma1 = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    Turma turma2 = new Turma("dis00", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
+    service.ofertarTurma(turma1);
+    service.ofertarTurma(turma2);
+
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
+    userRepository.salvarUsuario(aluno);
+    service.cadastrarAlunoEmTurma(turma1.getCodigo(), aluno);
+
+    AlunoNaoCumprePreRequisitosException excecao =
+        Assertions.assertThrows(
+            AlunoNaoCumprePreRequisitosException.class,
+            () -> service.cadastrarAlunoEmTurma(turma2.getCodigo(), aluno));
+
+    Assertions.assertEquals(
+        "Aluno ja esta matriculado ou em lista de espera em outra turma "
+            + "desta disciplina neste periodo.",
+        excecao.getMessage());
+  }
+
+  @Test
+  public void devePermitirAlunoEmDisciplinaDiferenteNoMesmoPeriodo() {
+    final TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+    disciplinaRepository.salvarDisciplina(
+        new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+    Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
+    userRepository.salvarUsuario(professor2);
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+    Turma turma1 = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    Turma turma2 = new Turma("dis01", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
+    service.ofertarTurma(turma1);
+    service.ofertarTurma(turma2);
+
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
+    userRepository.salvarUsuario(aluno);
+
+    service.cadastrarAlunoEmTurma(turma1.getCodigo(), aluno);
+    service.cadastrarAlunoEmTurma(turma2.getCodigo(), aluno);
+
+    Assertions.assertEquals(2, aluno.getTurmasMatriculadas().size());
+  }
+
+  @Test
+  public void deveManterValidacaoDeMesmaTurma() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+    Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    service.ofertarTurma(turma);
+
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
+    userRepository.salvarUsuario(aluno);
+    service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
+
+    AlunoNaoCumprePreRequisitosException excecao =
+        Assertions.assertThrows(
+            AlunoNaoCumprePreRequisitosException.class,
+            () -> service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno));
+
+    Assertions.assertTrue(excecao.getMessage().contains("matriculado nessa turma"));
+  }
+
+  @Test
+  public void deveManterValidacaoDeChoqueDeHorarioDoAluno() {
+    final TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+    disciplinaRepository.salvarDisciplina(
+        new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of()));
+    Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
+    userRepository.salvarUsuario(professor2);
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+    Turma turma1 = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    Turma turma2 = new Turma("dis01", "2026.2", "pr01", 30, "SEG 08:00-10:00", "LAB 02");
+    service.ofertarTurma(turma1);
+    service.ofertarTurma(turma2);
+
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
+    userRepository.salvarUsuario(aluno);
+    service.cadastrarAlunoEmTurma(turma1.getCodigo(), aluno);
+
+    AlunoNaoCumprePreRequisitosException excecao =
+        Assertions.assertThrows(
+            AlunoNaoCumprePreRequisitosException.class,
+            () -> service.cadastrarAlunoEmTurma(turma2.getCodigo(), aluno));
+
+    Assertions.assertTrue(excecao.getMessage().contains("choque"));
+  }
+
+  @Test
+  public void deveManterValidacaoDePreRequisito() {
+    final TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+    disciplinaRepository.salvarDisciplina(
+        new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, "cur00", List.of("dis00")));
+    Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
+    userRepository.salvarUsuario(professor2);
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+    Turma turma = new Turma("dis01", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
+    service.ofertarTurma(turma);
+
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
+    userRepository.salvarUsuario(aluno);
+
+    AlunoNaoCumprePreRequisitosException excecao =
+        Assertions.assertThrows(
+            AlunoNaoCumprePreRequisitosException.class,
+            () -> service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno));
+
+    Assertions.assertTrue(excecao.getMessage().contains("requisitos"));
+  }
+
+  @Test
+  public void deveImpedirAlunoEmListaDeEsperaDeEntrarEmOutraTurmaDaMesmaDisciplinaPeriodo() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+    Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
+    userRepository.salvarUsuario(professor2);
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+    Turma turma1 = new Turma("dis00", "2026.2", "pr00", 1, "SEG 08:00-10:00", "LAB 01");
+    Turma turma2 = new Turma("dis00", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
+    service.ofertarTurma(turma1);
+    service.ofertarTurma(turma2);
+
+    Aluno alunoMatriculado = criarAluno("Ana", "ana@email.com", "al00", "senha123");
+    Aluno alunoListaEspera = criarAluno("Maria", "maria@email.com", "al01", "senha123");
+    userRepository.salvarUsuario(alunoMatriculado);
+    userRepository.salvarUsuario(alunoListaEspera);
+
+    service.cadastrarAlunoEmTurma(turma1.getCodigo(), alunoMatriculado);
+    service.cadastrarAlunoEmTurma(turma1.getCodigo(), alunoListaEspera);
+
+    AlunoNaoCumprePreRequisitosException excecao =
+        Assertions.assertThrows(
+            AlunoNaoCumprePreRequisitosException.class,
+            () -> service.cadastrarAlunoEmTurma(turma2.getCodigo(), alunoListaEspera));
+
+    Assertions.assertEquals(
+        "Aluno ja esta matriculado ou em lista de espera em outra turma "
+            + "desta disciplina neste periodo.",
+        excecao.getMessage());
   }
 
   @Test

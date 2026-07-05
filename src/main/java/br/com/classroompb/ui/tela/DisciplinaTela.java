@@ -1,10 +1,12 @@
 package br.com.classroompb.ui.tela;
 
+import br.com.classroompb.model.entities.gestaoacademica.Curso;
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
+import br.com.classroompb.model.services.CursoService;
 import br.com.classroompb.model.services.DisciplinaService;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +20,7 @@ public class DisciplinaTela {
 
   private final Scanner scanner;
   private final DisciplinaService disciplinaService = new DisciplinaService();
+  private final CursoService cursoService = new CursoService();
 
   /**
    * Cria a tela de disciplinas.
@@ -33,29 +36,35 @@ public class DisciplinaTela {
    */
   public void cadastrarDisciplina() {
     try {
-      System.out.println("Informe o nome da disciplina:");
-      final String nome = scanner.nextLine();
+      final String nome =
+          EntradaTela.lerTextoObrigatorioOuCancelar(
+              scanner, "Informe o nome da disciplina: ", "Nome");
 
-      System.out.println("Informe a carga horária:");
-      final int cargaHoraria = Integer.parseInt(scanner.nextLine());
+      final int cargaHoraria =
+          EntradaTela.lerInteiroPositivoOuCancelar(scanner, "Informe a carga horaria: ");
 
-      System.out.println("Informe o período:");
-      final int periodo = Integer.parseInt(scanner.nextLine());
+      final int periodo = EntradaTela.lerInteiroPositivoOuCancelar(scanner, "Informe o periodo: ");
 
-      System.out.println("Informe a quantidade de créditos:");
-      final int creditos = Integer.parseInt(scanner.nextLine());
+      final int creditos =
+          EntradaTela.lerInteiroPositivoOuCancelar(
+              scanner, "Informe a quantidade de creditos: ");
 
-      System.out.println("Informe o código do curso:");
-      String codigoCurso = scanner.nextLine();
+      final String codigoCurso =
+          EntradaTela.lerTextoObrigatorioOuCancelar(
+              scanner, "Informe o codigo do curso: ", "Curso");
 
       System.out.println(
           """
-          Informe os pré-requisitos da disciplina.
-          Digite os códigos separados por vírgula.
-          Caso não exista pré-requisitos, pressione ENTER.
+          Informe os pre-requisitos da disciplina.
+          Digite os codigos separados por virgula.
+          Caso nao exista pre-requisitos, pressione ENTER.
           """);
 
       String entradaPreRequisitos = scanner.nextLine();
+
+      if ("0".equals(entradaPreRequisitos.trim())) {
+        throw new EntradaTela.EntradaCanceladaException();
+      }
 
       List<String> preRequisitos = new ArrayList<>();
 
@@ -69,13 +78,16 @@ public class DisciplinaTela {
       disciplinaService.cadastrarDisciplina(novaDisciplina);
 
       System.out.println("Disciplina cadastrada com sucesso.");
-      System.out.println("Código gerado: " + novaDisciplina.getCodigo());
+      System.out.println("Codigo gerado: " + novaDisciplina.getCodigo());
+
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Cadastro de disciplina cancelado.");
 
     } catch (PersistenciaException | EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao cadastrar disciplina: " + e.getMessage());
 
     } catch (NumberFormatException e) {
-      System.out.println("Valor numérico inválido.");
+      System.out.println("Valor numerico invalido.");
     }
   }
 
@@ -88,17 +100,18 @@ public class DisciplinaTela {
     try {
       validarCoordenadorComCurso(coordenadorLogado);
 
-      System.out.println("Informe o nome da disciplina:");
-      String nome = scanner.nextLine();
+      String nome =
+          EntradaTela.lerTextoObrigatorioOuCancelar(
+              scanner, "Informe o nome da disciplina: ", "Nome");
 
-      System.out.println("Informe a carga horaria:");
-      int cargaHoraria = Integer.parseInt(scanner.nextLine());
+      int cargaHoraria =
+          EntradaTela.lerInteiroPositivoOuCancelar(scanner, "Informe a carga horaria: ");
 
-      System.out.println("Informe o periodo:");
-      int periodo = Integer.parseInt(scanner.nextLine());
+      int periodo = EntradaTela.lerInteiroPositivoOuCancelar(scanner, "Informe o periodo: ");
 
-      System.out.println("Informe a quantidade de creditos:");
-      int creditos = Integer.parseInt(scanner.nextLine());
+      int creditos =
+          EntradaTela.lerInteiroPositivoOuCancelar(
+              scanner, "Informe a quantidade de creditos: ");
 
       List<String> preRequisitos = selecionarPreRequisitos(coordenadorLogado.getCodigoCurso());
 
@@ -116,6 +129,9 @@ public class DisciplinaTela {
       System.out.println("Disciplina cadastrada com sucesso.");
       System.out.println("Codigo gerado: " + novaDisciplina.getCodigo());
 
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Cadastro de disciplina cancelado.");
+
     } catch (PersistenciaException | EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao cadastrar disciplina: " + e.getMessage());
 
@@ -129,7 +145,7 @@ public class DisciplinaTela {
    */
   public void listarDisciplinas() {
     List<Disciplina> disciplinas = disciplinaService.listarDisciplinas();
-    exibirListaDisciplinas(disciplinas);
+    exibirListaDisciplinasDetalhada(disciplinas);
   }
 
   /**
@@ -142,7 +158,7 @@ public class DisciplinaTela {
       validarCoordenadorComCurso(coordenadorLogado);
       List<Disciplina> disciplinas =
           disciplinaService.listarDisciplinasPorCurso(coordenadorLogado.getCodigoCurso());
-      exibirListaDisciplinas(disciplinas);
+      exibirListaDisciplinasDetalhada(disciplinas);
     } catch (EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao listar disciplinas: " + e.getMessage());
     }
@@ -158,7 +174,7 @@ public class DisciplinaTela {
       validarAlunoComCurso(alunoLogado);
       List<Disciplina> disciplinas =
           disciplinaService.listarDisciplinasPorCurso(alunoLogado.getCodigoCurso());
-      exibirListaDisciplinas(disciplinas);
+      exibirListaDisciplinasAmigavel(disciplinas);
     } catch (EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao listar disciplinas: " + e.getMessage());
     }
@@ -181,8 +197,7 @@ public class DisciplinaTela {
   }
 
   private List<String> selecionarPreRequisitos(String codigoCurso) {
-    System.out.println("A disciplina possui pre-requisitos? (S/N):");
-    String resposta = scanner.nextLine();
+    String resposta = lerRespostaSimNao("A disciplina possui pre-requisitos? (S/N): ");
 
     if (!resposta.equalsIgnoreCase("S")) {
       return new ArrayList<>();
@@ -196,26 +211,55 @@ public class DisciplinaTela {
     }
 
     listarDisciplinasParaPreRequisito(disciplinasDoCurso);
+    System.out.println();
+    System.out.println("0 - Finalizar selecao de pre-requisitos");
 
-    System.out.println("Digite os numeros dos pre-requisitos separados por virgula:");
-    String entrada = scanner.nextLine();
+    while (true) {
+      System.out.print("Digite os numeros dos pre-requisitos separados por virgula: ");
+      String entrada = scanner.nextLine();
 
-    if (entrada == null || entrada.isBlank()) {
-      throw new EntradaInvalidaException("Opcao invalida. Informe pelo menos um pre-requisito.");
-    }
+      if ("0".equals(entrada.trim())) {
+        return new ArrayList<>();
+      }
 
-    List<String> preRequisitos = new ArrayList<>();
+      if (entrada == null || entrada.isBlank()) {
+        System.out.println("Opcao invalida. Informe pelo menos um pre-requisito.");
+        System.out.println();
+        continue;
+      }
 
-    for (String item : entrada.split(",")) {
-      int opcao = lerOpcaoPreRequisito(item, disciplinasDoCurso.size());
-      String codigoDisciplina = disciplinasDoCurso.get(opcao - 1).getCodigo();
+      try {
+        List<String> preRequisitos = new ArrayList<>();
 
-      if (!preRequisitos.contains(codigoDisciplina)) {
-        preRequisitos.add(codigoDisciplina);
+        for (String item : entrada.split(",")) {
+          int opcao = lerOpcaoPreRequisito(item, disciplinasDoCurso.size());
+          String codigoDisciplina = disciplinasDoCurso.get(opcao - 1).getCodigo();
+
+          if (!preRequisitos.contains(codigoDisciplina)) {
+            preRequisitos.add(codigoDisciplina);
+          }
+        }
+
+        return preRequisitos;
+      } catch (EntradaInvalidaException e) {
+        System.out.println(e.getMessage());
+        System.out.println();
       }
     }
+  }
 
-    return preRequisitos;
+  private String lerRespostaSimNao(String prompt) {
+    while (true) {
+      System.out.print(prompt);
+      String resposta = scanner.nextLine();
+
+      if ("S".equalsIgnoreCase(resposta) || "N".equalsIgnoreCase(resposta)) {
+        return resposta;
+      }
+
+      System.out.println("Opcao invalida. Escolha S ou N.");
+      System.out.println();
+    }
   }
 
   private void listarDisciplinasParaPreRequisito(List<Disciplina> disciplinas) {
@@ -223,18 +267,11 @@ public class DisciplinaTela {
 
     for (int i = 0; i < disciplinas.size(); i++) {
       Disciplina disciplina = disciplinas.get(i);
-      System.out.println(
-          (i + 1)
-              + " - "
-              + disciplina.getNome()
-              + " ("
-              + disciplina.getCodigo()
-              + ")"
-              + " | Carga horaria: "
-              + disciplina.getCargaHoraria()
-              + "h"
-              + " | Creditos: "
-              + disciplina.getCreditos());
+      System.out.println();
+      System.out.println((i + 1) + " - " + formatarValor(disciplina.getNome()));
+      System.out.println("    Codigo interno: " + formatarValor(disciplina.getCodigo()));
+      System.out.println("    Carga horaria: " + disciplina.getCargaHoraria() + "h");
+      System.out.println("    Creditos: " + disciplina.getCreditos());
     }
   }
 
@@ -255,26 +292,99 @@ public class DisciplinaTela {
     return opcao;
   }
 
-  private void exibirListaDisciplinas(List<Disciplina> disciplinas) {
+  private void exibirListaDisciplinasAmigavel(List<Disciplina> disciplinas) {
     if (disciplinas == null || disciplinas.isEmpty()) {
       System.out.println("Nenhuma disciplina cadastrada.");
       return;
     }
 
-    for (Disciplina disciplina : disciplinas) {
-      exibirDisciplina(disciplina);
+    for (int i = 0; i < disciplinas.size(); i++) {
+      exibirDisciplinaAmigavel(i + 1, disciplinas.get(i));
     }
   }
 
-  private void exibirDisciplina(Disciplina disciplina) {
-    System.out.println("\nDisciplina:");
-    System.out.println("Código: " + disciplina.getCodigo());
-    System.out.println("Nome: " + disciplina.getNome());
-    System.out.println("Carga horária: " + disciplina.getCargaHoraria() + "h");
-    System.out.println("Período: " + disciplina.getPeriodo());
-    System.out.println("Créditos: " + disciplina.getCreditos());
-    System.out.println("Código do curso: " + disciplina.getCodigoCurso());
-    System.out.println("Pré-requisitos: " + disciplina.getPreRequisitos());
+  private void exibirListaDisciplinasDetalhada(List<Disciplina> disciplinas) {
+    if (disciplinas == null || disciplinas.isEmpty()) {
+      System.out.println("Nenhuma disciplina cadastrada.");
+      return;
+    }
+
+    for (int i = 0; i < disciplinas.size(); i++) {
+      exibirDisciplinaDetalhada(i + 1, disciplinas.get(i));
+    }
+  }
+
+  private void exibirDisciplinaAmigavel(int numero, Disciplina disciplina) {
     System.out.println();
+    System.out.println(numero + " - " + formatarValor(disciplina.getNome()));
+    System.out.println("    Carga horaria: " + disciplina.getCargaHoraria() + "h");
+    System.out.println("    Periodo recomendado: " + disciplina.getPeriodo());
+    System.out.println("    Creditos: " + disciplina.getCreditos());
+    System.out.println("    Pre-requisitos: " + formatarPreRequisitos(disciplina));
+  }
+
+  private void exibirDisciplinaDetalhada(int numero, Disciplina disciplina) {
+    System.out.println();
+    System.out.println(numero + " - " + formatarValor(disciplina.getNome()));
+    System.out.println("    Codigo interno: " + formatarValor(disciplina.getCodigo()));
+    System.out.println("    Curso: " + buscarNomeCurso(disciplina.getCodigoCurso()));
+    System.out.println("    Carga horaria: " + disciplina.getCargaHoraria() + "h");
+    System.out.println("    Periodo recomendado: " + disciplina.getPeriodo());
+    System.out.println("    Creditos: " + disciplina.getCreditos());
+    System.out.println("    Pre-requisitos: " + formatarPreRequisitos(disciplina));
+    System.out.println();
+  }
+
+  private String formatarPreRequisitos(Disciplina disciplina) {
+    List<String> preRequisitos = disciplina.getPreRequisitos();
+
+    if (preRequisitos == null || preRequisitos.isEmpty()) {
+      return "Nenhum";
+    }
+
+    List<String> nomesPreRequisitos = new ArrayList<>();
+
+    for (String codigoDisciplina : preRequisitos) {
+      nomesPreRequisitos.add(buscarNomeDisciplina(codigoDisciplina));
+    }
+
+    return String.join(", ", nomesPreRequisitos);
+  }
+
+  private String buscarNomeDisciplina(String codigoDisciplina) {
+    if (codigoDisciplina == null || codigoDisciplina.isBlank()) {
+      return "-";
+    }
+
+    for (Disciplina disciplina : disciplinaService.listarDisciplinas()) {
+      if (disciplina.getCodigo() != null
+          && disciplina.getCodigo().equalsIgnoreCase(codigoDisciplina.trim())) {
+        return formatarValor(disciplina.getNome());
+      }
+    }
+
+    return codigoDisciplina;
+  }
+
+  private String buscarNomeCurso(String codigoCurso) {
+    if (codigoCurso == null || codigoCurso.isBlank()) {
+      return "-";
+    }
+
+    for (Curso curso : cursoService.listarCursos()) {
+      if (curso.getCodigo() != null && curso.getCodigo().equalsIgnoreCase(codigoCurso.trim())) {
+        return formatarValor(curso.getNome());
+      }
+    }
+
+    return codigoCurso;
+  }
+
+  private String formatarValor(String valor) {
+    if (valor == null || valor.isBlank()) {
+      return "-";
+    }
+
+    return valor;
   }
 }

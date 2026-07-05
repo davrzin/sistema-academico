@@ -48,16 +48,29 @@ public class PeriodoLetivoServiceTest {
   }
 
   @Test
-  public void deveCadastrarPeriodoLetivo() {
+  public void deveCadastrarPeriodoLetivoDoPrimeiroSemestre() {
     PeriodoLetivoRepository repository = criarRepository();
     PeriodoLetivoService service = criarService(repository);
 
-    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
 
     service.cadastrarPeriodoLetivo(periodo);
 
     Assertions.assertEquals(1, repository.listarPeriodos().size());
     Assertions.assertEquals("2026.1", repository.listarPeriodos().get(0).getPeriodo());
+  }
+
+  @Test
+  public void deveCadastrarPeriodoLetivoDoSegundoSemestre() {
+    PeriodoLetivoRepository repository = criarRepository();
+    PeriodoLetivoService service = criarService(repository);
+
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.2", "01/08/2026", "20/12/2026");
+
+    service.cadastrarPeriodoLetivo(periodo);
+
+    Assertions.assertEquals(1, repository.listarPeriodos().size());
+    Assertions.assertEquals("2026.2", repository.listarPeriodos().get(0).getPeriodo());
   }
 
   @Test
@@ -74,37 +87,9 @@ public class PeriodoLetivoServiceTest {
     PeriodoLetivoRepository repository = criarRepository();
     PeriodoLetivoService service = criarService(repository);
 
-    service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
+    service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026"));
 
-    PeriodoLetivo periodoRepetido = new PeriodoLetivo("2026.1", "03/02/2026", "16/09/2026");
-
-    Assertions.assertThrows(
-        PeriodoLetivoExistenteException.class,
-        () -> service.cadastrarPeriodoLetivo(periodoRepetido));
-  }
-
-  @Test
-  public void deveLancarPeriodoLetivoExistenteExceptionQuandoDataInicioJaExistir() {
-    PeriodoLetivoRepository repository = criarRepository();
-    PeriodoLetivoService service = criarService(repository);
-
-    service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
-
-    PeriodoLetivo periodoRepetido = new PeriodoLetivo("2026.2", "02/02/2026", "16/09/2026");
-
-    Assertions.assertThrows(
-        PeriodoLetivoExistenteException.class,
-        () -> service.cadastrarPeriodoLetivo(periodoRepetido));
-  }
-
-  @Test
-  public void deveLancarPeriodoLetivoExistenteExceptionQuandoDataFimJaExistir() {
-    PeriodoLetivoRepository repository = criarRepository();
-    PeriodoLetivoService service = criarService(repository);
-
-    service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
-
-    PeriodoLetivo periodoRepetido = new PeriodoLetivo("2026.2", "03/02/2026", "15/09/2026");
+    PeriodoLetivo periodoRepetido = new PeriodoLetivo("2026.1", "03/02/2026", "20/06/2026");
 
     Assertions.assertThrows(
         PeriodoLetivoExistenteException.class,
@@ -116,10 +101,45 @@ public class PeriodoLetivoServiceTest {
     PeriodoLetivoRepository repository = criarRepository();
     PeriodoLetivoService service = criarService(repository);
 
-    service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026"));
+    service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026"));
     service.cadastrarPeriodoLetivo(new PeriodoLetivo("2026.2", "03/10/2026", "15/12/2026"));
 
     Assertions.assertEquals(2, service.listarPeriodosLetivos().size());
+  }
+
+  @Test
+  public void deveRejeitarSegundoSemestreComDatasDeOutroAno() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> new PeriodoLetivo("2026.2", "01/08/2021", "20/12/2021"));
+  }
+
+  @Test
+  public void deveRejeitarPrimeiroSemestreComDatasNoSegundoIntervalo() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> new PeriodoLetivo("2026.1", "01/08/2026", "20/12/2026"));
+  }
+
+  @Test
+  public void deveRejeitarSegundoSemestreComDatasNoPrimeiroIntervalo() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> new PeriodoLetivo("2026.2", "01/03/2026", "30/06/2026"));
+  }
+
+  @Test
+  public void deveRejeitarFimAntesDoInicio() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> new PeriodoLetivo("2026.2", "20/12/2026", "01/08/2026"));
+  }
+
+  @Test
+  public void deveRejeitarFormatoInvalidoDePeriodo() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> new PeriodoLetivo("2026.3", "01/08/2026", "20/12/2026"));
   }
 
   @Test
@@ -127,7 +147,7 @@ public class PeriodoLetivoServiceTest {
     PeriodoLetivoRepository repository = criarRepository();
     PeriodoLetivoService service = criarService(repository);
 
-    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
     service.cadastrarPeriodoLetivo(periodo);
 
     boolean atualizou = service.ativarPeriodoLetivo(periodo, 0);
@@ -141,7 +161,7 @@ public class PeriodoLetivoServiceTest {
     PeriodoLetivoRepository repository = criarRepository();
     PeriodoLetivoService service = criarService(repository);
 
-    PeriodoLetivo periodoAtivo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodoAtivo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
     PeriodoLetivo outroPeriodo = new PeriodoLetivo("2026.2", "03/10/2026", "15/12/2026");
 
     service.cadastrarPeriodoLetivo(periodoAtivo);
@@ -157,7 +177,7 @@ public class PeriodoLetivoServiceTest {
     PeriodoLetivoRepository repository = criarRepository();
     PeriodoLetivoService service = criarService(repository);
 
-    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "15/09/2026");
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
     service.cadastrarPeriodoLetivo(periodo);
     service.ativarPeriodoLetivo(periodo, 0);
 

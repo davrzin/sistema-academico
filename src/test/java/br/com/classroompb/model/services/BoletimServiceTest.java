@@ -1,8 +1,10 @@
 package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
+import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.repository.BoletimRepository;
+import br.com.classroompb.model.repository.TurmaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Path;
 import java.util.List;
@@ -19,6 +21,7 @@ public class BoletimServiceTest {
   @TempDir Path tempDir;
 
   private BoletimRepository boletimRepository;
+  private TurmaRepository turmaRepository;
   private BoletimService boletimService;
   private Boletim boletim;
 
@@ -30,7 +33,8 @@ public class BoletimServiceTest {
 
     boletimRepository =
         new BoletimRepository(new ObjectMapper(), tempDir.resolve("boletins").toString());
-    boletimService = new BoletimService(boletimRepository);
+    turmaRepository = new TurmaRepository(new ObjectMapper(), tempDir.resolve("turmas").toString());
+    boletimService = new BoletimService(boletimRepository, turmaRepository);
     boletim = new Boletim("al00", "tur00");
   }
 
@@ -96,5 +100,78 @@ public class BoletimServiceTest {
 
     Assertions.assertThrows(
         EntradaInvalidaException.class, () -> boletimService.buscarBoletinsPorAluno(""));
+  }
+
+  @Test
+  public void deveAtualizarApenasPrimeiraNotaPreservandoSegunda() {
+    prepararTurmaComBoletim(8.0f, 9.0f);
+
+    boletimService.lancarPrimeiraNota("tur00", "al00", 10.0f, "pr00");
+
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Assertions.assertEquals(10.0f, boletimAtualizado.getPrimeiraNota());
+    Assertions.assertEquals(9.0f, boletimAtualizado.getSegundaNota());
+  }
+
+  @Test
+  public void deveAtualizarApenasSegundaNotaPreservandoPrimeira() {
+    prepararTurmaComBoletim(8.0f, 9.0f);
+
+    boletimService.lancarSegundaNota("tur00", "al00", 7.5f, "pr00");
+
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Assertions.assertEquals(8.0f, boletimAtualizado.getPrimeiraNota());
+    Assertions.assertEquals(7.5f, boletimAtualizado.getSegundaNota());
+  }
+
+  @Test
+  public void deveAtualizarAsDuasNotas() {
+    prepararTurmaComBoletim(8.0f, 9.0f);
+
+    boletimService.lancarNotas("tur00", "al00", 6.0f, 7.0f, "pr00");
+
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Assertions.assertEquals(6.0f, boletimAtualizado.getPrimeiraNota());
+    Assertions.assertEquals(7.0f, boletimAtualizado.getSegundaNota());
+  }
+
+  @Test
+  public void deveRejeitarNotaMenorQueZero() {
+    prepararTurmaComBoletim(8.0f, 9.0f);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarPrimeiraNota("tur00", "al00", -1.0f, "pr00"));
+  }
+
+  @Test
+  public void deveRejeitarNotaMaiorQueDez() {
+    prepararTurmaComBoletim(8.0f, 9.0f);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarSegundaNota("tur00", "al00", 11.0f, "pr00"));
+  }
+
+  @Test
+  public void devePreservarCalculoDeMediaExistente() {
+    prepararTurmaComBoletim(8.0f, 9.0f);
+
+    boletimService.lancarNotas("tur00", "al00", 10.0f, 8.0f, "pr00");
+
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    float media = (boletimAtualizado.getPrimeiraNota() + boletimAtualizado.getSegundaNota()) / 2;
+    Assertions.assertEquals(9.0f, media);
+  }
+
+  private void prepararTurmaComBoletim(float primeiraNota, float segundaNota) {
+    Turma turma =
+        new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    turma.getMatriculados().add("al00");
+    turmaRepository.salvarTurma(turma);
+
+    boletim.setPrimeiraNota(primeiraNota);
+    boletim.setSegundaNota(segundaNota);
+    boletimService.criarBoletim(boletim);
   }
 }

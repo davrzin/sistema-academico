@@ -42,14 +42,11 @@ public class UsuarioTela {
    */
   public void cadastrarUsuario() {
     try {
-      System.out.print("Nome: ");
-      String nome = scanner.nextLine();
+      String nome = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Nome: ", "Nome");
 
-      System.out.print("Email: ");
-      String email = scanner.nextLine();
+      String email = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Email: ", "Email");
 
-      System.out.print("Senha: ");
-      String senha = scanner.nextLine();
+      String senha = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Senha: ", "Senha");
 
       TipoUsuario tipoUsuario = escolherTipoUsuario();
 
@@ -61,6 +58,9 @@ public class UsuarioTela {
 
       System.out.println("Usuário cadastrado com sucesso!");
       System.out.println("Matrícula gerada: " + novoUsuario.getMatricula());
+
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Cadastro de usuario cancelado.");
 
     } catch (RuntimeException e) {
       System.out.println("Erro ao cadastrar usuário: " + e.getMessage());
@@ -194,21 +194,101 @@ public class UsuarioTela {
       return;
     }
 
+    imprimirCabecalhoBoletim();
+
     for (Boletim boletim : boletins) {
       Turma turma = buscarTurmaDoBoletim(boletim);
       double media = calcularMediaBoletim(boletim);
 
-      System.out.println("==================BOLETIM====================");
-      System.out.println("Disciplina: " + buscarNomeDisciplinaBoletim(turma, boletim));
-      System.out.println("Professor: " + buscarNomeProfessorBoletim(turma));
-      System.out.println("Periodo letivo: " + buscarPeriodoLetivoBoletim(turma));
-      System.out.println("Turma: " + boletim.getCodigoTurma());
-      System.out.println("Nota da primeira unidade: " + boletim.getPrimeiraNota());
-      System.out.println("Nota da segunda unidade: " + boletim.getSegundaNota());
-      System.out.println("Media: " + String.format("%.2f", media));
-      System.out.println("Situacao: " + definirSituacaoBoletim(media));
-      System.out.println("Frequência: " + String.format("%.2f", boletim.getFrequencia()) + "%");
+      imprimirLinhaBoletim(
+          buscarNomeDisciplinaBoletim(turma),
+          numeroAmigavelTurma(turma),
+          buscarNomeProfessorBoletim(turma),
+          buscarPeriodoLetivoBoletim(turma),
+          boletim.getPrimeiraNota(),
+          boletim.getSegundaNota(),
+          media,
+          boletim.getFrequencia(),
+          definirSituacaoBoletim(media));
     }
+
+    imprimirDivisoriaBoletim();
+  }
+
+  private void imprimirCabecalhoBoletim() {
+    imprimirDivisoriaBoletim();
+    System.out.printf(
+        formatoLinhaBoletim(),
+        "Disciplina",
+        "Turma",
+        "Professor",
+        "Periodo",
+        "Nota 1",
+        "Nota 2",
+        "Media",
+        "Frequencia",
+        "Situacao");
+    imprimirDivisoriaBoletim();
+  }
+
+  private void imprimirLinhaBoletim(
+      String disciplina,
+      String turma,
+      String professor,
+      String periodo,
+      float primeiraNota,
+      float segundaNota,
+      double media,
+      double frequencia,
+      String situacao) {
+    System.out.printf(
+        formatoLinhaBoletim(),
+        limitarTexto(formatarValor(disciplina), 18),
+        limitarTexto(formatarValor(turma), 5),
+        limitarTexto(formatarValor(professor), 18),
+        limitarTexto(formatarValor(periodo), 10),
+        formatarNota(primeiraNota),
+        formatarNota(segundaNota),
+        formatarDecimal(media),
+        formatarFrequencia(frequencia),
+        limitarTexto(formatarValor(situacao), 18));
+  }
+
+  private void imprimirDivisoriaBoletim() {
+    System.out.println("-".repeat(123));
+  }
+
+  private String formatoLinhaBoletim() {
+    return "| %-18s | %-5s | %-18s | %-10s | %-6s | "
+        + "%-6s | %-6s | %-10s | %-18s |%n";
+  }
+
+  private String formatarValor(String valor) {
+    if (valor == null || valor.isBlank()) {
+      return "-";
+    }
+
+    return valor;
+  }
+
+  private String formatarNota(float nota) {
+    return String.format("%.1f", nota);
+  }
+
+  private String formatarDecimal(double valor) {
+    return String.format("%.1f", valor);
+  }
+
+  private String formatarFrequencia(double frequencia) {
+    return String.format("%.1f%%", frequencia);
+  }
+
+  private String limitarTexto(String texto, int tamanhoMaximo) {
+    if (texto.length() <= tamanhoMaximo) {
+      return texto;
+    }
+
+    return texto.substring(0, tamanhoMaximo - 3) + "...";
   }
 
   private Turma buscarTurmaDoBoletim(Boletim boletim) {
@@ -219,17 +299,83 @@ public class UsuarioTela {
     }
   }
 
-  private String buscarNomeDisciplinaBoletim(Turma turma, Boletim boletim) {
+  private String buscarNomeDisciplinaBoletim(Turma turma) {
     if (turma == null) {
-      return "Turma nao encontrada (" + boletim.getCodigoTurma() + ")";
+      return "-";
     }
 
     return turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina());
   }
 
+  private String nomeAmigavelTurma(Turma turma) {
+    if (turma == null) {
+      return "-";
+    }
+
+    return buscarNomeDisciplinaBoletim(turma) + " - Turma " + calcularNumeroTurmaDisciplina(turma);
+  }
+
+  private String numeroAmigavelTurma(Turma turma) {
+    if (turma == null) {
+      return "-";
+    }
+
+    return String.valueOf(calcularNumeroTurmaDisciplina(turma));
+  }
+
+  private int calcularNumeroTurmaDisciplina(Turma turma) {
+    List<Turma> turmasMesmaDisciplina = listarTurmasMesmaDisciplina(turma);
+
+    for (int i = 0; i < turmasMesmaDisciplina.size(); i++) {
+      if (mesmaTurma(turmasMesmaDisciplina.get(i), turma)) {
+        return i + 1;
+      }
+    }
+
+    return 1;
+  }
+
+  private List<Turma> listarTurmasMesmaDisciplina(Turma turmaReferencia) {
+    List<Turma> turmasMesmaDisciplinaPeriodo = new ArrayList<>();
+
+    if (turmaReferencia == null
+        || turmaReferencia.getCodigoDisciplina() == null
+        || turmaReferencia.getPeriodoLetivo() == null) {
+      return turmasMesmaDisciplinaPeriodo;
+    }
+
+    for (Turma turma : turmaService.listarTurmas()) {
+      if (turma.getCodigoDisciplina() != null
+          && turma.getPeriodoLetivo() != null
+          && turma.getCodigoDisciplina().equalsIgnoreCase(turmaReferencia.getCodigoDisciplina())
+          && turma.getPeriodoLetivo().equalsIgnoreCase(turmaReferencia.getPeriodoLetivo())) {
+        turmasMesmaDisciplinaPeriodo.add(turma);
+      }
+    }
+
+    turmasMesmaDisciplinaPeriodo.sort(
+        (primeiraTurma, segundaTurma) ->
+            formatarValor(primeiraTurma.getCodigo())
+                .compareToIgnoreCase(formatarValor(segundaTurma.getCodigo())));
+
+    return turmasMesmaDisciplinaPeriodo;
+  }
+
+  private boolean mesmaTurma(Turma primeiraTurma, Turma segundaTurma) {
+    if (primeiraTurma == null || segundaTurma == null) {
+      return false;
+    }
+
+    if (primeiraTurma.getCodigo() == null || segundaTurma.getCodigo() == null) {
+      return primeiraTurma == segundaTurma;
+    }
+
+    return primeiraTurma.getCodigo().equalsIgnoreCase(segundaTurma.getCodigo());
+  }
+
   private String buscarNomeProfessorBoletim(Turma turma) {
     if (turma == null) {
-      return "Nao informado";
+      return "-";
     }
 
     return turmaService.buscarNomeProfessor(turma.getMatriculaProfessor());
@@ -237,7 +383,7 @@ public class UsuarioTela {
 
   private String buscarPeriodoLetivoBoletim(Turma turma) {
     if (turma == null) {
-      return "Nao informado";
+      return "-";
     }
 
     return turma.getPeriodoLetivo();
@@ -260,6 +406,8 @@ public class UsuarioTela {
       return;
     }
 
+    int numero = 1;
+
     for (Turma turma : turmas) {
       if (turma.getMatriculados() == null || turma.getMatriculados().isEmpty()) {
         continue;
@@ -267,7 +415,8 @@ public class UsuarioTela {
 
       for (String matriculaAluno : turma.getMatriculados()) {
         Aluno aluno = usuarioService.buscarAlunoPorMatricula(matriculaAluno);
-        exibirAlunoDoProfessor(aluno, turma);
+        exibirAlunoDoProfessor(numero, aluno, turma);
+        numero++;
         encontrouAluno = true;
       }
     }
@@ -311,7 +460,7 @@ public class UsuarioTela {
       exibirOpcaoAlunoDoProfessor(i + 1, alunos.get(i), turmasDosAlunos.get(i));
     }
 
-    System.out.println("Informe o numero do aluno:");
+    System.out.print("Informe o numero do aluno: ");
     int opcao = lerOpcaoAluno(alunos.size());
 
     Aluno alunoSelecionado = alunos.get(opcao - 1);
@@ -322,12 +471,9 @@ public class UsuarioTela {
   }
 
   private void exibirOpcaoAlunoDoProfessor(int numeroOpcao, Aluno aluno, Turma turma) {
-    System.out.println("\nOpcao " + numeroOpcao + ":");
-    System.out.println("Aluno: " + aluno.getNome());
-    System.out.println("Matricula: " + aluno.getMatricula());
-    System.out.println(
-        "Disciplina: " + turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-    System.out.println("Turma: " + turma.getCodigo());
+    System.out.println("\n" + numeroOpcao + " - " + aluno.getNome());
+    System.out.println("    Matricula: " + aluno.getMatricula());
+    System.out.println("    Turma: " + nomeAmigavelTurma(turma));
   }
 
   private int lerOpcaoAluno(int quantidadeAlunos) {
@@ -370,14 +516,11 @@ public class UsuarioTela {
     return false;
   }
 
-  private void exibirAlunoDoProfessor(Aluno aluno, Turma turma) {
-    System.out.println("\nAluno:");
-    System.out.println("Nome: " + aluno.getNome());
-    System.out.println("Matricula: " + aluno.getMatricula());
-    System.out.println(
-        "Disciplina: " + turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-    System.out.println("Turma: " + turma.getCodigo());
-    System.out.println();
+  private void exibirAlunoDoProfessor(int numero, Aluno aluno, Turma turma) {
+    System.out.println("\n" + numero + " - " + aluno.getNome());
+    System.out.println("    Matricula: " + aluno.getMatricula());
+    System.out.println("    Email: " + aluno.getEmail());
+    System.out.println("    Turma: " + nomeAmigavelTurma(turma));
   }
 
   private void exibirListaUsuarios(List<Usuario> usuarios) {
@@ -386,9 +529,16 @@ public class UsuarioTela {
       return;
     }
 
-    for (Usuario usuario : usuarios) {
-      exibirUsuario(usuario);
+    for (int i = 0; i < usuarios.size(); i++) {
+      exibirUsuarioNaLista(i + 1, usuarios.get(i));
     }
+  }
+
+  private void exibirUsuarioNaLista(int numero, Usuario usuario) {
+    System.out.println("\n" + numero + " - " + usuario.getNome());
+    System.out.println("    Email: " + usuario.getEmail());
+    System.out.println("    Matricula: " + usuario.getMatricula());
+    System.out.println("    Tipo: " + usuario.getTipoUsuario());
   }
 
   private TipoUsuario escolherTipoUsuario() {
@@ -400,12 +550,16 @@ public class UsuarioTela {
           2 - Coordenador
           3 - Professor
           4 - Aluno
+          0 - Cancelar
           """);
 
       System.out.print("Digite uma opção: ");
       String opcao = scanner.nextLine();
 
       switch (opcao) {
+        case "0":
+          throw new EntradaTela.EntradaCanceladaException();
+
         case "1":
           return TipoUsuario.ADMINISTRADOR;
 
@@ -471,7 +625,7 @@ public class UsuarioTela {
 
     listarCursosParaSelecao(cursos, tipoUsuario);
 
-    int opcao = lerOpcaoCurso(cursos.size(), tipoUsuario == TipoUsuario.COORDENADOR);
+    int opcao = lerOpcaoCurso(cursos.size());
 
     if (opcao == 0) {
       return null;
@@ -482,10 +636,7 @@ public class UsuarioTela {
 
   private void listarCursosParaSelecao(List<Curso> cursos, TipoUsuario tipoUsuario) {
     System.out.println("Cursos cadastrados:");
-
-    if (tipoUsuario == TipoUsuario.COORDENADOR) {
-      System.out.println("0 - Deixar sem curso por enquanto");
-    }
+    System.out.println("0 - Cancelar cadastro");
 
     for (int i = 0; i < cursos.size(); i++) {
       Curso curso = cursos.get(i);
@@ -493,28 +644,13 @@ public class UsuarioTela {
     }
   }
 
-  private int lerOpcaoCurso(int quantidadeCursos, boolean permiteSemCurso) {
-    if (permiteSemCurso) {
-      System.out.print("Escolha o numero do curso ou 0 para deixar sem curso: ");
-    } else {
-      System.out.print("Escolha o numero do curso: ");
-    }
+  private int lerOpcaoCurso(int quantidadeCursos) {
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner, "Escolha o numero do curso ou 0 para cancelar: ", quantidadeCursos);
 
-    String entrada = scanner.nextLine();
-    int opcao;
-
-    try {
-      opcao = Integer.parseInt(entrada);
-    } catch (NumberFormatException e) {
-      throw new RuntimeException("Opcao invalida. Digite o numero de uma opcao listada.");
-    }
-
-    if (permiteSemCurso && opcao == 0) {
-      return opcao;
-    }
-
-    if (opcao < 1 || opcao > quantidadeCursos) {
-      throw new RuntimeException("Opcao invalida. Escolha uma opcao da lista.");
+    if (opcao == 0) {
+      throw new EntradaTela.EntradaCanceladaException();
     }
 
     return opcao;
