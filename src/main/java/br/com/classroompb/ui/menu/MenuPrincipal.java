@@ -14,11 +14,18 @@ public class MenuPrincipal {
   /** Inicia a navegacao pelo menu principal. */
   public void iniciar() {
     int opcao;
+    boolean primeiraExibicao = true;
 
     do {
+      if (!primeiraExibicao) {
+        System.out.println();
+      }
+
       imprimirMenu();
+      primeiraExibicao = false;
 
       opcao = lerOpcao();
+      System.out.println();
 
       switch (opcao) {
         case 1:

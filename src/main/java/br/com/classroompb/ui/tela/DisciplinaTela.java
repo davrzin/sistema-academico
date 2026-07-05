@@ -299,6 +299,10 @@ public class DisciplinaTela {
     }
 
     for (int i = 0; i < disciplinas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirDisciplinaAmigavel(i + 1, disciplinas.get(i));
     }
   }
@@ -310,12 +314,15 @@ public class DisciplinaTela {
     }
 
     for (int i = 0; i < disciplinas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirDisciplinaDetalhada(i + 1, disciplinas.get(i));
     }
   }
 
   private void exibirDisciplinaAmigavel(int numero, Disciplina disciplina) {
-    System.out.println();
     System.out.println(numero + " - " + formatarValor(disciplina.getNome()));
     System.out.println("    Carga horaria: " + disciplina.getCargaHoraria() + "h");
     System.out.println("    Periodo recomendado: " + disciplina.getPeriodo());
@@ -324,7 +331,6 @@ public class DisciplinaTela {
   }
 
   private void exibirDisciplinaDetalhada(int numero, Disciplina disciplina) {
-    System.out.println();
     System.out.println(numero + " - " + formatarValor(disciplina.getNome()));
     System.out.println("    Codigo interno: " + formatarValor(disciplina.getCodigo()));
     System.out.println("    Curso: " + buscarNomeCurso(disciplina.getCodigoCurso()));
@@ -332,7 +338,6 @@ public class DisciplinaTela {
     System.out.println("    Periodo recomendado: " + disciplina.getPeriodo());
     System.out.println("    Creditos: " + disciplina.getCreditos());
     System.out.println("    Pre-requisitos: " + formatarPreRequisitos(disciplina));
-    System.out.println();
   }
 
   private String formatarPreRequisitos(Disciplina disciplina) {

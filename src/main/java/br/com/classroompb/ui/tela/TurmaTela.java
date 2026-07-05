@@ -258,12 +258,12 @@ public class TurmaTela {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
     System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
-    System.out.println("Codigo interno: " + formatarValor(turma.getCodigo()));
-    System.out.println("Professor: " + buscarNomeProfessorTurma(turma));
-    System.out.println("Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
-    System.out.println("Horario: " + formatarValor(turma.getHorario()));
-    System.out.println("Sala: " + formatarValor(turma.getSala()));
-    System.out.println("Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
+    System.out.println("    Codigo interno: " + formatarValor(turma.getCodigo()));
+    System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
+    System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("    Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("    Sala: " + formatarValor(turma.getSala()));
+    System.out.println("    Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
   }
 
   /**
@@ -387,7 +387,7 @@ public class TurmaTela {
     List<String> listaEspera = turma.getListaEspera();
 
     System.out.println("\nLista de espera da turma " + nomeAmigavelTurma(turma) + ":");
-    System.out.println("Codigo interno: " + formatarValor(turma.getCodigo()));
+    System.out.println("    Codigo interno: " + formatarValor(turma.getCodigo()));
 
     if (listaEspera == null || listaEspera.isEmpty()) {
       System.out.println("Nenhum aluno na lista de espera.");
@@ -548,13 +548,13 @@ public class TurmaTela {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
     System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
-    System.out.println("Professor: " + buscarNomeProfessorTurma(turma));
-    System.out.println("Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
-    System.out.println("Horario: " + formatarValor(turma.getHorario()));
-    System.out.println("Sala: " + formatarValor(turma.getSala()));
-    System.out.println("Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
+    System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
+    System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("    Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("    Sala: " + formatarValor(turma.getSala()));
+    System.out.println("    Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
     if (motivo != null && !motivo.isBlank()) {
-      System.out.println("Motivo: " + motivo);
+      System.out.println("    Motivo: " + motivo);
     }
   }
 
@@ -798,10 +798,10 @@ public class TurmaTela {
 
   private void exibirOpcaoTurmaCancelamento(int numeroOpcao, Turma turma) {
     System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
-    System.out.println("Professor: " + buscarNomeProfessorTurma(turma));
-    System.out.println("Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
-    System.out.println("Horario: " + formatarValor(turma.getHorario()));
-    System.out.println("Sala: " + formatarValor(turma.getSala()));
+    System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
+    System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("    Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("    Sala: " + formatarValor(turma.getSala()));
   }
 
   /**
@@ -936,10 +936,10 @@ public class TurmaTela {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
     System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
-    System.out.println("Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
-    System.out.println("Horario: " + formatarValor(turma.getHorario()));
-    System.out.println("Sala: " + formatarValor(turma.getSala()));
-    System.out.println("Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
+    System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
+    System.out.println("    Horario: " + formatarValor(turma.getHorario()));
+    System.out.println("    Sala: " + formatarValor(turma.getSala()));
+    System.out.println("    Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
   }
 
   /**
