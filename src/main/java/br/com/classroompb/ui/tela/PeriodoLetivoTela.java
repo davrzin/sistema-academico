@@ -346,18 +346,26 @@ public class PeriodoLetivoTela {
     }
 
     for (int i = 0; i < periodos.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirPeriodoLetivo(i + 1, periodos.get(i));
     }
   }
 
   private void exibirPeriodosNumerados(List<PeriodoLetivo> periodos) {
     for (int i = 0; i < periodos.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirPeriodoLetivo(i + 1, periodos.get(i));
     }
   }
 
   private void exibirPeriodoLetivo(int numero, PeriodoLetivo periodo) {
-    System.out.println("\n" + numero + " - " + periodo.getPeriodo());
+    System.out.println(numero + " - " + periodo.getPeriodo());
     System.out.println("    Inicio: " + periodo.getDataInicio());
     System.out.println("    Fim: " + periodo.getDataFim());
     System.out.println("    Situacao: " + situacaoPeriodo(periodo));

@@ -415,6 +415,10 @@ public class UsuarioTela {
 
       for (String matriculaAluno : turma.getMatriculados()) {
         Aluno aluno = usuarioService.buscarAlunoPorMatricula(matriculaAluno);
+        if (numero > 1) {
+          System.out.println();
+        }
+
         exibirAlunoDoProfessor(numero, aluno, turma);
         numero++;
         encontrouAluno = true;
@@ -457,6 +461,10 @@ public class UsuarioTela {
     System.out.println("Alunos das turmas do professor:");
 
     for (int i = 0; i < alunos.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirOpcaoAlunoDoProfessor(i + 1, alunos.get(i), turmasDosAlunos.get(i));
     }
 
@@ -471,7 +479,7 @@ public class UsuarioTela {
   }
 
   private void exibirOpcaoAlunoDoProfessor(int numeroOpcao, Aluno aluno, Turma turma) {
-    System.out.println("\n" + numeroOpcao + " - " + aluno.getNome());
+    System.out.println(numeroOpcao + " - " + aluno.getNome());
     System.out.println("    Matricula: " + aluno.getMatricula());
     System.out.println("    Turma: " + nomeAmigavelTurma(turma));
   }
@@ -517,7 +525,7 @@ public class UsuarioTela {
   }
 
   private void exibirAlunoDoProfessor(int numero, Aluno aluno, Turma turma) {
-    System.out.println("\n" + numero + " - " + aluno.getNome());
+    System.out.println(numero + " - " + aluno.getNome());
     System.out.println("    Matricula: " + aluno.getMatricula());
     System.out.println("    Email: " + aluno.getEmail());
     System.out.println("    Turma: " + nomeAmigavelTurma(turma));
@@ -530,12 +538,16 @@ public class UsuarioTela {
     }
 
     for (int i = 0; i < usuarios.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirUsuarioNaLista(i + 1, usuarios.get(i));
     }
   }
 
   private void exibirUsuarioNaLista(int numero, Usuario usuario) {
-    System.out.println("\n" + numero + " - " + usuario.getNome());
+    System.out.println(numero + " - " + usuario.getNome());
     System.out.println("    Email: " + usuario.getEmail());
     System.out.println("    Matricula: " + usuario.getMatricula());
     System.out.println("    Tipo: " + usuario.getTipoUsuario());

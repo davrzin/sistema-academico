@@ -245,6 +245,10 @@ public class TurmaTela {
     System.out.println("Turmas do curso:");
 
     for (int i = 0; i < turmas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirOpcaoTurmaAtualizacao(i + 1, turmas.get(i));
     }
 
@@ -257,7 +261,7 @@ public class TurmaTela {
   private void exibirOpcaoTurmaAtualizacao(int numeroOpcao, Turma turma) {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
-    System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
+    System.out.println(numeroOpcao + " - " + nomeAmigavelTurma(turma));
     System.out.println("    Codigo interno: " + formatarValor(turma.getCodigo()));
     System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
     System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
@@ -315,6 +319,10 @@ public class TurmaTela {
     System.out.println("Turmas do curso:");
 
     for (int i = 0; i < turmas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirOpcaoTurmaAtualizacao(i + 1, turmas.get(i));
     }
 
@@ -374,6 +382,10 @@ public class TurmaTela {
     System.out.println("Turmas do curso:");
 
     for (int i = 0; i < turmas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirOpcaoTurmaAtualizacao(i + 1, turmas.get(i));
     }
 
@@ -386,7 +398,7 @@ public class TurmaTela {
   private void exibirListaEspera(Turma turma) {
     List<String> listaEspera = turma.getListaEspera();
 
-    System.out.println("\nLista de espera da turma " + nomeAmigavelTurma(turma) + ":");
+    System.out.println("Lista de espera da turma " + nomeAmigavelTurma(turma) + ":");
     System.out.println("    Codigo interno: " + formatarValor(turma.getCodigo()));
 
     if (listaEspera == null || listaEspera.isEmpty()) {
@@ -518,7 +530,12 @@ public class TurmaTela {
     if (classificacao.matriculaDireta.isEmpty()) {
       System.out.println("Nenhuma turma com matricula direta disponivel.");
     } else {
-      for (OpcaoMatricula opcao : classificacao.matriculaDireta) {
+      for (int i = 0; i < classificacao.matriculaDireta.size(); i++) {
+        if (i > 0) {
+          System.out.println();
+        }
+
+        OpcaoMatricula opcao = classificacao.matriculaDireta.get(i);
         exibirOpcaoTurmaMatricula(numeroOpcao, opcao.turma, "");
         numeroOpcao++;
       }
@@ -529,7 +546,12 @@ public class TurmaTela {
     if (classificacao.listaEspera.isEmpty()) {
       System.out.println("Nenhuma turma com lista de espera disponivel.");
     } else {
-      for (OpcaoMatricula opcao : classificacao.listaEspera) {
+      for (int i = 0; i < classificacao.listaEspera.size(); i++) {
+        if (i > 0) {
+          System.out.println();
+        }
+
+        OpcaoMatricula opcao = classificacao.listaEspera.get(i);
         exibirOpcaoTurmaMatricula(numeroOpcao, opcao.turma, opcao.motivo);
         numeroOpcao++;
       }
@@ -547,7 +569,7 @@ public class TurmaTela {
   private void exibirOpcaoTurmaMatricula(int numeroOpcao, Turma turma, String motivo) {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
-    System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
+    System.out.println(numeroOpcao + " - " + nomeAmigavelTurma(turma));
     System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
     System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
     System.out.println("    Horario: " + formatarValor(turma.getHorario()));
@@ -763,6 +785,10 @@ public class TurmaTela {
     System.out.println("Turmas matriculadas:");
 
     for (int i = 0; i < turmasMatriculadas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirOpcaoTurmaCancelamento(i + 1, turmasMatriculadas.get(i));
     }
 
@@ -797,7 +823,7 @@ public class TurmaTela {
   }
 
   private void exibirOpcaoTurmaCancelamento(int numeroOpcao, Turma turma) {
-    System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
+    System.out.println(numeroOpcao + " - " + nomeAmigavelTurma(turma));
     System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
     System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
     System.out.println("    Horario: " + formatarValor(turma.getHorario()));
@@ -820,11 +846,19 @@ public class TurmaTela {
       for (Turma turma : turmasCurso) {
         if (turma.getMatriculados() != null
             && turma.getMatriculados().contains(alunoLogado.getMatricula())) {
+          if (numero > 1) {
+            System.out.println();
+          }
+
           exibirTurmaAluno(numero, turma, "matriculado");
           numero++;
           encontrou = true;
         } else if (turma.getListaEspera() != null
             && turma.getListaEspera().contains(alunoLogado.getMatricula())) {
+          if (numero > 1) {
+            System.out.println();
+          }
+
           exibirTurmaAluno(numero, turma, "lista de espera");
           numero++;
           encontrou = true;
@@ -915,6 +949,10 @@ public class TurmaTela {
     System.out.println("Turmas do professor:");
 
     for (int i = 0; i < turmas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirOpcaoTurmaProfessor(i + 1, turmas.get(i));
     }
 
@@ -935,7 +973,7 @@ public class TurmaTela {
   private void exibirOpcaoTurmaProfessor(int numeroOpcao, Turma turma) {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
-    System.out.println("\n" + numeroOpcao + " - " + nomeAmigavelTurma(turma));
+    System.out.println(numeroOpcao + " - " + nomeAmigavelTurma(turma));
     System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
     System.out.println("    Horario: " + formatarValor(turma.getHorario()));
     System.out.println("    Sala: " + formatarValor(turma.getSala()));
@@ -1055,6 +1093,10 @@ public class TurmaTela {
     System.out.println("Turmas do professor:");
 
     for (int i = 0; i < turmas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirOpcaoTurmaProfessor(i + 1, turmas.get(i));
     }
 
@@ -1083,7 +1125,11 @@ public class TurmaTela {
 
     for (int i = 0; i < alunosMatriculados.size(); i++) {
       Aluno aluno = usuarioService.buscarAlunoPorMatricula(alunosMatriculados.get(i));
-      System.out.println("\n" + (i + 1) + " - " + aluno.getNome());
+      if (i > 0) {
+        System.out.println();
+      }
+
+      System.out.println((i + 1) + " - " + aluno.getNome());
       System.out.println("    Matricula: " + aluno.getMatricula());
     }
 
@@ -1228,6 +1274,10 @@ public class TurmaTela {
     System.out.println("0 - Cancelar cadastro");
 
     for (int i = 0; i < disciplinas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirOpcaoDisciplina(i + 1, disciplinas.get(i));
     }
 
@@ -1375,7 +1425,7 @@ public class TurmaTela {
   }
 
   private void exibirOpcaoDisciplina(int numeroOpcao, Disciplina disciplina) {
-    System.out.println("\n" + numeroOpcao + " - " + disciplina.getNome());
+    System.out.println(numeroOpcao + " - " + disciplina.getNome());
     System.out.println("    Codigo interno: " + disciplina.getCodigo());
     System.out.println("    Carga horaria: " + disciplina.getCargaHoraria() + "h");
     System.out.println("    Creditos: " + disciplina.getCreditos());
@@ -1404,6 +1454,10 @@ public class TurmaTela {
     }
 
     for (int i = 0; i < turmas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirTurmaDetalhada(i + 1, turmas.get(i));
     }
   }
@@ -1415,6 +1469,10 @@ public class TurmaTela {
     }
 
     for (int i = 0; i < turmas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirTurmaDetalhada(i + 1, turmas.get(i));
     }
   }
@@ -1426,6 +1484,10 @@ public class TurmaTela {
     }
 
     for (int i = 0; i < turmas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirMinhaTurmaProfessor(i + 1, turmas.get(i));
     }
   }
@@ -1437,6 +1499,10 @@ public class TurmaTela {
     }
 
     for (int i = 0; i < turmas.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirTurmaDisponivelAluno(i + 1, turmas.get(i));
     }
   }
@@ -1446,7 +1512,7 @@ public class TurmaTela {
     String situacao =
         vagasOcupadas >= turma.getLimiteVagas() ? "cheia - lista de espera" : "vagas disponiveis";
 
-    System.out.println("\n" + numero + " - " + nomeAmigavelTurma(turma));
+    System.out.println(numero + " - " + nomeAmigavelTurma(turma));
     System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
     System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
     System.out.println("    Horario: " + formatarValor(turma.getHorario()));
@@ -1458,7 +1524,7 @@ public class TurmaTela {
   private void exibirMinhaTurmaProfessor(int numero, Turma turma) {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
-    System.out.println("\n" + numero + " - " + nomeAmigavelTurma(turma));
+    System.out.println(numero + " - " + nomeAmigavelTurma(turma));
     System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
     System.out.println("    Horario: " + formatarValor(turma.getHorario()));
     System.out.println("    Sala: " + formatarValor(turma.getSala()));
@@ -1466,7 +1532,7 @@ public class TurmaTela {
   }
 
   private void exibirTurmaAluno(int numero, Turma turma, String situacao) {
-    System.out.println("\n" + numero + " - " + nomeAmigavelTurma(turma));
+    System.out.println(numero + " - " + nomeAmigavelTurma(turma));
     System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
     System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
     System.out.println("    Horario: " + formatarValor(turma.getHorario()));
@@ -1477,7 +1543,7 @@ public class TurmaTela {
   private void exibirTurmaDetalhada(int numero, Turma turma) {
     int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
 
-    System.out.println("\n" + numero + " - " + nomeAmigavelTurma(turma));
+    System.out.println(numero + " - " + nomeAmigavelTurma(turma));
     System.out.println("    Codigo interno: " + formatarValor(turma.getCodigo()));
     System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
     System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));

@@ -79,12 +79,16 @@ public class CursoTela {
     }
 
     for (int i = 0; i < cursos.size(); i++) {
+      if (i > 0) {
+        System.out.println();
+      }
+
       exibirCurso(i + 1, cursos.get(i));
     }
   }
 
   private void exibirCurso(int numero, Curso curso) {
-    System.out.println("\n" + numero + " - " + curso.getNome());
+    System.out.println(numero + " - " + curso.getNome());
     System.out.println("    Codigo interno: " + curso.getCodigo());
     System.out.println("    Periodos: " + curso.getQuantidadePeriodos());
     System.out.println("    Carga horaria: " + curso.getCargaHorariaTotal() + "h");
