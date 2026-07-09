@@ -2,6 +2,7 @@ package br.com.classroompb.ui.menu;
 
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.ui.tela.DisciplinaTela;
+import br.com.classroompb.ui.tela.HistoricoAcademicoTela;
 import br.com.classroompb.ui.tela.TurmaTela;
 import br.com.classroompb.ui.tela.UsuarioTela;
 import java.util.Scanner;
@@ -12,6 +13,8 @@ public class MenuAluno {
   private final Scanner scanner = new Scanner(System.in);
   private Aluno usuarioLogado;
   private final DisciplinaTela disciplinaTela = new DisciplinaTela(scanner);
+  private final HistoricoAcademicoTela historicoAcademicoTela =
+      new HistoricoAcademicoTela(scanner);
   private final TurmaTela turmaTela = new TurmaTela(scanner);
   private final UsuarioTela usuarioTela = new UsuarioTela(scanner);
 
@@ -64,9 +67,7 @@ public class MenuAluno {
           break;
 
         case 5:
-          System.out.println(
-              "Funcionalidade de listar histórico acadêmico ainda não "
-                  + "implementada.");
+          historicoAcademicoTela.listarHistoricoAluno(usuarioLogado);
           break;
 
         case 6:
