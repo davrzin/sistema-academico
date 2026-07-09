@@ -4,6 +4,7 @@ import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.ui.tela.DisciplinaTela;
 import br.com.classroompb.ui.tela.HistoricoAcademicoTela;
 import br.com.classroompb.ui.tela.PeriodoLetivoTela;
+import br.com.classroompb.ui.tela.RelatorioAcademicoTela;
 import br.com.classroompb.ui.tela.TurmaTela;
 import br.com.classroompb.ui.tela.UsuarioTela;
 import java.util.Scanner;
@@ -17,6 +18,8 @@ public class MenuCoordenador {
   private final HistoricoAcademicoTela historicoAcademicoTela =
       new HistoricoAcademicoTela(scanner);
   private final PeriodoLetivoTela periodoLetivoTela = new PeriodoLetivoTela(scanner);
+  private final RelatorioAcademicoTela relatorioAcademicoTela =
+      new RelatorioAcademicoTela();
   private final TurmaTela turmaTela = new TurmaTela(scanner);
   private final UsuarioTela usuarioTela = new UsuarioTela(scanner);
 
@@ -94,6 +97,10 @@ public class MenuCoordenador {
           historicoAcademicoTela.consultarHistoricoAluno(usuarioLogado);
           break;
 
+        case 14:
+          relatorioAcademicoTela.gerarRelatorioAlunosPorTurma(usuarioLogado);
+          break;
+
         case 0:
           System.out.println("Voltando...");
           break;
@@ -122,6 +129,7 @@ public class MenuCoordenador {
     System.out.println("║ 11 - Buscar aluno/professor         ║");
     System.out.println("║ 12 - Ver lista de espera            ║");
     System.out.println("║ 13 - Consultar histórico acadêmico  ║");
+    System.out.println("║ 14 - Relatório de alunos por turma  ║");
     System.out.println("║ 0 - Voltar                          ║");
     System.out.println("╚═════════════════════════════════════╝");
   }
