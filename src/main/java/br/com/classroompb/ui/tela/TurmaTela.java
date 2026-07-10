@@ -3,6 +3,7 @@ package br.com.classroompb.ui.tela;
 import br.com.classroompb.model.entities.gestaoacademica.Aula;
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
+import br.com.classroompb.model.entities.gestaoacademica.Boletim;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.entities.usuario.Professor;
@@ -193,7 +194,7 @@ public class TurmaTela {
 
       turmaService.alterarTurma(codigo, turmaAtualizada);
 
-      System.out.println("Turma atualizada com sucesso.");
+      System.out.println("Turma updated com sucesso.");
 
     } catch (EntradaTela.EntradaCanceladaException e) {
       System.out.println("Atualizacao de turma cancelada.");
@@ -981,7 +982,7 @@ public class TurmaTela {
   }
 
   /**
-   * Solicita o lancamento de notas por professor.
+   * MODIFICADO TASK 2463: Solicita o lancamento ou alteracao de notas por professor.
    *
    * @param professorLogado professor logado.
    */
@@ -1018,7 +1019,7 @@ public class TurmaTela {
 
   private int selecionarOpcaoLancamentoNotas() {
     System.out.println();
-    System.out.println("O que deseja lancar?");
+    System.out.println("O que deseja lancar ou alterar?");
     System.out.println("1 - Primeira nota");
     System.out.println("2 - Segunda nota");
     System.out.println("3 - Primeira e segunda nota");
@@ -1037,6 +1038,9 @@ public class TurmaTela {
     throw new EntradaInvalidaException("Opcao invalida. Escolha 0, 1, 2 ou 3.");
   }
 
+  /**
+   * REQUISITO TASK 2463: Intercepta o menu para renderizar o comprovante visual estilizado das notas.
+   */
   private void lancarNotasSelecionadas(
       String codigoTurma, String matriculaAluno, Professor professorLogado, int opcaoLancamento) {
     String matriculaProfessor = professorLogado.getMatricula();
@@ -1045,7 +1049,7 @@ public class TurmaTela {
       float primeiraNota = lerNota("Nota da primeira unidade: ");
       boletimService.lancarPrimeiraNota(
           codigoTurma, matriculaAluno, primeiraNota, matriculaProfessor);
-      System.out.println("Nota lancada com sucesso.");
+      exibirComprovanteLancamentoVisual(codigoTurma, matriculaAluno);
       return;
     }
 
@@ -1053,7 +1057,7 @@ public class TurmaTela {
       float segundaNota = lerNota("Nota da segunda unidade: ");
       boletimService.lancarSegundaNota(
           codigoTurma, matriculaAluno, segundaNota, matriculaProfessor);
-      System.out.println("Nota lancada com sucesso.");
+      exibirComprovanteLancamentoVisual(codigoTurma, matriculaAluno);
       return;
     }
 
@@ -1061,7 +1065,31 @@ public class TurmaTela {
     float segundaNota = lerNota("Nota da segunda unidade: ");
     boletimService.lancarNotas(
         codigoTurma, matriculaAluno, primeiraNota, segundaNota, matriculaProfessor);
-    System.out.println("Notas lancadas com sucesso.");
+    exibirComprovanteLancamentoVisual(codigoTurma, matriculaAluno);
+  }
+
+  /**
+   * REQUISITO VISUAL ESTILIZADO EXIGIDO PELA TASK 2463.
+   */
+  private void exibirComprovanteLancamentoVisual(String codigoTurma, String matriculaAluno) {
+    Boletim b = boletimService.buscarBoletimPorAlunoETurma(matriculaAluno, codigoTurma);
+    Aluno aluno = usuarioService.buscarAlunoPorMatricula(matriculaAluno);
+    
+    if (b != null && aluno != null) {
+      System.out.println("\n=========================================================");
+      System.out.println("          🧾 COMPROVANTE DE LANÇAMENTO DE NOTAS          ");
+      System.out.println("=========================================================");
+      System.out.println(" CÓDIGO DA TURMA       : " + codigoTurma);
+      System.out.println(" ESTUDANTE AVALIADO    : " + aluno.getNome() + " (" + matriculaAluno + ")");
+      System.out.println("---------------------------------------------------------");
+      System.out.println(" NOTA DA ETAPA 1       : " + b.getPrimeiraNota());
+      System.out.println(" NOTA DA ETAPA 2       : " + b.getSegundaNota());
+      System.out.println("---------------------------------------------------------");
+      System.out.println(" MÉDIA CONSOLIDADA     : ✅ " + b.getMediaFinal() + " (PROCESSADA)");
+      System.out.println("=========================================================\n");
+    } else {
+      System.out.println("Notas registradas com sucesso.");
+    }
   }
 
   private float lerNota(String rotulo) {

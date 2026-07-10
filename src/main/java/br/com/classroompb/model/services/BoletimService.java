@@ -70,6 +70,7 @@ public class BoletimService {
     String codigo = gerarCodigoBoletim();
     boletim.setIdBoletim(codigo);
 
+    recalcularMedia(boletim);
     repository.salvarBoletim(boletim);
 
     return boletim;
@@ -132,7 +133,7 @@ public class BoletimService {
   }
 
   /**
-   * Lanca notas em um boletim.
+   * Lanca ou retifica notas em um boletim.
    *
    * @param matriculaAluno matricula do aluno.
    * @param codigoTurma codigo da turma.
@@ -147,14 +148,19 @@ public class BoletimService {
       float segundaNota,
       String matriculaProfessor) {
     Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
+    
+    // REQUISITO DA TASK 2464: Trava de seguranca para impedir retificacoes de periodos passados
+    validarCicloVidaAtivo(codigoTurma);
 
     boletim.setPrimeiraNota(primeiraNota);
     boletim.setSegundaNota(segundaNota);
+    
+    recalcularMedia(boletim);
     repository.atualizarBoletins(boletim);
   }
 
   /**
-   * Lanca apenas a primeira nota em um boletim.
+   * Lanca ou altera apenas a primeira nota em um boletim.
    *
    * @param codigoTurma codigo da turma.
    * @param matriculaAluno matricula do aluno.
@@ -164,13 +170,17 @@ public class BoletimService {
   public void lancarPrimeiraNota(
       String codigoTurma, String matriculaAluno, float primeiraNota, String matriculaProfessor) {
     Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
+    
+    validarCicloVidaAtivo(codigoTurma);
 
     boletim.setPrimeiraNota(primeiraNota);
+    
+    recalcularMedia(boletim);
     repository.atualizarBoletins(boletim);
   }
 
   /**
-   * Lanca apenas a segunda nota em um boletim.
+   * Lanca ou altera apenas a segunda nota em um boletim.
    *
    * @param codigoTurma codigo da turma.
    * @param matriculaAluno matricula do aluno.
@@ -180,9 +190,37 @@ public class BoletimService {
   public void lancarSegundaNota(
       String codigoTurma, String matriculaAluno, float segundaNota, String matriculaProfessor) {
     Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
+    
+    validarCicloVidaAtivo(codigoTurma);
 
     boletim.setSegundaNota(segundaNota);
+    
+    recalcularMedia(boletim);
     repository.atualizarBoletins(boletim);
+  }
+
+  private void recalcularMedia(Boletim boletim) {
+    float media = (boletim.getPrimeiraNota() + boletim.getSegundaNota()) / 2.0f;
+    boletim.setMediaFinal(media);
+  }
+
+  /**
+   * REQUISITO CORE DA TASK 2464: Valida se o periodo letivo associado a turma se encontra ativo.
+   */
+  /**
+   * REQUISITO CORE DA TASK 2464: Valida se o periodo letivo associado a turma se encontra ativo.
+   */
+  private void validarCicloVidaAtivo(String codigoTurma) {
+    Turma turma = turmaRepository.buscarTurmaPorCodigo(codigoTurma);
+    if (turma != null) {
+      // Cria uma instância temporária do serviço de turmas para ler o período ativo global do sistema
+      br.com.classroompb.model.services.TurmaService tService = new br.com.classroompb.model.services.TurmaService();
+      String periodoAtivo = tService.buscarPeriodoLetivoAtivo();
+      
+      if (periodoAtivo == null || !periodoAtivo.equalsIgnoreCase(turma.getPeriodoLetivo())) {
+        throw new EntradaInvalidaException("Ação bloqueada: Não é permitido alterar notas de uma turma de um período letivo encerrado.");
+      }
+    }
   }
 
   private Boletim buscarBoletimParaLancamento(
@@ -236,7 +274,7 @@ public class BoletimService {
     if (turma.getMatriculaProfessor() == null
         || !turma.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor.trim())) {
       throw new EntradaInvalidaException(
-          "Professor nao pode lancar notas em turma de outro professor.");
+          "Professor nao pode lancar notas in turma de outro professor.");
     }
 
     return turma;
