@@ -23,9 +23,9 @@ import java.util.Scanner;
 public class UsuarioTela {
 
   private final Scanner scanner;
-  private final UsuarioService usuarioService = new UsuarioService();
+  private final UsuarioService usuarioService;
   private final BoletimService boletimService = new BoletimService();
-  private final CursoService cursoService = new CursoService();
+  private final CursoService cursoService;
   private final TurmaService turmaService = new TurmaService();
 
   /**
@@ -34,7 +34,21 @@ public class UsuarioTela {
    * @param scanner leitor de entrada.
    */
   public UsuarioTela(Scanner scanner) {
+    this(scanner, new UsuarioService(), new CursoService());
+  }
+
+  /**
+   * Cria a tela de usuarios com servicos informados.
+   *
+   * @param scanner leitor de entrada.
+   * @param usuarioService servico de usuarios.
+   * @param cursoService servico de cursos.
+   */
+  public UsuarioTela(
+      Scanner scanner, UsuarioService usuarioService, CursoService cursoService) {
     this.scanner = scanner;
+    this.usuarioService = usuarioService;
+    this.cursoService = cursoService;
   }
 
   /**
@@ -623,19 +637,18 @@ public class UsuarioTela {
       return null;
     }
 
+    if (tipoUsuario == TipoUsuario.COORDENADOR) {
+      return lerCursoOpcionalDoCoordenador();
+    }
+
     List<Curso> cursos = cursoService.listarCursos();
 
     if (cursos == null || cursos.isEmpty()) {
-      if (tipoUsuario == TipoUsuario.COORDENADOR) {
-        System.out.println("Nenhum curso cadastrado. O coordenador sera cadastrado sem curso.");
-        return null;
-      }
-
       throw new RuntimeException(
           "E necessario cadastrar um curso antes de cadastrar aluno ou professor.");
     }
 
-    listarCursosParaSelecao(cursos, tipoUsuario);
+    listarCursosParaSelecao(cursos);
 
     int opcao = lerOpcaoCurso(cursos.size());
 
@@ -646,7 +659,52 @@ public class UsuarioTela {
     return cursos.get(opcao - 1).getCodigo();
   }
 
-  private void listarCursosParaSelecao(List<Curso> cursos, TipoUsuario tipoUsuario) {
+  private String lerCursoOpcionalDoCoordenador() {
+    List<Curso> cursosDisponiveis = new ArrayList<>();
+    for (Curso curso : cursoService.listarCursos()) {
+      if (cursoService.buscarCoordenadorPorCurso(curso.getCodigo()) == null) {
+        cursosDisponiveis.add(curso);
+      }
+    }
+
+    listarCursosDisponiveisParaCoordenador(cursosDisponiveis);
+    int opcaoSemCurso = cursosDisponiveis.size() + 1;
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner, "Informe uma opcao: ", opcaoSemCurso);
+
+    if (opcao == 0) {
+      throw new EntradaTela.EntradaCanceladaException();
+    }
+
+    if (opcao == opcaoSemCurso) {
+      return null;
+    }
+
+    return cursosDisponiveis.get(opcao - 1).getCodigo();
+  }
+
+  private void listarCursosDisponiveisParaCoordenador(List<Curso> cursos) {
+    if (cursos.isEmpty()) {
+      System.out.println("Nenhum curso disponivel para vinculacao.");
+      System.out.println();
+    } else {
+      System.out.println("Cursos disponiveis:");
+      System.out.println();
+      for (int i = 0; i < cursos.size(); i++) {
+        Curso curso = cursos.get(i);
+        System.out.println((i + 1) + " - " + curso.getNome());
+        System.out.println("    Codigo: " + curso.getCodigo());
+        System.out.println();
+      }
+    }
+
+    System.out.println((cursos.size() + 1) + " - Cadastrar coordenador sem curso");
+    System.out.println("0 - Voltar");
+    System.out.println();
+  }
+
+  private void listarCursosParaSelecao(List<Curso> cursos) {
     System.out.println("Cursos cadastrados:");
     System.out.println("0 - Cancelar cadastro");
 

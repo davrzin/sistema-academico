@@ -1,5 +1,6 @@
 package br.com.classroompb.model.services;
 
+import br.com.classroompb.model.entities.gestaoacademica.Curso;
 import br.com.classroompb.model.entities.usuario.Administrador;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
@@ -8,6 +9,7 @@ import br.com.classroompb.model.entities.usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
+import br.com.classroompb.model.repository.CursoRepository;
 import br.com.classroompb.model.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -15,6 +17,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -26,6 +29,18 @@ public class UsuarioServiceTest {
   private static final String CODIGO_CURSO = "cur00";
 
   @TempDir Path tempDir;
+  private CursoRepository cursoRepository;
+
+  /**
+   * Cria o curso necessario em um repositorio temporario.
+   */
+  @BeforeEach
+  public void prepararCurso() {
+    cursoRepository =
+        new CursoRepository(new ObjectMapper(), tempDir.resolve("cursos").toString());
+    cursoRepository.salvarCurso(
+        new Curso(CODIGO_CURSO, "Ciencia da Computacao", 8, 3200));
+  }
 
   /**
    * Limpa os arquivos gerados pelos testes.
@@ -51,7 +66,7 @@ public class UsuarioServiceTest {
   }
 
   private UsuarioService criarService(UserRepository repository) {
-    return new UsuarioService(repository);
+    return new UsuarioService(repository, cursoRepository);
   }
 
   private Aluno criarAluno(String nome, String email, String senha) {
@@ -107,6 +122,31 @@ public class UsuarioServiceTest {
 
     Assertions.assertEquals("co00", coordenador.getMatricula());
     Assertions.assertEquals(1, repository.listar(TipoUsuario.COORDENADOR).size());
+  }
+
+  @Test
+  public void coordenadorSemCursoNaoDeveExecutarOperacaoAcademica() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    service.cadastrarUsuario(coordenador);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.listarUsuarios(coordenador));
+  }
+
+  @Test
+  public void deveCadastrarCoordenadorComCursoAtualizandoOsDoisLados() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setCodigoCurso(CODIGO_CURSO);
+
+    service.cadastrarUsuario(coordenador);
+
+    Coordenador coordenadorPersistido =
+        (Coordenador) repository.buscarPorMatricula(coordenador.getMatricula());
+    Assertions.assertEquals(CODIGO_CURSO, coordenadorPersistido.getCodigoCurso());
   }
 
   @Test
@@ -278,6 +318,38 @@ public class UsuarioServiceTest {
     Usuario usuarioRemovido = service.removerUsuarioPorMatricula(adm, aluno.getMatricula());
 
     Assertions.assertNotNull(usuarioRemovido);
+  }
+
+  @Test
+  public void administradorDeveRemoverCoordenadorVinculado() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+    Administrador administrador = new Administrador("Admin", "admin@email.com", "senha123");
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setCodigoCurso(CODIGO_CURSO);
+    service.cadastrarUsuario(administrador);
+    service.cadastrarUsuario(coordenador);
+
+    service.removerUsuarioPorMatricula(administrador, coordenador.getMatricula());
+
+    Assertions.assertTrue(repository.listar(TipoUsuario.COORDENADOR).isEmpty());
+    Assertions.assertNotNull(cursoRepository.buscarPorCodigo(CODIGO_CURSO));
+  }
+
+  @Test
+  public void administradorDeveRemoverCoordenadorSemCurso() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+    Administrador administrador = new Administrador("Admin", "admin@email.com", "senha123");
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    service.cadastrarUsuario(administrador);
+    service.cadastrarUsuario(coordenador);
+
+    Usuario removido =
+        service.removerUsuarioPorMatricula(administrador, coordenador.getMatricula());
+
+    Assertions.assertEquals(coordenador.getMatricula(), removido.getMatricula());
+    Assertions.assertTrue(repository.listar(TipoUsuario.COORDENADOR).isEmpty());
   }
 
   @Test

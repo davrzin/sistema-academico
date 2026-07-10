@@ -13,19 +13,24 @@ import java.util.Scanner;
 public class MenuCoordenador {
 
   private final Coordenador usuarioLogado;
-  private final Scanner scanner = new Scanner(System.in);
-  private final DisciplinaTela disciplinaTela = new DisciplinaTela(scanner);
-  private final HistoricoAcademicoTela historicoAcademicoTela =
-      new HistoricoAcademicoTela(scanner);
-  private final PeriodoLetivoTela periodoLetivoTela = new PeriodoLetivoTela(scanner);
-  private final RelatorioAcademicoTela relatorioAcademicoTela =
-      new RelatorioAcademicoTela();
-  private final TurmaTela turmaTela = new TurmaTela(scanner);
-  private final UsuarioTela usuarioTela = new UsuarioTela(scanner);
+  private final Scanner scanner;
+  private final DisciplinaTela disciplinaTela;
+  private final HistoricoAcademicoTela historicoAcademicoTela;
+  private final PeriodoLetivoTela periodoLetivoTela;
+  private final RelatorioAcademicoTela relatorioAcademicoTela;
+  private final TurmaTela turmaTela;
+  private final UsuarioTela usuarioTela;
 
   /** Cria o menu para o coordenador logado. */
-  public MenuCoordenador(Coordenador usuarioLogado) {
+  public MenuCoordenador(Coordenador usuarioLogado, Scanner scanner) {
     this.usuarioLogado = usuarioLogado;
+    this.scanner = scanner;
+    this.disciplinaTela = new DisciplinaTela(scanner);
+    this.historicoAcademicoTela = new HistoricoAcademicoTela(scanner);
+    this.periodoLetivoTela = new PeriodoLetivoTela(scanner);
+    this.relatorioAcademicoTela = new RelatorioAcademicoTela();
+    this.turmaTela = new TurmaTela(scanner);
+    this.usuarioTela = new UsuarioTela(scanner);
   }
 
   /** Inicia a navegacao pelo menu do coordenador. */

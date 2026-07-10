@@ -7,9 +7,16 @@ import java.util.Scanner;
 /** Menu inicial do sistema academico. */
 public class MenuPrincipal {
 
-  private final Scanner scanner = new Scanner(System.in);
-  private final LoginTela loginTela = new LoginTela(scanner);
-  private final UsuarioTela usuarioTela = new UsuarioTela(scanner);
+  private final Scanner scanner;
+  private final LoginTela loginTela;
+  private final UsuarioTela usuarioTela;
+
+  /** Cria o menu principal com o leitor de entrada compartilhado. */
+  public MenuPrincipal(Scanner scanner) {
+    this.scanner = scanner;
+    this.loginTela = new LoginTela(scanner);
+    this.usuarioTela = new UsuarioTela(scanner);
+  }
 
   /** Inicia a navegacao pelo menu principal. */
   public void iniciar() {

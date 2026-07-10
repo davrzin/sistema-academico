@@ -10,7 +10,6 @@ public class Curso {
   private String nome;
   private int quantidadePeriodos;
   private int cargaHorariaTotal;
-  private String matriculaCoordenador;
 
   /**
    * Cria um curso vazio.
@@ -31,22 +30,6 @@ public class Curso {
   }
 
   /**
-   * Cria um curso com coordenador.
-   *
-   * @param nome nome do curso.
-   * @param quantidadePeriodos quantidade de periodos.
-   * @param cargaHorariaTotal carga horaria total.
-   * @param matriculaCoordenador matricula do coordenador.
-   */
-  public Curso(
-      String nome, int quantidadePeriodos, int cargaHorariaTotal, String matriculaCoordenador) {
-    setNome(nome);
-    setQuantidadePeriodos(quantidadePeriodos);
-    setCargaHorariaTotal(cargaHorariaTotal);
-    setMatriculaCoordenador(matriculaCoordenador);
-  }
-
-  /**
    * Cria um curso com codigo.
    *
    * @param codigo codigo do curso.
@@ -59,28 +42,6 @@ public class Curso {
     setNome(nome);
     setQuantidadePeriodos(quantidadePeriodos);
     setCargaHorariaTotal(cargaHorariaTotal);
-  }
-
-  /**
-   * Cria um curso completo.
-   *
-   * @param codigo codigo do curso.
-   * @param nome nome do curso.
-   * @param quantidadePeriodos quantidade de periodos.
-   * @param cargaHorariaTotal carga horaria total.
-   * @param matriculaCoordenador matricula do coordenador.
-   */
-  public Curso(
-      String codigo,
-      String nome,
-      int quantidadePeriodos,
-      int cargaHorariaTotal,
-      String matriculaCoordenador) {
-    setCodigo(codigo);
-    setNome(nome);
-    setQuantidadePeriodos(quantidadePeriodos);
-    setCargaHorariaTotal(cargaHorariaTotal);
-    setMatriculaCoordenador(matriculaCoordenador);
   }
 
   /**
@@ -160,24 +121,6 @@ public class Curso {
   }
 
   /**
-   * Retorna a matricula do coordenador.
-   *
-   * @return matricula do coordenador.
-   */
-  public String getMatriculaCoordenador() {
-    return matriculaCoordenador;
-  }
-
-  /**
-   * Define a matricula do coordenador.
-   *
-   * @param matriculaCoordenador matricula do coordenador.
-   */
-  public void setMatriculaCoordenador(String matriculaCoordenador) {
-    this.matriculaCoordenador = matriculaCoordenador;
-  }
-
-  /**
    * Valida os dados basicos do curso.
    */
   public void validarDadosBasicos() {
@@ -244,8 +187,6 @@ public class Curso {
     └───────────────────────────────────────┘
     """
             .formatted(codigo, nome, quantidadePeriodos, cargaHorariaTotal)
-        + "Coordenador: "
-        + matriculaCoordenador
         + System.lineSeparator();
   }
 }

@@ -8,14 +8,17 @@ import java.util.Scanner;
 /** Menu de funcionalidades do administrador. */
 public class MenuAdministrador {
 
-  private final Scanner scanner = new Scanner(System.in);
+  private final Scanner scanner;
   private final Administrador usuarioLogado;
-  private final UsuarioTela usuarioTela = new UsuarioTela(scanner);
-  private final CursoTela cursoTela = new CursoTela(scanner);
+  private final UsuarioTela usuarioTela;
+  private final CursoTela cursoTela;
 
   /** Cria o menu para o administrador logado. */
-  public MenuAdministrador(Administrador usuarioLogado) {
+  public MenuAdministrador(Administrador usuarioLogado, Scanner scanner) {
     this.usuarioLogado = usuarioLogado;
+    this.scanner = scanner;
+    this.usuarioTela = new UsuarioTela(scanner);
+    this.cursoTela = new CursoTela(scanner);
   }
 
   /** Inicia a navegacao pelo menu do administrador. */

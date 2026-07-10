@@ -2,9 +2,7 @@ package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.Curso;
 import br.com.classroompb.model.entities.usuario.Coordenador;
-import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
-import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.CursoRepository;
 import br.com.classroompb.model.repository.PersistenciaPaths;
 import br.com.classroompb.model.repository.UserRepository;
@@ -20,14 +18,15 @@ public class CursoService {
   private static final Path DIRETORIO_CURSOS = PersistenciaPaths.CURSOS;
   private static final Path DIRETORIO_USUARIOS = PersistenciaPaths.USUARIOS;
   private final CursoRepository repository;
-  private final UserRepository userRepository;
+  private final VinculoCursoCoordenadorService vinculoService;
 
   /**
    * Cria o servico de cursos com repositorio padrao.
    */
   public CursoService() {
-    this.repository = new CursoRepository(new ObjectMapper(), DIRETORIO_CURSOS.toString());
-    this.userRepository = new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString());
+    this(
+        new CursoRepository(new ObjectMapper(), DIRETORIO_CURSOS.toString()),
+        new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString()));
   }
 
   /**
@@ -36,8 +35,21 @@ public class CursoService {
    * @param cursoRepository repositorio de cursos.
    */
   public CursoService(CursoRepository cursoRepository) {
+    this(
+        cursoRepository,
+        new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString()));
+  }
+
+  /**
+   * Cria o servico de cursos com repositorios informados.
+   *
+   * @param cursoRepository repositorio de cursos.
+   * @param userRepository repositorio de usuarios.
+   */
+  public CursoService(CursoRepository cursoRepository, UserRepository userRepository) {
     this.repository = cursoRepository;
-    this.userRepository = new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString());
+    this.vinculoService =
+        new VinculoCursoCoordenadorService(cursoRepository, userRepository);
   }
 
   /**
@@ -46,16 +58,59 @@ public class CursoService {
    * @param curso curso a ser cadastrado.
    */
   public void cadastrarCurso(Curso curso) {
+    cadastrarCurso(curso, null);
+  }
+
+  /**
+   * Cadastra um curso e vincula um coordenador livre.
+   *
+   * @param curso curso a ser cadastrado.
+   * @param matricula matricula do coordenador.
+   */
+  public void cadastrarCurso(Curso curso, String matricula) {
     validarCurso(curso);
 
     String codigo = gerarCodigoCurso();
     curso.setCodigo(codigo);
 
     validarExistenciaCurso(curso.getCodigo(), curso.getNome());
-    Coordenador coordenador = validarCoordenador(curso);
+    boolean possuiCoordenador = matricula != null && !matricula.isBlank();
+    if (possuiCoordenador) {
+      vinculoService.validarCoordenadorDisponivel(matricula);
+    }
 
     repository.salvarCurso(curso);
-    sincronizarCoordenadorDoCurso(curso, coordenador);
+    if (possuiCoordenador) {
+      try {
+        vinculoService.vincular(matricula, curso.getCodigo());
+      } catch (RuntimeException e) {
+        try {
+          repository.removerPorCodigo(curso.getCodigo());
+        } catch (RuntimeException rollbackException) {
+          e.addSuppressed(rollbackException);
+        }
+        throw e;
+      }
+    }
+  }
+
+  /**
+   * Busca o coordenador responsavel por um curso.
+   *
+   * @param codigoCurso codigo do curso.
+   * @return coordenador responsavel ou null.
+   */
+  public Coordenador buscarCoordenadorPorCurso(String codigoCurso) {
+    return vinculoService.buscarCoordenadorPorCurso(codigoCurso);
+  }
+
+  /**
+   * Lista coordenadores disponiveis para um curso.
+   *
+   * @return coordenadores sem curso.
+   */
+  public List<Coordenador> listarCoordenadoresSemCurso() {
+    return vinculoService.listarCoordenadoresSemCurso();
   }
 
   private void validarCurso(Curso curso) {
@@ -89,42 +144,6 @@ public class CursoService {
     } while (repository.buscarPorCodigo(codigo) != null);
 
     return codigo;
-  }
-
-  private Coordenador validarCoordenador(Curso curso) {
-    String matriculaCoordenador = curso.getMatriculaCoordenador();
-
-    if (matriculaCoordenador == null || matriculaCoordenador.isBlank()) {
-      return null;
-    }
-
-    try {
-      Coordenador coordenador =
-          (Coordenador)
-              userRepository.buscarPorMatricula(
-                  matriculaCoordenador.trim(), TipoUsuario.COORDENADOR);
-      validarCoordenadorSemCurso(coordenador);
-      curso.setMatriculaCoordenador(coordenador.getMatricula());
-      return coordenador;
-    } catch (UsuarioNaoEncontradoException e) {
-      throw new EntradaInvalidaException(
-          "Coordenador informado nao encontrado ou nao e coordenador.");
-    }
-  }
-
-  private void validarCoordenadorSemCurso(Coordenador coordenador) {
-    if (coordenador.getCodigoCurso() != null && !coordenador.getCodigoCurso().isBlank()) {
-      throw new EntradaInvalidaException("Coordenador ja esta vinculado a outro curso.");
-    }
-  }
-
-  private void sincronizarCoordenadorDoCurso(Curso curso, Coordenador coordenador) {
-    if (coordenador == null) {
-      return;
-    }
-
-    coordenador.setCodigoCurso(curso.getCodigo());
-    userRepository.atualizarUsuario(coordenador);
   }
 
   /**

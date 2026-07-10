@@ -109,6 +109,30 @@ public class CursoRepository {
   }
 
   /**
+   * Remove um curso pelo codigo.
+   *
+   * @param codigo codigo do curso.
+   * @return verdadeiro quando o curso foi removido.
+   */
+  public boolean removerPorCodigo(String codigo) {
+    List<Curso> cursos = listarCursos();
+    boolean removido =
+        cursos.removeIf(
+            curso -> curso.getCodigo() != null && curso.getCodigo().equalsIgnoreCase(codigo));
+
+    if (!removido) {
+      return false;
+    }
+
+    try {
+      objectMapper.writeValue(new File(getCaminhoArquivo()), cursos);
+      return true;
+    } catch (IOException e) {
+      throw new PersistenciaException("Erro ao remover curso.", e);
+    }
+  }
+
+  /**
    * Lista todos os cursos cadastrados.
    *
    * @return lista de cursos cadastrados.

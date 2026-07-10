@@ -10,17 +10,21 @@ import java.util.Scanner;
 /** Menu de funcionalidades do aluno. */
 public class MenuAluno {
 
-  private final Scanner scanner = new Scanner(System.in);
+  private final Scanner scanner;
   private Aluno usuarioLogado;
-  private final DisciplinaTela disciplinaTela = new DisciplinaTela(scanner);
-  private final HistoricoAcademicoTela historicoAcademicoTela =
-      new HistoricoAcademicoTela(scanner);
-  private final TurmaTela turmaTela = new TurmaTela(scanner);
-  private final UsuarioTela usuarioTela = new UsuarioTela(scanner);
+  private final DisciplinaTela disciplinaTela;
+  private final HistoricoAcademicoTela historicoAcademicoTela;
+  private final TurmaTela turmaTela;
+  private final UsuarioTela usuarioTela;
 
   /** Cria o menu para o aluno logado. */
-  public MenuAluno(Aluno usuarioLogado) {
+  public MenuAluno(Aluno usuarioLogado, Scanner scanner) {
     this.usuarioLogado = usuarioLogado;
+    this.scanner = scanner;
+    this.disciplinaTela = new DisciplinaTela(scanner);
+    this.historicoAcademicoTela = new HistoricoAcademicoTela(scanner);
+    this.turmaTela = new TurmaTela(scanner);
+    this.usuarioTela = new UsuarioTela(scanner);
   }
 
   /** Retorna o aluno logado. */
