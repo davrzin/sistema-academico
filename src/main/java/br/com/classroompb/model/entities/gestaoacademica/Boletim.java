@@ -12,7 +12,6 @@ public class Boletim {
   private String codigoTurma;
   private float primeiraNota;
   private float segundaNota;
-  private float mediaFinal; // REQUISITO DA TASK 2461: Campo para persistência atômica da média
   private double frequencia;
 
   /**
@@ -126,24 +125,12 @@ public class Boletim {
   }
 
   /**
-   * Retorna a média final.
+   * Calcula a media final a partir das notas atuais.
    *
-   * @return média final.
+   * @return media aritmetica das duas notas.
    */
-  public float getMediaFinal() {
-    return mediaFinal;
-  }
-
-  /**
-   * Define a média final.
-   *
-   * @param mediaFinal média final.
-   */
-  public void setMediaFinal(float mediaFinal) {
-    if (mediaFinal < 0 || mediaFinal > 10.0) {
-      throw new EntradaInvalidaException("A média final deve estar entre 0 e 10.");
-    }
-    this.mediaFinal = mediaFinal;
+  public float calcularMediaFinal() {
+    return (primeiraNota + segundaNota) / 2.0f;
   }
 
   /**
@@ -233,8 +220,8 @@ public class Boletim {
         + primeiraNota
         + ", segundaNota="
         + segundaNota
-        + ", mediaFinal="
-        + mediaFinal
+        + ", mediaCalculada="
+        + calcularMediaFinal()
         + ", frequencia="
         + frequencia
         + '}';

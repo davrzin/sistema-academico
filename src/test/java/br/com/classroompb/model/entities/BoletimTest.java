@@ -2,6 +2,8 @@ package br.com.classroompb.model.entities;
 
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -123,6 +125,33 @@ public class BoletimTest {
     float notaEsperada = 10;
 
     Assertions.assertEquals(notaEsperada, boletimTeste.getSegundaNota());
+  }
+
+  @Test
+  public void deveCalcularMediaFinalDiretamenteDasNotas() {
+    boletimTeste.setPrimeiraNota(8.0f);
+    boletimTeste.setSegundaNota(6.0f);
+
+    Assertions.assertEquals(7.0f, boletimTeste.calcularMediaFinal());
+  }
+
+  @Test
+  public void deveAtualizarMediaQuandoUmaNotaMudar() {
+    boletimTeste.setPrimeiraNota(8.0f);
+    boletimTeste.setSegundaNota(6.0f);
+    boletimTeste.setPrimeiraNota(10.0f);
+
+    Assertions.assertEquals(8.0f, boletimTeste.calcularMediaFinal());
+  }
+
+  @Test
+  public void naoDevePersistirMediaSeparadamente() throws JsonProcessingException {
+    boletimTeste.setPrimeiraNota(8.0f);
+    boletimTeste.setSegundaNota(6.0f);
+
+    String json = new ObjectMapper().writeValueAsString(boletimTeste);
+
+    Assertions.assertFalse(json.contains("mediaFinal"));
   }
 
   @Test

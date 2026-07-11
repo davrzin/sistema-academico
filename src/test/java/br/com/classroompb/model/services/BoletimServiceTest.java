@@ -111,6 +111,7 @@ public class BoletimServiceTest {
     Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
     Assertions.assertEquals(10.0f, boletimAtualizado.getPrimeiraNota());
     Assertions.assertEquals(9.0f, boletimAtualizado.getSegundaNota());
+    Assertions.assertEquals(9.5f, boletimAtualizado.calcularMediaFinal());
   }
 
   @Test
@@ -122,6 +123,7 @@ public class BoletimServiceTest {
     Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
     Assertions.assertEquals(8.0f, boletimAtualizado.getPrimeiraNota());
     Assertions.assertEquals(7.5f, boletimAtualizado.getSegundaNota());
+    Assertions.assertEquals(7.75f, boletimAtualizado.calcularMediaFinal());
   }
 
   @Test
@@ -133,6 +135,7 @@ public class BoletimServiceTest {
     Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
     Assertions.assertEquals(6.0f, boletimAtualizado.getPrimeiraNota());
     Assertions.assertEquals(7.0f, boletimAtualizado.getSegundaNota());
+    Assertions.assertEquals(6.5f, boletimAtualizado.calcularMediaFinal());
   }
 
   @Test
@@ -154,14 +157,31 @@ public class BoletimServiceTest {
   }
 
   @Test
-  public void devePreservarCalculoDeMediaExistente() {
+  public void deveUsarCalculoCentralDaMedia() {
     prepararTurmaComBoletim(8.0f, 9.0f);
 
     boletimService.lancarNotas("tur00", "al00", 10.0f, 8.0f, "pr00");
 
     Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
-    float media = (boletimAtualizado.getPrimeiraNota() + boletimAtualizado.getSegundaNota()) / 2;
-    Assertions.assertEquals(9.0f, media);
+    Assertions.assertEquals(9.0f, boletimAtualizado.calcularMediaFinal());
+  }
+
+  @Test
+  public void professorNaoDeveLancarNotasEmTurmaDeOutroProfessor() {
+    prepararTurmaComBoletim(8.0f, 9.0f);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarNotas("tur00", "al00", 7.0f, 8.0f, "pr01"));
+  }
+
+  @Test
+  public void naoDeveLancarNotasParaAlunoNaoMatriculado() {
+    prepararTurmaComBoletim(8.0f, 9.0f);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarNotas("tur00", "al01", 7.0f, 8.0f, "pr00"));
   }
 
   private void prepararTurmaComBoletim(float primeiraNota, float segundaNota) {

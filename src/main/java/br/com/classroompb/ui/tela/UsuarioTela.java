@@ -212,7 +212,7 @@ public class UsuarioTela {
 
     for (Boletim boletim : boletins) {
       Turma turma = buscarTurmaDoBoletim(boletim);
-      double media = calcularMediaBoletim(boletim);
+      double media = boletim.calcularMediaFinal();
 
       imprimirLinhaBoletim(
           buscarNomeDisciplinaBoletim(turma),
@@ -401,10 +401,6 @@ public class UsuarioTela {
     }
 
     return turma.getPeriodoLetivo();
-  }
-
-  private double calcularMediaBoletim(Boletim boletim) {
-    return (boletim.getPrimeiraNota() + boletim.getSegundaNota()) / 2.0;
   }
 
   private String definirSituacaoBoletim(double media) {
