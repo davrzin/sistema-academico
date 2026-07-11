@@ -1066,26 +1066,36 @@ public class TurmaTela {
   }
 
   private void exibirComprovanteLancamentoVisual(String codigoTurma, String matriculaAluno) {
-    Boletim b = boletimService.buscarBoletimPorAlunoETurma(matriculaAluno, codigoTurma);
+    Boletim boletim = boletimService.buscarBoletimPorAlunoETurma(matriculaAluno, codigoTurma);
     Aluno aluno = usuarioService.buscarAlunoPorMatricula(matriculaAluno);
-    
-    if (b != null && aluno != null) {
+
+    if (boletim != null && aluno != null) {
       System.out.println("\n=========================================================");
-      System.out.println("          🧾 COMPROVANTE DE LANÇAMENTO DE NOTAS          ");
+      System.out.println("          COMPROVANTE DE LANCAMENTO DE NOTAS             ");
       System.out.println("=========================================================");
-      System.out.println(" CÓDIGO DA TURMA       : " + codigoTurma);
+      System.out.println(" CODIGO DA TURMA       : " + codigoTurma);
       System.out.println(
           " ESTUDANTE AVALIADO    : " + aluno.getNome() + " (" + matriculaAluno + ")");
       System.out.println("---------------------------------------------------------");
-      System.out.println(" NOTA DA ETAPA 1       : " + b.getPrimeiraNota());
-      System.out.println(" NOTA DA ETAPA 2       : " + b.getSegundaNota());
+      System.out.println(
+          " NOTA DA ETAPA 1       : " + formatarNotaComprovante(boletim.getPrimeiraNota()));
+      System.out.println(
+          " NOTA DA ETAPA 2       : " + formatarNotaComprovante(boletim.getSegundaNota()));
       System.out.println("---------------------------------------------------------");
       System.out.println(
-          " MÉDIA CONSOLIDADA     : ✅ " + b.calcularMediaFinal() + " (PROCESSADA)");
+          " MEDIA CONSOLIDADA     : " + formatarMediaComprovante(boletim.calcularMediaFinal()));
       System.out.println("=========================================================\n");
     } else {
       System.out.println("Notas registradas com sucesso.");
     }
+  }
+
+  static String formatarNotaComprovante(Float nota) {
+    return nota == null ? "--" : String.format("%.1f", nota);
+  }
+
+  static String formatarMediaComprovante(Float media) {
+    return media == null ? "--" : String.format("%.2f", media);
   }
 
   private float lerNota(String rotulo) {

@@ -163,15 +163,15 @@ public class HistoricoAcademicoTela {
 
   private String formatarDecimal(Double valor) {
     if (valor == null) {
-      return "-";
+      return "--";
     }
 
-    return String.format("%.1f", valor);
+    return String.format("%.2f", valor);
   }
 
   private String formatarFrequencia(Double frequencia) {
     if (frequencia == null) {
-      return "-";
+      return "--";
     }
 
     return String.format("%.1f%%", frequencia);

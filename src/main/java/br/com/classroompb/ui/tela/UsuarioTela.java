@@ -11,6 +11,7 @@ import br.com.classroompb.model.entities.usuario.Usuario;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.services.BoletimService;
 import br.com.classroompb.model.services.CursoService;
+import br.com.classroompb.model.services.SituacaoAcademicaService;
 import br.com.classroompb.model.services.TurmaService;
 import br.com.classroompb.model.services.UsuarioService;
 import java.util.ArrayList;
@@ -24,9 +25,11 @@ public class UsuarioTela {
 
   private final Scanner scanner;
   private final UsuarioService usuarioService;
-  private final BoletimService boletimService = new BoletimService();
+  private final BoletimService boletimService;
   private final CursoService cursoService;
-  private final TurmaService turmaService = new TurmaService();
+  private final TurmaService turmaService;
+  private final SituacaoAcademicaService situacaoAcademicaService =
+      new SituacaoAcademicaService();
 
   /**
    * Cria a tela de usuarios.
@@ -46,9 +49,34 @@ public class UsuarioTela {
    */
   public UsuarioTela(
       Scanner scanner, UsuarioService usuarioService, CursoService cursoService) {
+    this(
+        scanner,
+        usuarioService,
+        cursoService,
+        new BoletimService(),
+        new TurmaService());
+  }
+
+  /**
+   * Cria a tela de usuarios com todas as dependencias informadas.
+   *
+   * @param scanner leitor de entrada.
+   * @param usuarioService servico de usuarios.
+   * @param cursoService servico de cursos.
+   * @param boletimService servico de boletins.
+   * @param turmaService servico de turmas.
+   */
+  public UsuarioTela(
+      Scanner scanner,
+      UsuarioService usuarioService,
+      CursoService cursoService,
+      BoletimService boletimService,
+      TurmaService turmaService) {
     this.scanner = scanner;
     this.usuarioService = usuarioService;
     this.cursoService = cursoService;
+    this.boletimService = boletimService;
+    this.turmaService = turmaService;
   }
 
   /**
@@ -210,9 +238,14 @@ public class UsuarioTela {
 
     imprimirCabecalhoBoletim();
 
+    boolean possuiNotaPendente = false;
+    boolean possuiFrequenciaPendente = false;
+
     for (Boletim boletim : boletins) {
       Turma turma = buscarTurmaDoBoletim(boletim);
-      double media = boletim.calcularMediaFinal();
+      Float media = boletim.calcularMediaFinal();
+      possuiNotaPendente |= !boletim.possuiTodasAsNotas();
+      possuiFrequenciaPendente |= !boletim.possuiFrequenciaCalculada();
 
       imprimirLinhaBoletim(
           buscarNomeDisciplinaBoletim(turma),
@@ -223,10 +256,16 @@ public class UsuarioTela {
           boletim.getSegundaNota(),
           media,
           boletim.getFrequencia(),
-          definirSituacaoBoletim(media));
+          situacaoAcademicaService.determinar(boletim).getDescricao());
     }
 
     imprimirDivisoriaBoletim();
+    if (possuiNotaPendente) {
+      System.out.println("-- = nota ainda nao lancada");
+    }
+    if (possuiFrequenciaPendente) {
+      System.out.println("Frequencia -- = ainda nao calculada");
+    }
   }
 
   private void imprimirCabecalhoBoletim() {
@@ -250,10 +289,10 @@ public class UsuarioTela {
       String turma,
       String professor,
       String periodo,
-      float primeiraNota,
-      float segundaNota,
-      double media,
-      double frequencia,
+      Float primeiraNota,
+      Float segundaNota,
+      Float media,
+      Double frequencia,
       String situacao) {
     System.out.printf(
         formatoLinhaBoletim(),
@@ -265,16 +304,16 @@ public class UsuarioTela {
         formatarNota(segundaNota),
         formatarDecimal(media),
         formatarFrequencia(frequencia),
-        limitarTexto(formatarValor(situacao), 18));
+        limitarTexto(formatarValor(situacao), 20));
   }
 
   private void imprimirDivisoriaBoletim() {
-    System.out.println("-".repeat(123));
+    System.out.println("-".repeat(125));
   }
 
   private String formatoLinhaBoletim() {
     return "| %-18s | %-5s | %-18s | %-10s | %-6s | "
-        + "%-6s | %-6s | %-10s | %-18s |%n";
+        + "%-6s | %-6s | %-10s | %-20s |%n";
   }
 
   private String formatarValor(String valor) {
@@ -285,15 +324,24 @@ public class UsuarioTela {
     return valor;
   }
 
-  private String formatarNota(float nota) {
+  private String formatarNota(Float nota) {
+    if (nota == null) {
+      return "--";
+    }
     return String.format("%.1f", nota);
   }
 
-  private String formatarDecimal(double valor) {
-    return String.format("%.1f", valor);
+  private String formatarDecimal(Float valor) {
+    if (valor == null) {
+      return "--";
+    }
+    return String.format("%.2f", valor);
   }
 
-  private String formatarFrequencia(double frequencia) {
+  private String formatarFrequencia(Double frequencia) {
+    if (frequencia == null) {
+      return "--";
+    }
     return String.format("%.1f%%", frequencia);
   }
 
@@ -401,10 +449,6 @@ public class UsuarioTela {
     }
 
     return turma.getPeriodoLetivo();
-  }
-
-  private String definirSituacaoBoletim(double media) {
-    return media >= 7.0 ? "Aprovado" : "Em andamento/Reprovado";
   }
 
   private void listarAlunosDoProfessor(Professor professorLogado) {

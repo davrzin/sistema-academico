@@ -115,6 +115,18 @@ public class BoletimServiceTest {
   }
 
   @Test
+  public void deveLancarPrimeiraNotaPreservandoSegundaPendente() {
+    prepararTurmaComBoletim(null, null);
+
+    boletimService.lancarPrimeiraNota("tur00", "al00", 0.0f, "pr00");
+
+    Boletim atualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Assertions.assertEquals(0.0f, atualizado.getPrimeiraNota());
+    Assertions.assertNull(atualizado.getSegundaNota());
+    Assertions.assertNull(atualizado.calcularMediaFinal());
+  }
+
+  @Test
   public void deveAtualizarApenasSegundaNotaPreservandoPrimeira() {
     prepararTurmaComBoletim(8.0f, 9.0f);
 
@@ -124,6 +136,18 @@ public class BoletimServiceTest {
     Assertions.assertEquals(8.0f, boletimAtualizado.getPrimeiraNota());
     Assertions.assertEquals(7.5f, boletimAtualizado.getSegundaNota());
     Assertions.assertEquals(7.75f, boletimAtualizado.calcularMediaFinal());
+  }
+
+  @Test
+  public void deveLancarSegundaNotaPreservandoPrimeiraPendente() {
+    prepararTurmaComBoletim(null, null);
+
+    boletimService.lancarSegundaNota("tur00", "al00", 6.0f, "pr00");
+
+    Boletim atualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Assertions.assertNull(atualizado.getPrimeiraNota());
+    Assertions.assertEquals(6.0f, atualizado.getSegundaNota());
+    Assertions.assertNull(atualizado.calcularMediaFinal());
   }
 
   @Test
@@ -184,7 +208,17 @@ public class BoletimServiceTest {
         () -> boletimService.lancarNotas("tur00", "al01", 7.0f, 8.0f, "pr00"));
   }
 
-  private void prepararTurmaComBoletim(float primeiraNota, float segundaNota) {
+  @Test
+  public void naoDeveCriarBoletimDuplicadoAoAlterarNotas() {
+    prepararTurmaComBoletim(null, null);
+
+    boletimService.lancarPrimeiraNota("tur00", "al00", 8.0f, "pr00");
+    boletimService.lancarSegundaNota("tur00", "al00", 6.0f, "pr00");
+
+    Assertions.assertEquals(1, boletimService.buscarBoletinsPorAluno("al00").size());
+  }
+
+  private void prepararTurmaComBoletim(Float primeiraNota, Float segundaNota) {
     Turma turma =
         new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
     turma.getMatriculados().add("al00");
