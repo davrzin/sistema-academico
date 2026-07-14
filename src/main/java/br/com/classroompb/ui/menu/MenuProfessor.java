@@ -8,14 +8,17 @@ import java.util.Scanner;
 /** Menu de funcionalidades do professor. */
 public class MenuProfessor {
 
-  private final Scanner scanner = new Scanner(System.in);
+  private final Scanner scanner;
   private final Professor usuarioLogado;
-  private final TurmaTela turmaTela = new TurmaTela(scanner);
-  private final UsuarioTela usuarioTela = new UsuarioTela(scanner);
+  private final TurmaTela turmaTela;
+  private final UsuarioTela usuarioTela;
 
   /** Cria o menu para o professor logado. */
-  public MenuProfessor(Professor usuarioLogado) {
+  public MenuProfessor(Professor usuarioLogado, Scanner scanner) {
     this.usuarioLogado = usuarioLogado;
+    this.scanner = scanner;
+    this.turmaTela = new TurmaTela(scanner);
+    this.usuarioTela = new UsuarioTela(scanner);
   }
 
   /** Inicia a navegacao pelo menu do professor. */

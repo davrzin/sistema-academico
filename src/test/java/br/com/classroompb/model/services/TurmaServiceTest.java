@@ -8,6 +8,8 @@ import br.com.classroompb.model.entities.usuario.Professor;
 import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
+import br.com.classroompb.model.repository.AulaRepository;
+import br.com.classroompb.model.repository.BoletimRepository;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.TurmaRepository;
@@ -39,6 +41,8 @@ public class TurmaServiceTest {
     apagarDiretorio("disciplinas");
     apagarDiretorio("periodos");
     apagarDiretorio("usuarios");
+    apagarDiretorio("boletins");
+    apagarDiretorio("aulas");
   }
 
   private void apagarDiretorio(String nomeDiretorio) {
@@ -72,13 +76,26 @@ public class TurmaServiceTest {
     return new UserRepository(new ObjectMapper(), tempDir.resolve("usuarios").toString());
   }
 
+  private BoletimRepository criarBoletimRepository() {
+    return new BoletimRepository(new ObjectMapper(), tempDir.resolve("boletins").toString());
+  }
+
+  private AulaRepository criarAulaRepository() {
+    return new AulaRepository(new ObjectMapper(), tempDir.resolve("aulas").toString());
+  }
+
   private TurmaService criarService(
       TurmaRepository turmaRepository,
       DisciplinaRepository disciplinaRepository,
       PeriodoLetivoRepository periodoLetivoRepository,
       UserRepository userRepository) {
     return new TurmaService(
-        turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+        turmaRepository,
+        disciplinaRepository,
+        periodoLetivoRepository,
+        userRepository,
+        criarBoletimRepository(),
+        criarAulaRepository());
   }
 
   private Professor criarProfessor(String nome, String email, String senha, String matricula) {

@@ -26,13 +26,15 @@ public class UsuarioService {
 
   private final UserRepository repository;
   private final CursoRepository cursoRepository;
+  private final VinculoCursoCoordenadorService vinculoService;
 
   /**
    * Cria o servico de usuarios com repositorio padrao.
    */
   public UsuarioService() {
-    this.repository = new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString());
-    this.cursoRepository = new CursoRepository(new ObjectMapper(), DIRETORIO_CURSOS.toString());
+    this(
+        new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString()),
+        new CursoRepository(new ObjectMapper(), DIRETORIO_CURSOS.toString()));
   }
 
   /**
@@ -41,8 +43,20 @@ public class UsuarioService {
    * @param repository repositorio de usuarios.
    */
   public UsuarioService(UserRepository repository) {
+    this(repository, new CursoRepository(new ObjectMapper(), DIRETORIO_CURSOS.toString()));
+  }
+
+  /**
+   * Cria o servico de usuarios com repositorios informados.
+   *
+   * @param repository repositorio de usuarios.
+   * @param cursoRepository repositorio de cursos.
+   */
+  public UsuarioService(UserRepository repository, CursoRepository cursoRepository) {
     this.repository = repository;
-    this.cursoRepository = new CursoRepository(new ObjectMapper(), DIRETORIO_CURSOS.toString());
+    this.cursoRepository = cursoRepository;
+    this.vinculoService =
+        new VinculoCursoCoordenadorService(cursoRepository, repository);
   }
 
   /**
@@ -59,7 +73,6 @@ public class UsuarioService {
 
     usuario.validarDadosComMatricula();
     repository.salvarUsuario(usuario);
-    sincronizarCursoDoCoordenador(usuario);
   }
 
   /**
@@ -153,8 +166,8 @@ public class UsuarioService {
       return;
     }
 
-    Curso curso = validarCursoExistente(codigoCurso);
-    validarCursoSemCoordenador(curso);
+    validarCursoExistente(codigoCurso);
+    vinculoService.validarCursoDisponivel(codigoCurso);
   }
 
   private Curso validarCursoExistente(String codigoCurso) {
@@ -165,28 +178,6 @@ public class UsuarioService {
     }
 
     return curso;
-  }
-
-  private void validarCursoSemCoordenador(Curso curso) {
-    if (curso.getMatriculaCoordenador() != null && !curso.getMatriculaCoordenador().isBlank()) {
-      throw new EntradaInvalidaException("Curso ja possui coordenador.");
-    }
-  }
-
-  private void sincronizarCursoDoCoordenador(Usuario usuario) {
-    if (!(usuario instanceof Coordenador coordenador)) {
-      return;
-    }
-
-    String codigoCurso = coordenador.getCodigoCurso();
-
-    if (codigoCurso == null || codigoCurso.isBlank()) {
-      return;
-    }
-
-    Curso curso = cursoRepository.buscarPorCodigo(codigoCurso.trim());
-    curso.setMatriculaCoordenador(coordenador.getMatricula());
-    cursoRepository.atualizarCurso(curso);
   }
 
   private void validarEmailDisponivel(String email, String matriculaIgnorada) {

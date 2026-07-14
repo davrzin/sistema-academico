@@ -1,10 +1,14 @@
 package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.Curso;
+import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.repository.CursoRepository;
+import br.com.classroompb.model.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -21,6 +25,7 @@ public class CursoServiceTest {
   @TempDir Path tempDir;
 
   CursoRepository repository;
+  UserRepository userRepository;
   CursoService service;
 
   /**
@@ -29,7 +34,8 @@ public class CursoServiceTest {
   @BeforeEach
   public void criarVariaveis() {
     repository = criarCursoRepository();
-    service = criarCursoService(repository);
+    userRepository = criarUserRepository();
+    service = criarCursoService(repository, userRepository);
   }
 
   /**
@@ -37,7 +43,12 @@ public class CursoServiceTest {
    */
   @AfterEach
   public void tearDown() {
-    File diretorio = tempDir.resolve("cursos").toFile();
+    apagarDiretorio("cursos");
+    apagarDiretorio("usuarios");
+  }
+
+  private void apagarDiretorio(String nomeDiretorio) {
+    File diretorio = tempDir.resolve(nomeDiretorio).toFile();
     File[] arquivos = diretorio.listFiles();
 
     if (arquivos != null) {
@@ -52,11 +63,16 @@ public class CursoServiceTest {
   }
 
   private CursoRepository criarCursoRepository() {
-    return new CursoRepository(new ObjectMapper(), tempDir.resolve("periodos").toString());
+    return new CursoRepository(new ObjectMapper(), tempDir.resolve("cursos").toString());
   }
 
-  private CursoService criarCursoService(CursoRepository cursoRepository) {
-    return new CursoService(cursoRepository);
+  private UserRepository criarUserRepository() {
+    return new UserRepository(new ObjectMapper(), tempDir.resolve("usuarios").toString());
+  }
+
+  private CursoService criarCursoService(
+      CursoRepository cursoRepository, UserRepository userRepository) {
+    return new CursoService(cursoRepository, userRepository);
   }
 
   @Test
@@ -68,6 +84,74 @@ public class CursoServiceTest {
 
     Assertions.assertEquals(1, repository.listarCursos().size());
     Assertions.assertEquals(curso.getNome(), repository.listarCursos().getFirst().getNome());
+  }
+
+  @Test
+  public void deveCadastrarCursoComCoordenadorAtualizandoOsDoisLados() {
+    Coordenador coordenador = new Coordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setMatricula("co00");
+    userRepository.salvarUsuario(coordenador);
+    Curso curso = new Curso("Ciencia da Computacao", 8, 3200);
+
+    service.cadastrarCurso(curso, "co00");
+
+    Coordenador coordenadorPersistido =
+        (Coordenador) userRepository.buscarPorMatricula("co00");
+    Assertions.assertEquals(curso.getCodigo(), coordenadorPersistido.getCodigoCurso());
+    Assertions.assertNotNull(repository.buscarPorCodigo(curso.getCodigo()));
+  }
+
+  @Test
+  public void coordenadorInexistenteNaoDevePersistirCurso() {
+    Curso curso = new Curso("Computacao", 8, 3200);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.cadastrarCurso(curso, "co99"));
+
+    Assertions.assertTrue(repository.listarCursos().isEmpty());
+  }
+
+  @Test
+  public void coordenadorIndisponivelNaoDevePersistirNovoCurso() {
+    Curso cursoAnterior = new Curso("Computacao", 8, 3200);
+    service.cadastrarCurso(cursoAnterior);
+    Coordenador coordenador = new Coordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setMatricula("co00");
+    coordenador.setCodigoCurso(cursoAnterior.getCodigo());
+    userRepository.salvarUsuario(coordenador);
+    Curso novoCurso = new Curso("Sistemas", 8, 3000);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.cadastrarCurso(novoCurso, "co00"));
+
+    Assertions.assertEquals(1, repository.listarCursos().size());
+    Assertions.assertEquals(
+        cursoAnterior.getCodigo(), repository.listarCursos().getFirst().getCodigo());
+  }
+
+  @Test
+  public void falhaAoPersistirVinculoDeveRemoverSomenteCursoCriado() {
+    Curso cursoAnterior = new Curso("Computacao", 8, 3200);
+    service.cadastrarCurso(cursoAnterior);
+    UserRepository repositoryComFalha =
+        new UserRepository(new ObjectMapper(), tempDir.resolve("usuarios-falha").toString()) {
+          @Override
+          public void atualizarUsuario(br.com.classroompb.model.entities.usuario.Usuario usuario) {
+            throw new PersistenciaException("Falha simulada.", new IOException("Falha simulada."));
+          }
+        };
+    Coordenador coordenador = new Coordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setMatricula("co00");
+    repositoryComFalha.salvarUsuario(coordenador);
+    CursoService serviceComFalha = new CursoService(repository, repositoryComFalha);
+    Curso novoCurso = new Curso("Sistemas", 8, 3000);
+
+    Assertions.assertThrows(
+        PersistenciaException.class, () -> serviceComFalha.cadastrarCurso(novoCurso, "co00"));
+
+    Assertions.assertEquals(1, repository.listarCursos().size());
+    Assertions.assertEquals(
+        cursoAnterior.getCodigo(), repository.listarCursos().getFirst().getCodigo());
   }
 
   @Test

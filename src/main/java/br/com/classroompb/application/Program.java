@@ -1,6 +1,7 @@
 package br.com.classroompb.application;
 
 import br.com.classroompb.ui.menu.MenuPrincipal;
+import java.util.Scanner;
 
 /**
  * Classe de entrada da aplicacao.
@@ -13,7 +14,8 @@ public class Program {
    */
   public static void main(String[] args) {
 
-    MenuPrincipal menuPrincipal = new MenuPrincipal();
+    Scanner scanner = new Scanner(System.in);
+    MenuPrincipal menuPrincipal = new MenuPrincipal(scanner);
     menuPrincipal.iniciar();
   }
 }

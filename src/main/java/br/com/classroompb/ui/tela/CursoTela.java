@@ -5,7 +5,6 @@ import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.services.CursoService;
-import br.com.classroompb.model.services.UsuarioService;
 import java.util.List;
 import java.util.Scanner;
 
@@ -15,8 +14,7 @@ import java.util.Scanner;
 public class CursoTela {
 
   private final Scanner scanner;
-  private final CursoService cursoService = new CursoService();
-  private final UsuarioService usuarioService = new UsuarioService();
+  private final CursoService cursoService;
 
   /**
    * Cria a tela de cursos.
@@ -24,7 +22,18 @@ public class CursoTela {
    * @param scanner leitor de entrada.
    */
   public CursoTela(Scanner scanner) {
+    this(scanner, new CursoService());
+  }
+
+  /**
+   * Cria a tela de cursos com servico informado.
+   *
+   * @param scanner leitor de entrada.
+   * @param cursoService servico de cursos.
+   */
+  public CursoTela(Scanner scanner, CursoService cursoService) {
     this.scanner = scanner;
+    this.cursoService = cursoService;
   }
 
   /**
@@ -44,11 +53,10 @@ public class CursoTela {
           EntradaTela.lerInteiroPositivoOuCancelar(
               scanner, "Informe a carga horaria total: ");
 
-      String matriculaCoordenador = selecionarCoordenadorDoCurso();
+      String matricula = selecionarCoordenadorDoCurso();
 
-      Curso novoCurso =
-          new Curso(nome, quantidadePeriodos, cargaHorariaTotal, matriculaCoordenador);
-      cursoService.cadastrarCurso(novoCurso);
+      Curso novoCurso = new Curso(nome, quantidadePeriodos, cargaHorariaTotal);
+      cursoService.cadastrarCurso(novoCurso, matricula);
 
       System.out.println("Curso cadastrado com sucesso.");
       System.out.println("Código gerado: " + novoCurso.getCodigo());
@@ -92,79 +100,53 @@ public class CursoTela {
     System.out.println("    Codigo interno: " + curso.getCodigo());
     System.out.println("    Periodos: " + curso.getQuantidadePeriodos());
     System.out.println("    Carga horaria: " + curso.getCargaHorariaTotal() + "h");
-    System.out.println(
-        "    Coordenador: " + buscarNomeCoordenador(curso.getMatriculaCoordenador()));
+    System.out.println("    Coordenador: " + buscarNomeCoordenador(curso.getCodigo()));
   }
 
   private String selecionarCoordenadorDoCurso() {
-    List<Coordenador> coordenadores = usuarioService.listarCoordenadores();
-
-    if (coordenadores == null || coordenadores.isEmpty()) {
-      System.out.println("Nenhum coordenador cadastrado. O curso sera cadastrado sem coordenador.");
-      return null;
-    }
+    List<Coordenador> coordenadores = cursoService.listarCoordenadoresSemCurso();
 
     listarCoordenadoresParaSelecao(coordenadores);
-    int opcao = lerOpcaoCoordenador(coordenadores.size());
+    int opcaoSemCoordenador = coordenadores.size() + 1;
+    int opcao = lerOpcaoCoordenador(opcaoSemCoordenador);
 
-    if (opcao == 0) {
+    if (opcao == opcaoSemCoordenador) {
       return null;
     }
 
-    Coordenador coordenador = coordenadores.get(opcao - 1);
-
-    if (coordenador.getCodigoCurso() != null && !coordenador.getCodigoCurso().isBlank()) {
-      throw new EntradaInvalidaException("Coordenador ja esta vinculado a outro curso.");
-    }
-
-    return coordenador.getMatricula();
+    return coordenadores.get(opcao - 1).getMatricula();
   }
 
   private void listarCoordenadoresParaSelecao(List<Coordenador> coordenadores) {
-    System.out.println("Coordenadores cadastrados:");
-    System.out.println("0 - Cancelar cadastro");
+    if (coordenadores.isEmpty()) {
+      System.out.println("Nenhum coordenador disponivel para vinculacao.");
+    } else {
+      System.out.println("Coordenadores disponiveis:");
+    }
+    System.out.println();
 
     for (int i = 0; i < coordenadores.size(); i++) {
       Coordenador coordenador = coordenadores.get(i);
-      String cursoVinculado = coordenador.getCodigoCurso();
-
-      if (cursoVinculado == null || cursoVinculado.isBlank()) {
-        cursoVinculado = "sem curso vinculado";
-      } else {
-        cursoVinculado = "vinculado ao curso " + cursoVinculado;
-      }
-
-      System.out.println(
-          (i + 1)
-              + " - "
-              + coordenador.getNome()
-              + " | Matricula: "
-              + coordenador.getMatricula()
-              + " | "
-              + cursoVinculado);
+      System.out.println((i + 1) + " - " + coordenador.getNome());
+      System.out.println("    Matricula: " + coordenador.getMatricula());
+      System.out.println("    Email: " + coordenador.getEmail());
+      System.out.println();
     }
+
+    System.out.println((coordenadores.size() + 1) + " - Cadastrar curso sem coordenador");
+    System.out.println("0 - Voltar");
+    System.out.println();
   }
 
-  private String buscarNomeCoordenador(String matriculaCoordenador) {
-    if (matriculaCoordenador == null || matriculaCoordenador.isBlank()) {
-      return "-";
-    }
-
-    for (Coordenador coordenador : usuarioService.listarCoordenadores()) {
-      if (matriculaCoordenador.equalsIgnoreCase(coordenador.getMatricula())) {
-        return coordenador.getNome();
-      }
-    }
-
-    return matriculaCoordenador;
+  private String buscarNomeCoordenador(String codigoCurso) {
+    Coordenador coordenador = cursoService.buscarCoordenadorPorCurso(codigoCurso);
+    return coordenador == null ? "Não definido" : coordenador.getNome();
   }
 
-  private int lerOpcaoCoordenador(int quantidadeCoordenadores) {
+  private int lerOpcaoCoordenador(int opcaoSemCoordenador) {
     int opcao =
         EntradaTela.lerOpcaoOuCancelar(
-            scanner,
-            "Escolha o numero do coordenador ou 0 para cancelar: ",
-            quantidadeCoordenadores);
+            scanner, "Informe uma opcao: ", opcaoSemCoordenador);
 
     if (opcao == 0) {
       throw new EntradaTela.EntradaCanceladaException();

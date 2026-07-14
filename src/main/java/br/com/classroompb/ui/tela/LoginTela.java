@@ -18,7 +18,7 @@ import java.util.Scanner;
 public class LoginTela {
 
   private final Scanner scanner;
-  private final UsuarioService usuarioService = new UsuarioService();
+  private final UsuarioService usuarioService;
 
   /**
    * Cria a tela de login.
@@ -26,7 +26,18 @@ public class LoginTela {
    * @param scanner leitor de entrada.
    */
   public LoginTela(Scanner scanner) {
+    this(scanner, new UsuarioService());
+  }
+
+  /**
+   * Cria a tela de login com dependencias injetadas.
+   *
+   * @param scanner leitor de entrada.
+   * @param usuarioService servico de usuarios.
+   */
+  public LoginTela(Scanner scanner, UsuarioService usuarioService) {
     this.scanner = scanner;
+    this.usuarioService = usuarioService;
   }
 
   /**
@@ -53,22 +64,22 @@ public class LoginTela {
   private void redirecionarUsuario(Usuario usuario) {
     switch (usuario.getTipoUsuario()) {
       case ALUNO:
-        MenuAluno menuAluno = new MenuAluno((Aluno) usuario);
+        MenuAluno menuAluno = new MenuAluno((Aluno) usuario, scanner);
         menuAluno.iniciar();
         break;
 
       case PROFESSOR:
-        MenuProfessor menuProfessor = new MenuProfessor((Professor) usuario);
+        MenuProfessor menuProfessor = new MenuProfessor((Professor) usuario, scanner);
         menuProfessor.iniciar();
         break;
 
       case COORDENADOR:
-        MenuCoordenador menuCoordenador = new MenuCoordenador((Coordenador) usuario);
+        MenuCoordenador menuCoordenador = new MenuCoordenador((Coordenador) usuario, scanner);
         menuCoordenador.iniciar();
         break;
 
       case ADMINISTRADOR:
-        MenuAdministrador menuAdmin = new MenuAdministrador((Administrador) usuario);
+        MenuAdministrador menuAdmin = new MenuAdministrador((Administrador) usuario, scanner);
         menuAdmin.iniciar();
         break;
 

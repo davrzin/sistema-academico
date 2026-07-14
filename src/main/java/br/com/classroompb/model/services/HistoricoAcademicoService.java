@@ -15,13 +15,13 @@ public class HistoricoAcademicoService {
 
   private final BoletimService boletimService;
   private final TurmaService turmaService;
+  private final SituacaoAcademicaService situacaoAcademicaService;
 
   /**
    * Cria o servico de historico academico com dependencias padrao.
    */
   public HistoricoAcademicoService() {
-    this.boletimService = new BoletimService();
-    this.turmaService = new TurmaService();
+    this(new BoletimService(), new TurmaService());
   }
 
   /**
@@ -33,6 +33,7 @@ public class HistoricoAcademicoService {
   public HistoricoAcademicoService(BoletimService boletimService, TurmaService turmaService) {
     this.boletimService = boletimService;
     this.turmaService = turmaService;
+    this.situacaoAcademicaService = new SituacaoAcademicaService();
   }
 
   /**
@@ -69,7 +70,7 @@ public class HistoricoAcademicoService {
     item.setNomeProfessor(buscarNomeProfessor(turma));
     item.setNotaFinal(calcularNotaFinal(boletim));
     item.setFrequencia(buscarFrequencia(boletim));
-    item.setSituacao(definirSituacao(boletim, item.getNotaFinal()));
+    item.setSituacao(situacaoAcademicaService.determinar(boletim).getDescricao());
 
     return item;
   }
@@ -131,31 +132,12 @@ public class HistoricoAcademicoService {
   }
 
   private Double calcularNotaFinal(Boletim boletim) {
-    if (!possuiNotasLancadas(boletim)) {
-      return null;
-    }
-
-    return (boletim.getPrimeiraNota() + boletim.getSegundaNota()) / 2.0;
+    Float media = boletim.calcularMediaFinal();
+    return media == null ? null : media.doubleValue();
   }
 
   private Double buscarFrequencia(Boletim boletim) {
-    if (!possuiNotasLancadas(boletim) && boletim.getFrequencia() == 0.0) {
-      return null;
-    }
-
     return boletim.getFrequencia();
-  }
-
-  private String definirSituacao(Boletim boletim, Double notaFinal) {
-    if (!possuiNotasLancadas(boletim) || notaFinal == null) {
-      return "Cursando";
-    }
-
-    return notaFinal >= 7.0 ? "Aprovado" : "Reprovado";
-  }
-
-  private boolean possuiNotasLancadas(Boletim boletim) {
-    return boletim.getPrimeiraNota() > 0.0 || boletim.getSegundaNota() > 0.0;
   }
 
   private Comparator<ItemHistoricoAcademico> comparadorHistorico() {

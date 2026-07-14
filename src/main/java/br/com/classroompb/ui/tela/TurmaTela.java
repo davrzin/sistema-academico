@@ -1,9 +1,9 @@
 package br.com.classroompb.ui.tela;
 
 import br.com.classroompb.model.entities.gestaoacademica.Aula;
+import br.com.classroompb.model.entities.gestaoacademica.Boletim;
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
-import br.com.classroompb.model.entities.gestaoacademica.Boletim;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.entities.usuario.Professor;
@@ -194,7 +194,7 @@ public class TurmaTela {
 
       turmaService.alterarTurma(codigo, turmaAtualizada);
 
-      System.out.println("Turma updated com sucesso.");
+      System.out.println("Turma atualizada com sucesso.");
 
     } catch (EntradaTela.EntradaCanceladaException e) {
       System.out.println("Atualizacao de turma cancelada.");
@@ -982,7 +982,7 @@ public class TurmaTela {
   }
 
   /**
-   * MODIFICADO TASK 2463: Solicita o lancamento ou alteracao de notas por professor.
+   * Solicita o lancamento ou alteracao de notas por professor.
    *
    * @param professorLogado professor logado.
    */
@@ -1038,9 +1038,6 @@ public class TurmaTela {
     throw new EntradaInvalidaException("Opcao invalida. Escolha 0, 1, 2 ou 3.");
   }
 
-  /**
-   * REQUISITO TASK 2463: Intercepta o menu para renderizar o comprovante visual estilizado das notas.
-   */
   private void lancarNotasSelecionadas(
       String codigoTurma, String matriculaAluno, Professor professorLogado, int opcaoLancamento) {
     String matriculaProfessor = professorLogado.getMatricula();
@@ -1068,28 +1065,37 @@ public class TurmaTela {
     exibirComprovanteLancamentoVisual(codigoTurma, matriculaAluno);
   }
 
-  /**
-   * REQUISITO VISUAL ESTILIZADO EXIGIDO PELA TASK 2463.
-   */
   private void exibirComprovanteLancamentoVisual(String codigoTurma, String matriculaAluno) {
-    Boletim b = boletimService.buscarBoletimPorAlunoETurma(matriculaAluno, codigoTurma);
+    Boletim boletim = boletimService.buscarBoletimPorAlunoETurma(matriculaAluno, codigoTurma);
     Aluno aluno = usuarioService.buscarAlunoPorMatricula(matriculaAluno);
-    
-    if (b != null && aluno != null) {
+
+    if (boletim != null && aluno != null) {
       System.out.println("\n=========================================================");
-      System.out.println("          🧾 COMPROVANTE DE LANÇAMENTO DE NOTAS          ");
+      System.out.println("          COMPROVANTE DE LANCAMENTO DE NOTAS             ");
       System.out.println("=========================================================");
-      System.out.println(" CÓDIGO DA TURMA       : " + codigoTurma);
-      System.out.println(" ESTUDANTE AVALIADO    : " + aluno.getNome() + " (" + matriculaAluno + ")");
+      System.out.println(" CODIGO DA TURMA       : " + codigoTurma);
+      System.out.println(
+          " ESTUDANTE AVALIADO    : " + aluno.getNome() + " (" + matriculaAluno + ")");
       System.out.println("---------------------------------------------------------");
-      System.out.println(" NOTA DA ETAPA 1       : " + b.getPrimeiraNota());
-      System.out.println(" NOTA DA ETAPA 2       : " + b.getSegundaNota());
+      System.out.println(
+          " NOTA DA ETAPA 1       : " + formatarNotaComprovante(boletim.getPrimeiraNota()));
+      System.out.println(
+          " NOTA DA ETAPA 2       : " + formatarNotaComprovante(boletim.getSegundaNota()));
       System.out.println("---------------------------------------------------------");
-      System.out.println(" MÉDIA CONSOLIDADA     : ✅ " + b.getMediaFinal() + " (PROCESSADA)");
+      System.out.println(
+          " MEDIA CONSOLIDADA     : " + formatarMediaComprovante(boletim.calcularMediaFinal()));
       System.out.println("=========================================================\n");
     } else {
       System.out.println("Notas registradas com sucesso.");
     }
+  }
+
+  static String formatarNotaComprovante(Float nota) {
+    return nota == null ? "--" : String.format("%.1f", nota);
+  }
+
+  static String formatarMediaComprovante(Float media) {
+    return media == null ? "--" : String.format("%.2f", media);
   }
 
   private float lerNota(String rotulo) {

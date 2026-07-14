@@ -10,10 +10,10 @@ public class Boletim {
   private String idBoletim;
   private String matriculaAluno;
   private String codigoTurma;
-  private float primeiraNota;
-  private float segundaNota;
+  private Float primeiraNota;
+  private Float segundaNota;
   private float mediaFinal; // REQUISITO DA TASK 2461: Campo para persistência atômica da média
-  private double frequencia;
+  private Double frequencia;
   private String situacao; // REQUISITO DA TASK 2465: Campo para persistência da situação final
 
   /**
@@ -94,7 +94,7 @@ public class Boletim {
    *
    * @return primeira nota.
    */
-  public float getPrimeiraNota() {
+  public Float getPrimeiraNota() {
     return primeiraNota;
   }
 
@@ -103,7 +103,7 @@ public class Boletim {
    *
    * @param primeiraNota primeira nota.
    */
-  public void setPrimeiraNota(float primeiraNota) {
+  public void setPrimeiraNota(Float primeiraNota) {
     validarNota(primeiraNota);
     this.primeiraNota = primeiraNota;
     atualizarSituacaoFinal();
@@ -114,7 +114,7 @@ public class Boletim {
    *
    * @return segunda nota.
    */
-  public float getSegundaNota() {
+  public Float getSegundaNota() {
     return segundaNota;
   }
 
@@ -123,10 +123,22 @@ public class Boletim {
    *
    * @param segundaNota segunda nota.
    */
-  public void setSegundaNota(float segundaNota) {
+  public void setSegundaNota(Float segundaNota) {
     validarNota(segundaNota);
     this.segundaNota = segundaNota;
     atualizarSituacaoFinal();
+  }
+
+  /**
+   * Calcula a media final a partir das notas atuais.
+   *
+   * @return media aritmetica das duas notas.
+   */
+  public Float calcularMediaFinal() {
+    if (!possuiTodasAsNotas()) {
+      return null;
+    }
+    return (primeiraNota + segundaNota) / 2.0f;
   }
 
   /**
@@ -151,12 +163,32 @@ public class Boletim {
     atualizarSituacaoFinal();
   }
 
+  /** Retorna se a primeira nota foi lancada. */
+  public boolean possuiPrimeiraNota() {
+    return primeiraNota != null;
+  }
+
+  /** Retorna se a segunda nota foi lancada. */
+  public boolean possuiSegundaNota() {
+    return segundaNota != null;
+  }
+
+  /** Retorna se todas as notas foram lancadas. */
+  public boolean possuiTodasAsNotas() {
+    return possuiPrimeiraNota() && possuiSegundaNota();
+  }
+
+  /** Retorna se a frequencia foi calculada. */
+  public boolean possuiFrequenciaCalculada() {
+    return frequencia != null;
+  }
+
   /**
    * Retorna a frequencia.
    *
    * @return frequencia.
    */
-  public double getFrequencia() {
+  public Double getFrequencia() {
     return frequencia;
   }
 
@@ -165,7 +197,7 @@ public class Boletim {
    *
    * @param frequencia frequencia.
    */
-  public void setFrequencia(double frequencia) {
+  public void setFrequencia(Double frequencia) {
     validarFrequencia(frequencia);
     this.frequencia = frequencia;
     atualizarSituacaoFinal();
@@ -193,7 +225,7 @@ public class Boletim {
    * REQUISITO TASK 2465: Centraliza as regras de aprovação e reprovação regulatórias.
    */
   private void atualizarSituacaoFinal() {
-    if (this.frequencia < 75.0) {
+    if (this.frequencia != null && this.frequencia < 75.0) {
       this.situacao = "REPROVADO_POR_FALTA";
     } else if (this.mediaFinal >= 7.0f) {
       this.situacao = "APROVADO";
@@ -215,8 +247,8 @@ public class Boletim {
     validarQuantidadeDeAulasMinistradas(quantidadeDeAulas, cargaHorariaTotal);
 
     if (quantidadeDeAulas == 0) {
-      setFrequencia(100.0);
-      return 100.0;
+      setFrequencia(null);
+      return null;
     }
 
     double freqCalculada = (double) ((quantidadeDeFaltas) * 100) / quantidadeDeAulas;
@@ -237,14 +269,15 @@ public class Boletim {
     }
   }
 
-  private void validarFrequencia(double frequencia) {
-    if (frequencia < 0 || frequencia > 100.0) {
+  private void validarFrequencia(Double frequencia) {
+    if (frequencia != null
+        && (!Double.isFinite(frequencia) || frequencia < 0 || frequencia > 100.0)) {
       throw new EntradaInvalidaException("A frequência deve estar entre 0 e 100");
     }
   }
 
-  private void validarNota(float nota) {
-    if (nota < 0 || nota > 10.0) {
+  private void validarNota(Float nota) {
+    if (nota != null && (!Float.isFinite(nota) || nota < 0 || nota > 10.0)) {
       throw new EntradaInvalidaException("A nota deve entrar entre 0 e 10.");
     }
   }

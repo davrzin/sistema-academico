@@ -82,7 +82,7 @@ public class BoletimService {
     String codigo = gerarCodigoBoletim();
     boletim.setIdBoletim(codigo);
 
-    recalcularMedia(boletim);
+    recalcularMedia(boletim); // Garante que a média e a situação inicial sejam calculadas
     repository.salvarBoletim(boletim);
 
     return boletim;
@@ -161,12 +161,12 @@ public class BoletimService {
       String matriculaProfessor) {
     Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
     
-    validarCicloVidaAtivo(codigoTurma);
+    validarCicloVidaAtivo(codigoTurma); // Requisito core da trava de segurança
 
     boletim.setPrimeiraNota(primeiraNota);
     boletim.setSegundaNota(segundaNota);
     
-    recalcularMedia(boletim);
+    recalcularMedia(boletim); // Dispara o motor de média e definição da situação final
     repository.atualizarBoletins(boletim);
   }
 
@@ -285,7 +285,7 @@ public class BoletimService {
     if (turma.getMatriculaProfessor() == null
         || !turma.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor.trim())) {
       throw new EntradaInvalidaException(
-          "Professor nao pode lancar notas in turma de outro professor.");
+          "Professor nao pode lancar notas em turma de outro professor.");
     }
 
     return turma;
