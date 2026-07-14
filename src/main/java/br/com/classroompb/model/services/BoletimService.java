@@ -19,6 +19,9 @@ public class BoletimService {
   private static final Path DIRETORIO_TURMAS = PersistenciaPaths.TURMAS;
   private final BoletimRepository repository;
   private final TurmaRepository turmaRepository;
+  
+  // Campo adicionado para permitir a injeção do serviço configurado nos testes
+  private TurmaService turmaService;
 
   /**
    * Cria o servico de boletins com repositorio padrao.
@@ -47,6 +50,15 @@ public class BoletimService {
   public BoletimService(BoletimRepository repository, TurmaRepository turmaRepository) {
     this.repository = repository;
     this.turmaRepository = turmaRepository;
+  }
+
+  /**
+   * Define o servico de turmas para o contexto de execucao.
+   *
+   * @param turmaService servico de turmas.
+   */
+  public void setTurmaService(TurmaService turmaService) {
+    this.turmaService = turmaService;
   }
 
   /**
@@ -149,7 +161,6 @@ public class BoletimService {
       String matriculaProfessor) {
     Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
     
-    // REQUISITO DA TASK 2464: Trava de seguranca para impedir retificacoes de periodos passados
     validarCicloVidaAtivo(codigoTurma);
 
     boletim.setPrimeiraNota(primeiraNota);
@@ -210,16 +221,15 @@ public class BoletimService {
   private void validarCicloVidaAtivo(String codigoTurma) {
     Turma turma = turmaRepository.buscarTurmaPorCodigo(codigoTurma);
     if (turma != null) {
-      br.com.classroompb.model.services.TurmaService tService = new br.com.classroompb.model.services.TurmaService();
+      TurmaService tService = this.turmaService != null ? this.turmaService : new TurmaService();
       String periodoAtivo = tService.buscarPeriodoLetivoAtivo();
       
-      // CORREÇÃO: Se não houver período ativo cadastrado (ambiente de teste), ignora a validação.
       if (periodoAtivo == null) {
         return;
       }
       
       if (!periodoAtivo.equalsIgnoreCase(turma.getPeriodoLetivo())) {
-        throw new EntradaInvalidaException("Ação地位 bloqueada: Não é permitido alterar notas de uma turma de um período letivo encerrado.");
+        throw new EntradaInvalidaException("Ação bloqueada: Não é permitido alterar notas de uma turma de um período letivo encerrado.");
       }
     }
   }

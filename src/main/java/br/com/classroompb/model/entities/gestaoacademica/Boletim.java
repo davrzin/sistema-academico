@@ -14,6 +14,7 @@ public class Boletim {
   private float segundaNota;
   private float mediaFinal; // REQUISITO DA TASK 2461: Campo para persistência atômica da média
   private double frequencia;
+  private String situacao; // REQUISITO DA TASK 2465: Campo para persistência da situação final
 
   /**
    * Cria um boletim vazio.
@@ -29,6 +30,7 @@ public class Boletim {
   public Boletim(String matriculaAluno, String codigoTurma) {
     setMatriculaAluno(matriculaAluno);
     setCodigoTurma(codigoTurma);
+    this.situacao = "EM_ANDAMENTO";
   }
 
   /**
@@ -104,6 +106,7 @@ public class Boletim {
   public void setPrimeiraNota(float primeiraNota) {
     validarNota(primeiraNota);
     this.primeiraNota = primeiraNota;
+    atualizarSituacaoFinal();
   }
 
   /**
@@ -123,6 +126,7 @@ public class Boletim {
   public void setSegundaNota(float segundaNota) {
     validarNota(segundaNota);
     this.segundaNota = segundaNota;
+    atualizarSituacaoFinal();
   }
 
   /**
@@ -144,6 +148,7 @@ public class Boletim {
       throw new EntradaInvalidaException("A média final deve estar entre 0 e 10.");
     }
     this.mediaFinal = mediaFinal;
+    atualizarSituacaoFinal();
   }
 
   /**
@@ -163,6 +168,38 @@ public class Boletim {
   public void setFrequencia(double frequencia) {
     validarFrequencia(frequencia);
     this.frequencia = frequencia;
+    atualizarSituacaoFinal();
+  }
+
+  /**
+   * Retorna a situação final do aluno.
+   *
+   * @return situação final.
+   */
+  public String getSituacao() {
+    return situacao;
+  }
+
+  /**
+   * Define a situação final do aluno.
+   *
+   * @param situacao situação final.
+   */
+  public void setSituacao(String situacao) {
+    this.situacao = situacao;
+  }
+
+  /**
+   * REQUISITO TASK 2465: Centraliza as regras de aprovação e reprovação regulatórias.
+   */
+  private void atualizarSituacaoFinal() {
+    if (this.frequencia < 75.0) {
+      this.situacao = "REPROVADO_POR_FALTA";
+    } else if (this.mediaFinal >= 7.0f) {
+      this.situacao = "APROVADO";
+    } else {
+      this.situacao = "REPROVADO_POR_MEDIA";
+    }
   }
 
   /**
@@ -182,10 +219,10 @@ public class Boletim {
       return 100.0;
     }
 
-    double frequencia = (double) ((quantidadeDeFaltas) * 100) / quantidadeDeAulas;
+    double freqCalculada = (double) ((quantidadeDeFaltas) * 100) / quantidadeDeAulas;
 
-    setFrequencia(100.00 - frequencia);
-    return 100.0 - frequencia;
+    setFrequencia(100.00 - freqCalculada);
+    return 100.0 - freqCalculada;
   }
 
   private void validarMatriculaAluno(String matriculaAluno) {
@@ -229,14 +266,14 @@ public class Boletim {
   @Override
   public String toString() {
     return "Boletim{"
-        + "primeiraNota="
-        + primeiraNota
-        + ", segundaNota="
-        + segundaNota
-        + ", mediaFinal="
-        + mediaFinal
-        + ", frequencia="
-        + frequencia
+        + "idBoletim='" + idBoletim + '\''
+        + ", matriculaAluno='" + matriculaAluno + '\''
+        + ", codigoTurma='" + codigoTurma + '\''
+        + ", primeiraNota=" + primeiraNota
+        + ", segundaNota=" + segundaNota
+        + ", mediaFinal=" + mediaFinal
+        + ", frequencia=" + frequencia
+        + ", situacao='" + situacao + '\''
         + '}';
   }
 }
