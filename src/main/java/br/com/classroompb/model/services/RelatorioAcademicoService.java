@@ -2,6 +2,7 @@ package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.ItemRelatorioAlunoTurma;
 import br.com.classroompb.model.entities.gestaoacademica.RelatorioAlunosTurma;
+import br.com.classroompb.model.entities.gestaoacademica.RelatorioOcupacaoVagas;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
@@ -70,6 +71,36 @@ public class RelatorioAcademicoService {
     relatorio.setLimiteVagas(turma.getLimiteVagas());
     relatorio.setTotalMatriculados(alunos.size());
     relatorio.setAlunos(alunos);
+
+    return relatorio;
+  }
+
+  /**
+   * Monta o relatorio de ocupacao de vagas de uma turma.
+   *
+   * @param coordenador coordenador logado.
+   * @param turma turma consultada.
+   * @return relatorio montado.
+   */
+  public RelatorioOcupacaoVagas gerarRelatorioOcupacaoVagas(
+      Coordenador coordenador, Turma turma) {
+    validarCoordenador(coordenador);
+    validarTurma(turma);
+    turmaService.validarTurmaPertenceAoCurso(turma.getCodigo(), coordenador.getCodigoCurso());
+
+    int limiteVagas = turma.getLimiteVagas();
+    int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
+    int vagasDisponiveis = Math.max(limiteVagas - vagasOcupadas, 0);
+    double percentualOcupacao = vagasOcupadas * 100.0 / limiteVagas;
+
+    RelatorioOcupacaoVagas relatorio = new RelatorioOcupacaoVagas();
+    relatorio.setCodigoTurma(turma.getCodigo());
+    relatorio.setNomeDisciplina(buscarNomeDisciplina(turma));
+    relatorio.setPeriodoLetivo(turma.getPeriodoLetivo());
+    relatorio.setLimiteVagas(limiteVagas);
+    relatorio.setVagasOcupadas(vagasOcupadas);
+    relatorio.setVagasDisponiveis(vagasDisponiveis);
+    relatorio.setPercentualOcupacao(percentualOcupacao);
 
     return relatorio;
   }

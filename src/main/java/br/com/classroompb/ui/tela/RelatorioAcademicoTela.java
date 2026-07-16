@@ -2,6 +2,7 @@ package br.com.classroompb.ui.tela;
 
 import br.com.classroompb.model.entities.gestaoacademica.ItemRelatorioAlunoTurma;
 import br.com.classroompb.model.entities.gestaoacademica.RelatorioAlunosTurma;
+import br.com.classroompb.model.entities.gestaoacademica.RelatorioOcupacaoVagas;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.services.RelatorioAcademicoService;
@@ -47,6 +48,34 @@ public class RelatorioAcademicoTela {
     }
   }
 
+  /**
+   * Exibe o relatorio de ocupacao de vagas por turma.
+   *
+   * @param coordenadorLogado coordenador logado.
+   */
+  public void gerarRelatorioOcupacaoVagas(Coordenador coordenadorLogado) {
+    try {
+      List<Turma> turmas = relatorioService.listarTurmasDoCoordenador(coordenadorLogado);
+
+      if (turmas.isEmpty()) {
+        System.out.println("Nenhuma turma encontrada para este curso.");
+        return;
+      }
+
+      System.out.println("Relatório de ocupação de vagas");
+
+      for (Turma turma : turmas) {
+        RelatorioOcupacaoVagas relatorio =
+            relatorioService.gerarRelatorioOcupacaoVagas(coordenadorLogado, turma);
+
+        exibirRelatorioOcupacaoVagas(relatorio);
+      }
+
+    } catch (RuntimeException e) {
+      System.out.println("Erro ao gerar relatório: " + e.getMessage());
+    }
+  }
+
   private void exibirRelatorio(RelatorioAlunosTurma relatorio) {
     System.out.println();
     System.out.println(
@@ -74,6 +103,20 @@ public class RelatorioAcademicoTela {
     System.out.println(numero + " - " + formatarValor(aluno.getNome()));
     System.out.println("    Matrícula: " + formatarValor(aluno.getMatricula()));
     System.out.println("    Email: " + formatarValor(aluno.getEmail()));
+  }
+
+  private void exibirRelatorioOcupacaoVagas(RelatorioOcupacaoVagas relatorio) {
+    System.out.println();
+    System.out.println(
+        "Turma: "
+            + formatarValor(relatorio.getNomeDisciplina())
+            + " - "
+            + formatarValor(relatorio.getCodigoTurma()));
+    System.out.println("Período letivo: " + formatarValor(relatorio.getPeriodoLetivo()));
+    System.out.println("Total de vagas: " + relatorio.getLimiteVagas());
+    System.out.println("Vagas ocupadas: " + relatorio.getVagasOcupadas());
+    System.out.println("Vagas disponíveis: " + relatorio.getVagasDisponiveis());
+    System.out.printf("Ocupação: %.1f%%%n", relatorio.getPercentualOcupacao());
   }
 
   private String formatarValor(String valor) {

@@ -106,6 +106,10 @@ public class MenuCoordenador {
           relatorioAcademicoTela.gerarRelatorioAlunosPorTurma(usuarioLogado);
           break;
 
+        case 15:
+          relatorioAcademicoTela.gerarRelatorioOcupacaoVagas(usuarioLogado);
+          break;
+
         case 0:
           System.out.println("Voltando...");
           break;
@@ -135,6 +139,7 @@ public class MenuCoordenador {
     System.out.println("║ 12 - Ver lista de espera            ║");
     System.out.println("║ 13 - Consultar histórico acadêmico  ║");
     System.out.println("║ 14 - Relatório de alunos por turma  ║");
+    System.out.println("║ 15 - Relatório de ocupação de vagas ║");
     System.out.println("║ 0 - Voltar                          ║");
     System.out.println("╚═════════════════════════════════════╝");
   }
