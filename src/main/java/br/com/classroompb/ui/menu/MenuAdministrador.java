@@ -2,6 +2,7 @@ package br.com.classroompb.ui.menu;
 
 import br.com.classroompb.model.entities.usuario.Administrador;
 import br.com.classroompb.ui.tela.CursoTela;
+import br.com.classroompb.ui.tela.RelatorioUsuarioTela;
 import br.com.classroompb.ui.tela.UsuarioTela;
 import java.util.Scanner;
 
@@ -12,6 +13,7 @@ public class MenuAdministrador {
   private final Administrador usuarioLogado;
   private final UsuarioTela usuarioTela;
   private final CursoTela cursoTela;
+  private final RelatorioUsuarioTela relatorioUsuarioTela;
 
   /** Cria o menu para o administrador logado. */
   public MenuAdministrador(Administrador usuarioLogado, Scanner scanner) {
@@ -19,6 +21,7 @@ public class MenuAdministrador {
     this.scanner = scanner;
     this.usuarioTela = new UsuarioTela(scanner);
     this.cursoTela = new CursoTela(scanner);
+    this.relatorioUsuarioTela = new RelatorioUsuarioTela();
   }
 
   /** Inicia a navegacao pelo menu do administrador. */
@@ -66,6 +69,10 @@ public class MenuAdministrador {
           cursoTela.listarCursos();
           break;
 
+        case 8:
+          relatorioUsuarioTela.gerarRelatorioGeralUsuarios(usuarioLogado);
+          break;
+
         case 0:
           System.out.println("Voltando...");
           break;
@@ -88,6 +95,7 @@ public class MenuAdministrador {
     System.out.println("║ 5 - Remover usuário               ║");
     System.out.println("║ 6 - Cadastrar curso               ║");
     System.out.println("║ 7 - Listar cursos                 ║");
+    System.out.println("║ 8 - Relatório geral de usuários   ║");
     System.out.println("║ 0 - Voltar                        ║");
     System.out.println("╚═══════════════════════════════════╝");
   }
