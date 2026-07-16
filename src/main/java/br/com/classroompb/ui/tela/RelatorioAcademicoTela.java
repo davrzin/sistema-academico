@@ -1,6 +1,7 @@
 package br.com.classroompb.ui.tela;
 
 import br.com.classroompb.model.entities.gestaoacademica.ItemRelatorioAlunoTurma;
+import br.com.classroompb.model.entities.gestaoacademica.ItemRelatorioReprovacaoDisciplina;
 import br.com.classroompb.model.entities.gestaoacademica.RelatorioAlunosTurma;
 import br.com.classroompb.model.entities.gestaoacademica.RelatorioOcupacaoVagas;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
@@ -76,6 +77,31 @@ public class RelatorioAcademicoTela {
     }
   }
 
+  /**
+   * Exibe o relatorio de reprovacao por disciplina.
+   *
+   * @param coordenadorLogado coordenador logado.
+   */
+  public void gerarRelatorioReprovacaoPorDisciplina(Coordenador coordenadorLogado) {
+    try {
+      List<ItemRelatorioReprovacaoDisciplina> relatorios =
+          relatorioService.gerarRelatorioReprovacaoPorDisciplina(coordenadorLogado);
+
+      if (relatorios.isEmpty()) {
+        System.out.println("Nenhuma disciplina encontrada para este curso.");
+        return;
+      }
+
+      System.out.println("Relatório de reprovação por disciplina");
+
+      for (ItemRelatorioReprovacaoDisciplina relatorio : relatorios) {
+        exibirRelatorioReprovacao(relatorio);
+      }
+    } catch (RuntimeException e) {
+      System.out.println("Erro ao gerar relatório: " + e.getMessage());
+    }
+  }
+
   private void exibirRelatorio(RelatorioAlunosTurma relatorio) {
     System.out.println();
     System.out.println(
@@ -117,6 +143,24 @@ public class RelatorioAcademicoTela {
     System.out.println("Vagas ocupadas: " + relatorio.getVagasOcupadas());
     System.out.println("Vagas disponíveis: " + relatorio.getVagasDisponiveis());
     System.out.printf("Ocupação: %.1f%%%n", relatorio.getPercentualOcupacao());
+  }
+
+  private void exibirRelatorioReprovacao(ItemRelatorioReprovacaoDisciplina relatorio) {
+    System.out.println();
+    System.out.println(
+        "Disciplina: "
+            + formatarValor(relatorio.getNomeDisciplina())
+            + " - "
+            + formatarValor(relatorio.getCodigoDisciplina()));
+    System.out.println(
+        "Total de resultados finais: " + relatorio.getTotalResultadosFinais());
+    System.out.println(
+        "Reprovados por nota: " + relatorio.getTotalReprovadosPorNota());
+    System.out.println(
+        "Reprovados por falta: " + relatorio.getTotalReprovadosPorFalta());
+    System.out.println("Total de reprovados: " + relatorio.getTotalReprovados());
+    System.out.printf(
+        "Percentual de reprovação: %.1f%%%n", relatorio.getPercentualReprovacao());
   }
 
   private String formatarValor(String valor) {

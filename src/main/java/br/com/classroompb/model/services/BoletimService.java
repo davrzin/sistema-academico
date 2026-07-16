@@ -132,6 +132,17 @@ public class BoletimService {
   }
 
   /**
+   * Busca boletins pelo codigo da turma.
+   *
+   * @param codigoTurma codigo da turma.
+   * @return boletins da turma.
+   */
+  public List<Boletim> buscarBoletinsPorTurma(String codigoTurma) {
+    validarCodigoTurma(codigoTurma);
+    return repository.buscarBoletinsPorTurma(codigoTurma);
+  }
+
+  /**
    * Lanca ou retifica notas em um boletim.
    *
    * @param matriculaAluno matricula do aluno.

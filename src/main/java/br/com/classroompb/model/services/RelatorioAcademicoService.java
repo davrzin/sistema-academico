@@ -1,14 +1,20 @@
 package br.com.classroompb.model.services;
 
+import br.com.classroompb.model.entities.gestaoacademica.Boletim;
 import br.com.classroompb.model.entities.gestaoacademica.ItemRelatorioAlunoTurma;
+import br.com.classroompb.model.entities.gestaoacademica.ItemRelatorioReprovacaoDisciplina;
 import br.com.classroompb.model.entities.gestaoacademica.RelatorioAlunosTurma;
 import br.com.classroompb.model.entities.gestaoacademica.RelatorioOcupacaoVagas;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
+import br.com.classroompb.model.enums.SituacaoAcademica;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Servico responsavel por montar relatorios academicos.
@@ -17,13 +23,14 @@ public class RelatorioAcademicoService {
 
   private final TurmaService turmaService;
   private final UsuarioService usuarioService;
+  private final BoletimService boletimService;
+  private final SituacaoAcademicaService situacaoAcademicaService;
 
   /**
    * Cria o servico de relatorios com dependencias padrao.
    */
   public RelatorioAcademicoService() {
-    this.turmaService = new TurmaService();
-    this.usuarioService = new UsuarioService();
+    this(new TurmaService(), new UsuarioService(), new BoletimService());
   }
 
   /**
@@ -33,8 +40,24 @@ public class RelatorioAcademicoService {
    * @param usuarioService servico de usuarios.
    */
   public RelatorioAcademicoService(TurmaService turmaService, UsuarioService usuarioService) {
+    this(turmaService, usuarioService, new BoletimService());
+  }
+
+  /**
+   * Cria o servico de relatorios com todas as dependencias informadas.
+   *
+   * @param turmaService servico de turmas.
+   * @param usuarioService servico de usuarios.
+   * @param boletimService servico de boletins.
+   */
+  public RelatorioAcademicoService(
+      TurmaService turmaService,
+      UsuarioService usuarioService,
+      BoletimService boletimService) {
     this.turmaService = turmaService;
     this.usuarioService = usuarioService;
+    this.boletimService = boletimService;
+    this.situacaoAcademicaService = new SituacaoAcademicaService();
   }
 
   /**
@@ -106,6 +129,34 @@ public class RelatorioAcademicoService {
   }
 
   /**
+   * Monta o relatorio de reprovacao agrupado por disciplina.
+   *
+   * @param coordenador coordenador logado.
+   * @return itens do relatorio.
+   */
+  public List<ItemRelatorioReprovacaoDisciplina> gerarRelatorioReprovacaoPorDisciplina(
+      Coordenador coordenador) {
+    Map<String, ItemRelatorioReprovacaoDisciplina> itensPorDisciplina =
+        new LinkedHashMap<>();
+
+    for (Turma turma : listarTurmasDoCoordenador(coordenador)) {
+      ItemRelatorioReprovacaoDisciplina item =
+          itensPorDisciplina.computeIfAbsent(
+              turma.getCodigoDisciplina(), codigo -> criarItemReprovacao(turma));
+
+      for (Boletim boletim : boletimService.buscarBoletinsPorTurma(turma.getCodigo())) {
+        contabilizarSituacao(item, situacaoAcademicaService.determinar(boletim));
+      }
+    }
+
+    List<ItemRelatorioReprovacaoDisciplina> itens =
+        new ArrayList<>(itensPorDisciplina.values());
+    itens.forEach(this::calcularTotaisReprovacao);
+    itens.sort(comparadorReprovacao());
+    return itens;
+  }
+
+  /**
    * Busca o nome da disciplina de uma turma.
    *
    * @param turma turma consultada.
@@ -147,6 +198,63 @@ public class RelatorioAcademicoService {
     }
 
     return nomeProfessor;
+  }
+
+  private ItemRelatorioReprovacaoDisciplina criarItemReprovacao(Turma turma) {
+    ItemRelatorioReprovacaoDisciplina item = new ItemRelatorioReprovacaoDisciplina();
+    item.setCodigoDisciplina(turma.getCodigoDisciplina());
+    item.setNomeDisciplina(buscarNomeDisciplina(turma));
+    return item;
+  }
+
+  private void contabilizarSituacao(
+      ItemRelatorioReprovacaoDisciplina item, SituacaoAcademica situacao) {
+    switch (situacao) {
+      case APROVADO:
+        item.setTotalResultadosFinais(item.getTotalResultadosFinais() + 1);
+        break;
+      case REPROVADO_POR_NOTA:
+        item.setTotalResultadosFinais(item.getTotalResultadosFinais() + 1);
+        item.setTotalReprovadosPorNota(item.getTotalReprovadosPorNota() + 1);
+        break;
+      case REPROVADO_POR_FALTA:
+        item.setTotalResultadosFinais(item.getTotalResultadosFinais() + 1);
+        item.setTotalReprovadosPorFalta(item.getTotalReprovadosPorFalta() + 1);
+        break;
+      case EM_ANDAMENTO:
+      case EM_RECUPERACAO:
+        break;
+      default:
+        break;
+    }
+  }
+
+  private void calcularTotaisReprovacao(ItemRelatorioReprovacaoDisciplina item) {
+    int totalReprovados =
+        item.getTotalReprovadosPorNota() + item.getTotalReprovadosPorFalta();
+    item.setTotalReprovados(totalReprovados);
+
+    if (item.getTotalResultadosFinais() == 0) {
+      item.setPercentualReprovacao(0.0);
+      return;
+    }
+
+    item.setPercentualReprovacao(
+        totalReprovados * 100.0 / item.getTotalResultadosFinais());
+  }
+
+  private Comparator<ItemRelatorioReprovacaoDisciplina> comparadorReprovacao() {
+    return Comparator.comparing(
+            (ItemRelatorioReprovacaoDisciplina item) ->
+                valorOrdenacao(item.getNomeDisciplina()),
+            String.CASE_INSENSITIVE_ORDER)
+        .thenComparing(
+            item -> valorOrdenacao(item.getCodigoDisciplina()),
+            String.CASE_INSENSITIVE_ORDER);
+  }
+
+  private String valorOrdenacao(String valor) {
+    return valor == null ? "" : valor;
   }
 
   private List<ItemRelatorioAlunoTurma> montarItensAlunos(Turma turma) {

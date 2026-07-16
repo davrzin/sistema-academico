@@ -110,6 +110,10 @@ public class MenuCoordenador {
           relatorioAcademicoTela.gerarRelatorioOcupacaoVagas(usuarioLogado);
           break;
 
+        case 16:
+          relatorioAcademicoTela.gerarRelatorioReprovacaoPorDisciplina(usuarioLogado);
+          break;
+
         case 0:
           System.out.println("Voltando...");
           break;
@@ -122,26 +126,27 @@ public class MenuCoordenador {
   }
 
   private void imprimirMenu() {
-    System.out.println("╔═════════════════════════════════════╗");
-    System.out.println("║          MENU COORDENADOR           ║");
-    System.out.println("╠═════════════════════════════════════╣");
-    System.out.println("║ 1 - Cadastrar disciplina            ║");
-    System.out.println("║ 2 - Listar disciplinas              ║");
-    System.out.println("║ 3 - Cadastrar período letivo        ║");
-    System.out.println("║ 4 - Listar períodos letivos         ║");
-    System.out.println("║ 5 - Ativar período letivo           ║");
-    System.out.println("║ 6 - Encerrar período letivo         ║");
-    System.out.println("║ 7 - Cadastrar turma                 ║");
-    System.out.println("║ 8 - Listar turmas                   ║");
-    System.out.println("║ 9 - Atualizar turma                 ║");
-    System.out.println("║ 10 - Cancelar turma                 ║");
-    System.out.println("║ 11 - Buscar aluno/professor         ║");
-    System.out.println("║ 12 - Ver lista de espera            ║");
-    System.out.println("║ 13 - Consultar histórico acadêmico  ║");
-    System.out.println("║ 14 - Relatório de alunos por turma  ║");
-    System.out.println("║ 15 - Relatório de ocupação de vagas ║");
-    System.out.println("║ 0 - Voltar                          ║");
-    System.out.println("╚═════════════════════════════════════╝");
+    System.out.println("╔══════════════════════════════════════════════╗");
+    System.out.println("║              MENU COORDENADOR                ║");
+    System.out.println("╠══════════════════════════════════════════════╣");
+    System.out.println("║ 1 - Cadastrar disciplina                     ║");
+    System.out.println("║ 2 - Listar disciplinas                       ║");
+    System.out.println("║ 3 - Cadastrar período letivo                 ║");
+    System.out.println("║ 4 - Listar períodos letivos                  ║");
+    System.out.println("║ 5 - Ativar período letivo                    ║");
+    System.out.println("║ 6 - Encerrar período letivo                  ║");
+    System.out.println("║ 7 - Cadastrar turma                          ║");
+    System.out.println("║ 8 - Listar turmas                            ║");
+    System.out.println("║ 9 - Atualizar turma                          ║");
+    System.out.println("║ 10 - Cancelar turma                          ║");
+    System.out.println("║ 11 - Buscar aluno/professor                  ║");
+    System.out.println("║ 12 - Ver lista de espera                     ║");
+    System.out.println("║ 13 - Consultar histórico acadêmico           ║");
+    System.out.println("║ 14 - Relatório de alunos por turma           ║");
+    System.out.println("║ 15 - Relatório de ocupação de vagas          ║");
+    System.out.println("║ 16 - Relatório de reprovação por disciplina  ║");
+    System.out.println("║ 0 - Voltar                                   ║");
+    System.out.println("╚══════════════════════════════════════════════╝");
   }
 
   private int lerOpcao() {
