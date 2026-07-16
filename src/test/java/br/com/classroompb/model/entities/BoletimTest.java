@@ -193,13 +193,14 @@ public class BoletimTest {
   }
 
   @Test
-  public void naoDevePersistirMediaSeparadamente() throws JsonProcessingException {
+  public void naoDevePersistirDadosCalculadosSeparadamente() throws JsonProcessingException {
     boletimTeste.setPrimeiraNota(8.0f);
     boletimTeste.setSegundaNota(6.0f);
 
     String json = new ObjectMapper().writeValueAsString(boletimTeste);
 
     Assertions.assertFalse(json.contains("mediaFinal"));
+    Assertions.assertFalse(json.contains("situacao"));
   }
 
   @Test

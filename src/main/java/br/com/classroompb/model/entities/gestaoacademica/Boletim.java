@@ -12,9 +12,7 @@ public class Boletim {
   private String codigoTurma;
   private Float primeiraNota;
   private Float segundaNota;
-  private float mediaFinal; // REQUISITO DA TASK 2461: Campo para persistência atômica da média
   private Double frequencia;
-  private String situacao; // REQUISITO DA TASK 2465: Campo para persistência da situação final
 
   /**
    * Cria um boletim vazio.
@@ -30,7 +28,6 @@ public class Boletim {
   public Boletim(String matriculaAluno, String codigoTurma) {
     setMatriculaAluno(matriculaAluno);
     setCodigoTurma(codigoTurma);
-    this.situacao = "EM_ANDAMENTO";
   }
 
   /**
@@ -106,7 +103,6 @@ public class Boletim {
   public void setPrimeiraNota(Float primeiraNota) {
     validarNota(primeiraNota);
     this.primeiraNota = primeiraNota;
-    atualizarSituacaoFinal();
   }
 
   /**
@@ -126,7 +122,6 @@ public class Boletim {
   public void setSegundaNota(Float segundaNota) {
     validarNota(segundaNota);
     this.segundaNota = segundaNota;
-    atualizarSituacaoFinal();
   }
 
   /**
@@ -139,28 +134,6 @@ public class Boletim {
       return null;
     }
     return (primeiraNota + segundaNota) / 2.0f;
-  }
-
-  /**
-   * Retorna a média final.
-   *
-   * @return média final.
-   */
-  public float getMediaFinal() {
-    return mediaFinal;
-  }
-
-  /**
-   * Define a média final.
-   *
-   * @param mediaFinal média final.
-   */
-  public void setMediaFinal(float mediaFinal) {
-    if (mediaFinal < 0 || mediaFinal > 10.0) {
-      throw new EntradaInvalidaException("A média final deve estar entre 0 e 10.");
-    }
-    this.mediaFinal = mediaFinal;
-    atualizarSituacaoFinal();
   }
 
   /** Retorna se a primeira nota foi lancada. */
@@ -200,38 +173,6 @@ public class Boletim {
   public void setFrequencia(Double frequencia) {
     validarFrequencia(frequencia);
     this.frequencia = frequencia;
-    atualizarSituacaoFinal();
-  }
-
-  /**
-   * Retorna a situação final do aluno.
-   *
-   * @return situação final.
-   */
-  public String getSituacao() {
-    return situacao;
-  }
-
-  /**
-   * Define a situação final do aluno.
-   *
-   * @param situacao situação final.
-   */
-  public void setSituacao(String situacao) {
-    this.situacao = situacao;
-  }
-
-  /**
-   * REQUISITO TASK 2465: Centraliza as regras de aprovação e reprovação regulatórias.
-   */
-  private void atualizarSituacaoFinal() {
-    if (this.frequencia != null && this.frequencia < 75.0) {
-      this.situacao = "REPROVADO_POR_FALTA";
-    } else if (this.mediaFinal >= 7.0f) {
-      this.situacao = "APROVADO";
-    } else {
-      this.situacao = "REPROVADO_POR_MEDIA";
-    }
   }
 
   /**
@@ -304,9 +245,7 @@ public class Boletim {
         + ", codigoTurma='" + codigoTurma + '\''
         + ", primeiraNota=" + primeiraNota
         + ", segundaNota=" + segundaNota
-        + ", mediaFinal=" + mediaFinal
         + ", frequencia=" + frequencia
-        + ", situacao='" + situacao + '\''
         + '}';
   }
 }
