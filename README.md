@@ -10,6 +10,7 @@ de terminal separados por perfil: administrador, coordenador, professor e aluno.
 - Maven
 - JUnit 5
 - Checkstyle com Google Java Style
+- JaCoCo para cobertura de testes
 - Persistencia local em JSON com Jackson
 
 ## Como Rodar
@@ -39,6 +40,14 @@ O estado atual esperado e:
 
 - testes passando;
 - Checkstyle com 0 violacoes.
+
+Para gerar o relatorio de cobertura de testes (JaCoCo):
+
+```bash
+mvn.cmd clean verify
+```
+
+O relatorio HTML fica em `target/site/jacoco/index.html`.
 
 ## Persistencia
 
@@ -78,15 +87,20 @@ dados localmente antes, mantendo esses JSONs fora do commit.
 
 ```text
 src/main/java/
-  br/com/classroompb/application/     Classe principal
-  br/com/classroompb/model/entities/  Entidades do dominio
-  br/com/classroompb/model/repository/Persistencia local
-  br/com/classroompb/model/services/  Regras de negocio
-  br/com/classroompb/ui/              Menus e telas de terminal
+  br/com/classroompb/application/               Classe principal
+  br/com/classroompb/model/entities/gestaoacademica/  Entidades academicas (curso, turma, boletim, etc.)
+  br/com/classroompb/model/entities/usuario/    Entidades de usuario (aluno, professor, coordenador, admin)
+  br/com/classroompb/model/enums/               Enumeracoes do dominio
+  br/com/classroompb/model/exception/           Excecoes de dominio
+  br/com/classroompb/model/repository/          Persistencia local em JSON
+  br/com/classroompb/model/services/            Regras de negocio
+  br/com/classroompb/ui/menu/                   Menus de terminal por perfil
+  br/com/classroompb/ui/tela/                   Telas de interacao com o usuario
 
 src/test/java/                        Testes automatizados
 data/                                 Pastas de persistencia local
 docs/                                 Documentos do projeto
+Releases/                             Relatorios de processo e de release
 ```
 
 ## Roteiro Simples de Apresentacao
@@ -101,14 +115,15 @@ docs/                                 Documentos do projeto
 8. Demonstrar fluxo de aluno: listagem de turmas, matricula e cancelamento.
 9. Demonstrar fluxo de professor: turmas, notas e frequencia.
 
-Observacao: funcionalidades marcadas no menu como ainda nao implementadas, como
-historico academico e diario, nao devem ser apresentadas como concluidas.
+Observacao: a funcionalidade de "listar diario" no menu do professor ainda nao
+foi implementada e nao deve ser apresentada como concluida.
 
 ## Comandos Uteis
 
 ```bash
 mvn.cmd clean test
 mvn.cmd checkstyle:check
+mvn.cmd clean verify
 mvn.cmd exec:java
 ```
 
