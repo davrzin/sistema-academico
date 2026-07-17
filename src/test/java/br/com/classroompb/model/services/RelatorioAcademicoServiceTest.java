@@ -97,7 +97,6 @@ public class RelatorioAcademicoServiceTest {
     private final PeriodoLetivoRepository periodoLetivoRepository;
     private final UserRepository userRepository;
     private final BoletimRepository boletimRepository;
-    private final AulaRepository aulaRepository;
     private final TurmaService turmaService;
     private final UsuarioService usuarioService;
     private final BoletimService boletimService;
@@ -115,7 +114,6 @@ public class RelatorioAcademicoServiceTest {
       this.periodoLetivoRepository = periodoLetivoRepository;
       this.userRepository = userRepository;
       this.boletimRepository = boletimRepository;
-      this.aulaRepository = aulaRepository;
       this.usuarioService = new UsuarioService(userRepository);
       this.turmaService =
           new TurmaService(
@@ -429,7 +427,7 @@ public class RelatorioAcademicoServiceTest {
     Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
     ambiente.userRepository.salvarUsuario(professor2);
 
-    Turma turmaAlgoritmos = criarEOfertarTurma(ambiente, 30);
+    criarEOfertarTurma(ambiente, 30);
     Turma turmaBancoDados =
         new Turma("dis01", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
     ambiente.turmaService.ofertarTurma(turmaBancoDados);
