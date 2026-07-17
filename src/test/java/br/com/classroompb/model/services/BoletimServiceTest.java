@@ -315,4 +315,132 @@ public class BoletimServiceTest {
     Assertions.assertEquals(7.5f, boletimAtualizado.calcularMediaFinal());
   }
 
+  @Test
+  public void deveCriarBoletimServiceComConstrutorDeDoisRepositorios() {
+    BoletimService service = new BoletimService(boletimRepository, turmaRepository);
+
+    Assertions.assertNotNull(service);
+    Assertions.assertEquals(BoletimRepository.class, service.getRepository().getClass());
+  }
+
+  @Test
+  public void deveCriarBoletimQuandoNaoExistirBoletimParaAlunoETurma() {
+    Boletim criado = boletimService.criarBoletimSeNaoExistir("al00", "tur00");
+
+    Assertions.assertNotNull(criado);
+    Assertions.assertEquals("al00", criado.getMatriculaAluno());
+    Assertions.assertEquals("tur00", criado.getCodigoTurma());
+    Assertions.assertEquals(1, boletimService.buscarBoletinsPorAluno("al00").size());
+  }
+
+  @Test
+  public void deveRetornarBoletimExistenteAoInvesDeDuplicarAoCriarSeNaoExistir() {
+    Boletim primeiraChamada = boletimService.criarBoletimSeNaoExistir("al00", "tur00");
+    Boletim segundaChamada = boletimService.criarBoletimSeNaoExistir("al00", "tur00");
+
+    Assertions.assertEquals(primeiraChamada.getIdBoletim(), segundaChamada.getIdBoletim());
+    Assertions.assertEquals(1, boletimService.buscarBoletinsPorAluno("al00").size());
+  }
+
+  @Test
+  public void deveBuscarBoletinsPorTurmaCorretamente() {
+    boletimService.criarBoletim(boletim);
+
+    List<Boletim> boletinsTurma = boletimService.buscarBoletinsPorTurma("tur00");
+
+    Assertions.assertEquals(1, boletinsTurma.size());
+    Assertions.assertEquals("tur00", boletinsTurma.getFirst().getCodigoTurma());
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoBuscarBoletinsPorTurmaComCodigoVazio() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> boletimService.buscarBoletinsPorTurma(""));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoBuscarBoletimPorAlunoETurmaComMatriculaVazia() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.buscarBoletimPorAlunoETurma("", "tur00"));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoBuscarBoletimPorAlunoETurmaComCodigoTurmaVazio() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.buscarBoletimPorAlunoETurma("al00", ""));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoLancarNotasEmTurmaInexistente() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarNotas("turXX", "al00", 7.0f, 8.0f, "pr00"));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoLancarNotasComCodigoTurmaVazio() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarNotas("", "al00", 7.0f, 8.0f, "pr00"));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoLancarNotasComMatriculaProfessorVazia() {
+    prepararTurmaComBoletim(null, null);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarNotas("tur00", "al00", 7.0f, 8.0f, ""));
+  }
+
+  @Test
+  public void naoDeveLancarNotasQuandoPeriodoLetivoDaTurmaEstiverEncerrado() {
+    PeriodoLetivoRepository periodoEncerradoRepository =
+        new PeriodoLetivoRepository(
+            new ObjectMapper(), tempDir.resolve("periodosEncerrados").toString());
+    PeriodoLetivo periodoEncerrado = new PeriodoLetivo("2026.2", "01/07/2026", "30/11/2026");
+    periodoEncerrado.setPeriodoEncerrado(true);
+    periodoEncerradoRepository.salvarPeriodoLetivo(periodoEncerrado);
+
+    BoletimService service =
+        new BoletimService(boletimRepository, turmaRepository, periodoEncerradoRepository);
+
+    Turma turma =
+        new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    turma.getMatriculados().add("al00");
+    turmaRepository.salvarTurma(turma);
+    service.criarBoletim(boletim);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> service.lancarNotas("tur00", "al00", 8.0f, 8.0f, "pr00"));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionQuandoPeriodoLetivoDaTurmaNaoForEncontrado() {
+    Turma turma =
+        new Turma("tur00", "dis00", "9999.1", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    turma.getMatriculados().add("al00");
+    turmaRepository.salvarTurma(turma);
+    boletimService.criarBoletim(boletim);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarNotas("tur00", "al00", 8.0f, 8.0f, "pr00"));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoLancarNotasParaBoletimInexistente() {
+    Turma turma =
+        new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    turma.getMatriculados().add("al00");
+    turmaRepository.salvarTurma(turma);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarNotas("tur00", "al00", 8.0f, 8.0f, "pr00"));
+  }
+
 }

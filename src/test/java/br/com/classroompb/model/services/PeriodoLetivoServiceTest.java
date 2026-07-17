@@ -187,4 +187,60 @@ public class PeriodoLetivoServiceTest {
     Assertions.assertTrue(atualizou);
     Assertions.assertFalse(repository.listarPeriodos().get(0).getPeriodoAtivo());
   }
+
+  @Test
+  public void deveCriarPeriodoLetivoServiceComConstrutorPadrao() {
+    PeriodoLetivoService service = new PeriodoLetivoService();
+
+    Assertions.assertNotNull(service);
+    Assertions.assertEquals(PeriodoLetivoService.class, service.getClass());
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoAtivarPeriodoNull() {
+    PeriodoLetivoRepository repository = criarRepository();
+    PeriodoLetivoService service = criarService(repository);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.ativarPeriodoLetivo(null, 0));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoAtivarPeriodoJaEncerrado() {
+    PeriodoLetivoRepository repository = criarRepository();
+    PeriodoLetivoService service = criarService(repository);
+
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
+    periodo.setPeriodoEncerrado(true);
+    service.cadastrarPeriodoLetivo(periodo);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.ativarPeriodoLetivo(periodo, 0));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDesativarPeriodoNull() {
+    PeriodoLetivoRepository repository = criarRepository();
+    PeriodoLetivoService service = criarService(repository);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.desativarPeriodoLetivo(null, 0));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDesativarPeriodoJaEncerrado() {
+    PeriodoLetivoRepository repository = criarRepository();
+    PeriodoLetivoService service = criarService(repository);
+
+    PeriodoLetivo periodo = new PeriodoLetivo("2026.1", "02/02/2026", "30/06/2026");
+    service.cadastrarPeriodoLetivo(periodo);
+    service.ativarPeriodoLetivo(periodo, 0);
+    service.desativarPeriodoLetivo(periodo, 0);
+
+    PeriodoLetivo periodoEncerrado = repository.listarPeriodos().get(0);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> service.desativarPeriodoLetivo(periodoEncerrado, 0));
+  }
 }

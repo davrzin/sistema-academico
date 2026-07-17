@@ -22,6 +22,7 @@ import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.entities.usuario.Professor;
+import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.repository.AulaRepository;
 import br.com.classroompb.model.repository.BoletimRepository;
@@ -506,5 +507,197 @@ public class RelatorioAcademicoServiceTest {
     Assertions.assertEquals(
         "Professor não encontrado",
         ambiente.relatorioAcademicoService.buscarNomeProfessor(null));
+  }
+
+  @Test
+  public void deveRetornarProfessorNaoEncontradoQuandoMatriculaNaoExiste() {
+    Ambiente ambiente = criarAmbiente();
+    prepararDadosBasicos(ambiente);
+    Turma turmaComProfessorInexistente =
+        new Turma("dis00", "2026.2", "pr99", 30, "SEG 08:00-10:00", "LAB 01");
+
+    Assertions.assertEquals(
+        "Professor não encontrado",
+        ambiente.relatorioAcademicoService.buscarNomeProfessor(turmaComProfessorInexistente));
+  }
+
+  // ---- construtores ----
+
+  @Test
+  public void deveCriarServicoComConstrutorPadrao() {
+    Assertions.assertNotNull(new RelatorioAcademicoService());
+  }
+
+  @Test
+  public void deveCriarServicoComConstrutorDeDuasDependencias() {
+    Ambiente ambiente = criarAmbiente();
+
+    Assertions.assertNotNull(
+        new RelatorioAcademicoService(ambiente.turmaService, ambiente.usuarioService));
+  }
+
+  // ---- validacoes de coordenador adicionais ----
+
+  @Test
+  public void deveLancarExcecaoAoListarTurmasComCoordenadorDeCodigoCursoEmBranco() {
+    Ambiente ambiente = criarAmbiente();
+    Coordenador coordenadorCursoEmBranco =
+        new Coordenador("Ana", "ana@email.com", "co01", "senha123", "  ");
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () ->
+            ambiente.relatorioAcademicoService.listarTurmasDoCoordenador(
+                coordenadorCursoEmBranco));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoGerarRelatorioDeAlunosComCoordenadorNull() {
+    Ambiente ambiente = criarAmbiente();
+    prepararDadosBasicos(ambiente);
+    Turma turma = criarEOfertarTurma(ambiente, 30);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () ->
+            ambiente.relatorioAcademicoService.gerarRelatorioAlunosTurma(null, turma));
+  }
+
+  @Test
+  public void deveGerarRelatorioDeAlunosComAlunoRemovidoDaBase() {
+    Ambiente ambiente = criarAmbiente();
+    prepararDadosBasicos(ambiente);
+    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
+    ambiente.userRepository.salvarUsuario(aluno);
+    ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
+    ambiente.userRepository.removerPorMatricula("al00", TipoUsuario.ALUNO);
+    Turma turmaAtualizada = buscarTurmaAtualizada(ambiente, turma.getCodigo());
+
+    RelatorioAlunosTurma relatorio =
+        ambiente.relatorioAcademicoService.gerarRelatorioAlunosTurma(
+            criarCoordenador(), turmaAtualizada);
+
+    ItemRelatorioAlunoTurma item = relatorio.getAlunos().get(0);
+    Assertions.assertEquals("al00", item.getMatricula());
+    Assertions.assertEquals("Aluno não encontrado", item.getNome());
+    Assertions.assertEquals("-", item.getEmail());
+  }
+
+  @Test
+  public void deveLancarExcecaoAoGerarRelatorioDeOcupacaoComCoordenadorNull() {
+    Ambiente ambiente = criarAmbiente();
+    prepararDadosBasicos(ambiente);
+    Turma turma = criarEOfertarTurma(ambiente, 30);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () ->
+            ambiente.relatorioAcademicoService.gerarRelatorioOcupacaoVagas(null, turma));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoGerarRelatorioDeOcupacaoComTurmaNull() {
+    Ambiente ambiente = criarAmbiente();
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () ->
+            ambiente.relatorioAcademicoService.gerarRelatorioOcupacaoVagas(
+                criarCoordenador(), null));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoGerarRelatorioDeOcupacaoComTurmaDeOutroCurso() {
+    Ambiente ambiente = criarAmbiente();
+    prepararDadosBasicos(ambiente);
+    ambiente.disciplinaRepository.salvarDisciplina(
+        new Disciplina("dis01", "Redes", 60, 1, 4, "cur99", List.of()));
+    Professor professorOutroCurso =
+        criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
+    ambiente.userRepository.salvarUsuario(professorOutroCurso);
+    Turma turmaOutroCurso =
+        new Turma("dis01", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
+    ambiente.turmaService.ofertarTurma(turmaOutroCurso);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () ->
+            ambiente.relatorioAcademicoService.gerarRelatorioOcupacaoVagas(
+                criarCoordenador(), turmaOutroCurso));
+  }
+
+  @Test
+  public void naoDeveContabilizarBoletinsEmRecuperacaoNoTotalDeReprovados() {
+    Ambiente ambiente = criarAmbiente();
+    prepararDadosBasicos(ambiente);
+    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Aluno alunoEmRecuperacao = criarAluno("Ana", "ana@email.com", "al00", "senha123");
+    ambiente.userRepository.salvarUsuario(alunoEmRecuperacao);
+    ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), alunoEmRecuperacao);
+    lancarBoletimCompleto(ambiente, turma.getCodigo(), "al00", 5.0f, 5.0f, 90.0);
+
+    List<ItemRelatorioReprovacaoDisciplina> itens =
+        ambiente.relatorioAcademicoService.gerarRelatorioReprovacaoPorDisciplina(
+            criarCoordenador());
+
+    ItemRelatorioReprovacaoDisciplina item = itens.get(0);
+    Assertions.assertEquals(0, item.getTotalResultadosFinais());
+    Assertions.assertEquals(0, item.getTotalReprovados());
+    Assertions.assertEquals(0.0, item.getPercentualReprovacao(), 0.001);
+  }
+
+  @Test
+  public void deveAgruparReprovacaoDeMultiplasTurmasDaMesmaDisciplina() {
+    Ambiente ambiente = criarAmbiente();
+    prepararDadosBasicos(ambiente);
+    Turma turma1 = criarEOfertarTurma(ambiente, 30);
+    Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
+    ambiente.userRepository.salvarUsuario(professor2);
+    Turma turma2 = new Turma("dis00", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
+    ambiente.turmaService.ofertarTurma(turma2);
+
+    Aluno alunoAprovado = criarAluno("Bia", "bia@email.com", "al00", "senha123");
+    Aluno alunoReprovado = criarAluno("Caio", "caio@email.com", "al01", "senha123");
+    ambiente.userRepository.salvarUsuario(alunoAprovado);
+    ambiente.userRepository.salvarUsuario(alunoReprovado);
+    ambiente.turmaService.cadastrarAlunoEmTurma(turma1.getCodigo(), alunoAprovado);
+    ambiente.turmaService.cadastrarAlunoEmTurma(turma2.getCodigo(), alunoReprovado);
+
+    lancarBoletimCompleto(ambiente, turma1.getCodigo(), "al00", 8.0f, 8.0f, 90.0);
+    lancarBoletimCompleto(ambiente, turma2.getCodigo(), "al01", 2.0f, 2.0f, 90.0);
+
+    List<ItemRelatorioReprovacaoDisciplina> itens =
+        ambiente.relatorioAcademicoService.gerarRelatorioReprovacaoPorDisciplina(
+            criarCoordenador());
+
+    Assertions.assertEquals(1, itens.size());
+    ItemRelatorioReprovacaoDisciplina item = itens.get(0);
+    Assertions.assertEquals(2, item.getTotalResultadosFinais());
+    Assertions.assertEquals(1, item.getTotalReprovadosPorNota());
+    Assertions.assertEquals(1, item.getTotalReprovados());
+  }
+
+  @Test
+  public void deveDesempatarOrdenacaoPorCodigoDaDisciplinaQuandoNomesForemIguais() {
+    Ambiente ambiente = criarAmbiente();
+    prepararDadosBasicos(ambiente);
+    ambiente.disciplinaRepository.salvarDisciplina(
+        new Disciplina("dis01", "Algoritmos", 60, 2, 4, CODIGO_CURSO, List.of()));
+    Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
+    ambiente.userRepository.salvarUsuario(professor2);
+
+    criarEOfertarTurma(ambiente, 30);
+    Turma turmaDisciplinaDuplicada =
+        new Turma("dis01", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
+    ambiente.turmaService.ofertarTurma(turmaDisciplinaDuplicada);
+
+    List<ItemRelatorioReprovacaoDisciplina> itens =
+        ambiente.relatorioAcademicoService.gerarRelatorioReprovacaoPorDisciplina(
+            criarCoordenador());
+
+    Assertions.assertEquals(2, itens.size());
+    Assertions.assertEquals("dis00", itens.get(0).getCodigoDisciplina());
+    Assertions.assertEquals("dis01", itens.get(1).getCodigoDisciplina());
   }
 }

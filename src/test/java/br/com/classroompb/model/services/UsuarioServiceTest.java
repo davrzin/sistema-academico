@@ -488,4 +488,240 @@ public class UsuarioServiceTest {
 
     Assertions.assertThrows(RuntimeException.class, () -> service.listarUsuarios(aluno));
   }
+
+  @Test
+  public void deveCriarUsuarioServiceComConstrutorPadrao() {
+    UsuarioService service = new UsuarioService();
+
+    Assertions.assertNotNull(service);
+  }
+
+  @Test
+  public void deveCriarUsuarioServiceComRepositorioUnico() {
+    UsuarioService service = new UsuarioService(criarRepository());
+
+    Assertions.assertNotNull(service);
+  }
+
+  @Test
+  public void deveLancarExcecaoAoCadastrarAlunoSemCodigoCurso() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> service.cadastrarUsuario(aluno));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoCadastrarAlunoComCursoInexistente() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+    aluno.setCodigoCurso("cur99");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> service.cadastrarUsuario(aluno));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoCadastrarProfessorSemCodigoCurso() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Professor professor = new Professor("João", "joao@email.com", "senha123");
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.cadastrarUsuario(professor));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoCadastrarCoordenadorComCursoInexistente() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setCodigoCurso("cur99");
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.cadastrarUsuario(coordenador));
+  }
+
+  @Test
+  public void deveAtualizarApenasONomeMantendoEmailESenha() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Administrador adm = new Administrador("Sabrina", "sabrina@email.com", "1234");
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "senha123");
+
+    service.cadastrarUsuario(adm);
+    service.cadastrarUsuario(aluno);
+
+    Usuario usuarioAtualizado =
+        service.atualizarUsuario(adm, aluno.getMatricula(), "Joana", null, null);
+
+    Assertions.assertEquals("Joana", usuarioAtualizado.getNome());
+    Assertions.assertEquals(aluno.getEmail(), usuarioAtualizado.getEmail());
+    Assertions.assertEquals(aluno.getSenha(), usuarioAtualizado.getSenha());
+  }
+
+  @Test
+  public void naoDeveAlterarDadosQuandoParametrosForemVaziosOuBrancos() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Administrador adm = new Administrador("Sabrina", "sabrina@email.com", "1234");
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "senha123");
+
+    service.cadastrarUsuario(adm);
+    service.cadastrarUsuario(aluno);
+
+    Usuario usuarioAtualizado =
+        service.atualizarUsuario(adm, aluno.getMatricula(), "  ", "  ", "  ");
+
+    Assertions.assertEquals("Maria", usuarioAtualizado.getNome());
+    Assertions.assertEquals("maria@email.com", usuarioAtualizado.getEmail());
+  }
+
+  @Test
+  public void deveLancarExcecaoAoAtualizarUsuarioComEmailJaCadastrado() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Administrador adm = new Administrador("Sabrina", "sabrina@email.com", "1234");
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "senha123");
+    Aluno outroAluno = criarAluno("Pedro", "pedro@email.com", "senha123");
+
+    service.cadastrarUsuario(adm);
+    service.cadastrarUsuario(aluno);
+    service.cadastrarUsuario(outroAluno);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () ->
+            service.atualizarUsuario(
+                adm, outroAluno.getMatricula(), null, "maria@email.com", null));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoBuscarAlunoPorMatriculaQuandoUsuarioNaoForAluno() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Professor professor = criarProfessor("Sabrina", "sabrina@email.com", "1234");
+    service.cadastrarUsuario(professor);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> service.buscarAlunoPorMatricula(professor.getMatricula()));
+  }
+
+  @Test
+  public void deveListarCoordenadoresCadastrados() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "senha123");
+
+    service.cadastrarUsuario(coordenador);
+    service.cadastrarUsuario(aluno);
+
+    List<Coordenador> coordenadores = service.listarCoordenadores();
+
+    Assertions.assertEquals(1, coordenadores.size());
+    Assertions.assertEquals("Ana", coordenadores.get(0).getNome());
+  }
+
+  @Test
+  public void coordenadorDeveListarApenasAlunosEProfessoresDoSeuCurso() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    cursoRepository.salvarCurso(new Curso("cur01", "Engenharia", 10, 3600));
+
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setCodigoCurso(CODIGO_CURSO);
+    service.cadastrarUsuario(coordenador);
+
+    Aluno alunoDoCurso = criarAluno("Maria", "maria@email.com", "senha123");
+    Aluno alunoDeOutroCurso = criarAluno("Joao", "joao@email.com", "senha123");
+    alunoDeOutroCurso.setCodigoCurso("cur01");
+    Professor professorDoCurso = criarProfessor("Carlos", "carlos@email.com", "senha123");
+
+    service.cadastrarUsuario(alunoDoCurso);
+    service.cadastrarUsuario(alunoDeOutroCurso);
+    service.cadastrarUsuario(professorDoCurso);
+
+    List<Usuario> usuariosDoCurso = service.listarUsuarios(coordenador);
+
+    Assertions.assertEquals(2, usuariosDoCurso.size());
+    Assertions.assertTrue(
+        usuariosDoCurso.stream().anyMatch(u -> u.getNome().equals("Maria")));
+    Assertions.assertTrue(
+        usuariosDoCurso.stream().anyMatch(u -> u.getNome().equals("Carlos")));
+    Assertions.assertFalse(
+        usuariosDoCurso.stream().anyMatch(u -> u.getNome().equals("Joao")));
+  }
+
+  @Test
+  public void coordenadorDeveConseguirBuscarProfessorDoMesmoCurso() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setCodigoCurso(CODIGO_CURSO);
+    service.cadastrarUsuario(coordenador);
+
+    Professor professor = criarProfessor("Carlos", "carlos@email.com", "senha123");
+    service.cadastrarUsuario(professor);
+
+    Usuario usuarioEncontrado =
+        service.buscarUsuarioPorMatricula(coordenador, professor.getMatricula());
+
+    Assertions.assertEquals("Carlos", usuarioEncontrado.getNome());
+  }
+
+  @Test
+  public void coordenadorNaoDeveConseguirBuscarProfessorDeOutroCurso() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    cursoRepository.salvarCurso(new Curso("cur01", "Engenharia", 10, 3600));
+
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setCodigoCurso(CODIGO_CURSO);
+    service.cadastrarUsuario(coordenador);
+
+    Professor professorDeOutroCurso = criarProfessor("Carlos", "carlos@email.com", "senha123");
+    professorDeOutroCurso.setCodigoCurso("cur01");
+    service.cadastrarUsuario(professorDeOutroCurso);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () ->
+            service.buscarUsuarioPorMatricula(
+                coordenador, professorDeOutroCurso.getMatricula()));
+  }
+
+  @Test
+  public void coordenadorNaoDeveConseguirBuscarAlunoDeOutroCurso() {
+    UserRepository repository = criarRepository();
+    UsuarioService service = criarService(repository);
+
+    cursoRepository.salvarCurso(new Curso("cur01", "Engenharia", 10, 3600));
+
+    Coordenador coordenador = criarCoordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setCodigoCurso(CODIGO_CURSO);
+    service.cadastrarUsuario(coordenador);
+
+    Aluno alunoDeOutroCurso = criarAluno("Joao", "joao@email.com", "senha123");
+    alunoDeOutroCurso.setCodigoCurso("cur01");
+    service.cadastrarUsuario(alunoDeOutroCurso);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> service.buscarUsuarioPorMatricula(coordenador, alunoDeOutroCurso.getMatricula()));
+  }
 }
