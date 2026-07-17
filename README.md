@@ -49,6 +49,16 @@ mvn.cmd clean verify
 
 O relatorio HTML fica em `target/site/jacoco/index.html`.
 
+### Escopo da Cobertura
+
+Os pacotes `br.com.classroompb.ui.menu`, `br.com.classroompb.ui.tela` e
+`br.com.classroompb.application` sao excluidos do calculo de cobertura do
+JaCoCo (veja `pom.xml`). Sao classes de interface de terminal, dominadas por
+`Scanner`/`System.out` e delegacao para os services, sem regra de negocio
+propria; medir sua cobertura tem baixo valor e distorce a porcentagem geral.
+A regra de negocio do sistema (`entities`, `services`, `repository`)
+continua 100% medida pelo relatorio.
+
 ## Persistencia
 
 Os dados da aplicacao ficam em `data/`.

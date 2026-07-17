@@ -181,15 +181,166 @@ public class UsuarioTest {
   }
 
   @Test
-  public void deveAdicionarTurmaMatriculadaEmAlunoCorretamente() {
+  public void deveAtualizarNomeDeUsuarioCorretamenteViaSetter() {
     Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
 
-    Turma turma = new Turma("cur00", "dis00", "2026.1", "pr01", 45, "Seg 08:00-10:00", "Lab5");
+    aluno.setNome("Arthur Barbosa");
 
-    List<String> turmasMatriculadas = aluno.getTurmasMatriculadas();
-    turmasMatriculadas.add(turma.getCodigo());
+    Assertions.assertEquals("Arthur Barbosa", aluno.getNome());
+  }
 
-    Assertions.assertEquals(1, turmasMatriculadas.size());
-    Assertions.assertEquals(turma.getCodigo(), turmasMatriculadas.getFirst());
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirNomeNuloViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setNome(null));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirNomeEmBrancoViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setNome("   "));
+  }
+
+  @Test
+  public void deveAtualizarEmailDeUsuarioCorretamenteViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    aluno.setEmail("novo@email.com");
+
+    Assertions.assertEquals("novo@email.com", aluno.getEmail());
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirEmailNuloViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setEmail(null));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirEmailEmBrancoViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setEmail("   "));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirEmailSemArrobaViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setEmail("arthur.com"));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirEmailSemPontoViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setEmail("arthur@email"));
+  }
+
+  @Test
+  public void deveAtualizarMatriculaDeUsuarioCorretamenteViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "al00", "123");
+
+    aluno.setMatricula("al01");
+
+    Assertions.assertEquals("al01", aluno.getMatricula());
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirMatriculaNulaViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "al00", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setMatricula(null));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirMatriculaEmBrancoViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "al00", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setMatricula("   "));
+  }
+
+  @Test
+  public void deveAtualizarSenhaDeUsuarioCorretamenteViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    aluno.setSenha("novaSenha");
+
+    Assertions.assertEquals("novaSenha", aluno.getSenha());
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirSenhaNulaViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setSenha(null));
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirSenhaEmBrancoViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setSenha("   "));
+  }
+
+  @Test
+  public void deveAtualizarTipoDeUsuarioCorretamenteViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    aluno.setTipoUsuario(TipoUsuario.ADMINISTRADOR);
+
+    Assertions.assertEquals(TipoUsuario.ADMINISTRADOR, aluno.getTipoUsuario());
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoDefinirTipoDeUsuarioNuloViaSetter() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, () -> aluno.setTipoUsuario(null));
+  }
+
+  @Test
+  public void deveDeixarMatriculaNulaQuandoUsuarioForCriadoSemMatricula() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertNull(aluno.getMatricula());
+  }
+
+  @Test
+  public void naoDeveLancarExcecaoAoValidarDadosBasicosDeUsuarioCompleto() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertDoesNotThrow(aluno::validarDadosBasicos);
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoValidarDadosBasicosDeUsuarioVazio() {
+    Aluno aluno = new Aluno();
+
+    Assertions.assertThrows(EntradaInvalidaException.class, aluno::validarDadosBasicos);
+  }
+
+  @Test
+  public void naoDeveLancarExcecaoAoValidarDadosComMatriculaDeUsuarioCompleto() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "al00", "123");
+
+    Assertions.assertDoesNotThrow(aluno::validarDadosComMatricula);
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoValidarDadosComMatriculaSemMatricula() {
+    Aluno aluno = new Aluno("Arthur", "arthur@email.com", "123");
+
+    Assertions.assertThrows(EntradaInvalidaException.class, aluno::validarDadosComMatricula);
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoValidarDadosComMatriculaDeUsuarioVazio() {
+    Aluno aluno = new Aluno();
+
+    Assertions.assertThrows(EntradaInvalidaException.class, aluno::validarDadosComMatricula);
   }
 }

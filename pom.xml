@@ -116,6 +116,25 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <!--
+                                Pacotes de interface de terminal (menus e telas) e a
+                                classe de entrada da aplicacao sao excluidos do calculo
+                                de cobertura. Sao classes finas, dominadas por
+                                Scanner/System.out e delegacao para os services, sem
+                                regra de negocio propria, e sua cobertura por testes
+                                automatizados tem baixo valor e alto custo de
+                                manutencao. Excluir esses pacotes evita que a metrica
+                                geral de cobertura seja distorcida por codigo de
+                                apresentacao; a regra de negocio (entities, services,
+                                repository) permanece 100% medida.
+                            -->
+                            <excludes>
+                                <exclude>br/com/classroompb/ui/menu/**</exclude>
+                                <exclude>br/com/classroompb/ui/tela/**</exclude>
+                                <exclude>br/com/classroompb/application/**</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
