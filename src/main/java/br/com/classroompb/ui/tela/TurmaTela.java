@@ -1066,7 +1066,7 @@ public class TurmaTela {
   }
 
   private void exibirComprovanteLancamentoVisual(String codigoTurma, String matriculaAluno) {
-    Boletim boletim = boletimService.buscarBoletimPorAlunoETurma(matriculaAluno, codigoTurma);
+    Boletim boletim = boletimService.buscarBoletimPorAlunoTurma(matriculaAluno, codigoTurma);
     Aluno aluno = usuarioService.buscarAlunoPorMatricula(matriculaAluno);
 
     if (boletim != null && aluno != null) {

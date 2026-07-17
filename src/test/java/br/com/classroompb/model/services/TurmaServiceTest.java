@@ -1045,7 +1045,6 @@ public class TurmaServiceTest {
 
   @Test
   public void deveLancarExcecaoAoOfertarTurmaCoordenadorComDisciplinaDeOutroCurso() {
-    TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
     UserRepository userRepository = criarUserRepository();
@@ -1055,6 +1054,7 @@ public class TurmaServiceTest {
         new PeriodoLetivo("2026.2", "01/08/2026", "20/12/2026"));
     userRepository.salvarUsuario(criarProfessor("João", "joao@email.com", "senha123", "pr00"));
 
+    TurmaRepository turmaRepository = criarTurmaRepository();
     TurmaService service =
         criarService(
             turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
@@ -1066,10 +1066,8 @@ public class TurmaServiceTest {
 
   @Test
   public void deveLancarExcecaoAoOfertarTurmaCoordenadorComProfessorDeOutroCurso() {
-    TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
-    UserRepository userRepository = criarUserRepository();
     disciplinaRepository.salvarDisciplina(
         new Disciplina("dis00", "Algoritmos", 60, 1, 4, CODIGO_CURSO, List.of()));
     periodoLetivoRepository.salvarPeriodoLetivo(
@@ -1077,8 +1075,10 @@ public class TurmaServiceTest {
     Professor professorOutroCurso = new Professor("Ana", "ana@email.com", "senha123");
     professorOutroCurso.setMatricula("pr01");
     professorOutroCurso.setCodigoCurso("cur01");
+    UserRepository userRepository = criarUserRepository();
     userRepository.salvarUsuario(professorOutroCurso);
 
+    TurmaRepository turmaRepository = criarTurmaRepository();
     TurmaService service =
         criarService(
             turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
@@ -1131,7 +1131,7 @@ public class TurmaServiceTest {
   }
 
   @Test
-  public void deveBuscarTurmaPorCodigoEProfessorComSucesso() {
+  public void deveBuscarTurmaPorCodigoProfessorComSucesso() {
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();

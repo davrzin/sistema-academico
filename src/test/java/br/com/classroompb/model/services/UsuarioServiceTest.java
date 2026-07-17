@@ -548,7 +548,7 @@ public class UsuarioServiceTest {
   }
 
   @Test
-  public void deveAtualizarApenasONomeMantendoEmailESenha() {
+  public void deveAtualizarApenasNomeMantendoEmailSenha() {
     UserRepository repository = criarRepository();
     UsuarioService service = criarService(repository);
 
@@ -635,7 +635,7 @@ public class UsuarioServiceTest {
   }
 
   @Test
-  public void coordenadorDeveListarApenasAlunosEProfessoresDoSeuCurso() {
+  public void coordenadorDeveListarApenasAlunosProfessoresDoSeuCurso() {
     UserRepository repository = criarRepository();
     UsuarioService service = criarService(repository);
 

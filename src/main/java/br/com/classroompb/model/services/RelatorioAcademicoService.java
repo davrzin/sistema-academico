@@ -245,9 +245,9 @@ public class RelatorioAcademicoService {
 
   private Comparator<ItemRelatorioReprovacaoDisciplina> comparadorReprovacao() {
     return Comparator.comparing(
-            (ItemRelatorioReprovacaoDisciplina item) ->
-                valorOrdenacao(item.getNomeDisciplina()),
-            String.CASE_INSENSITIVE_ORDER)
+        (ItemRelatorioReprovacaoDisciplina item) ->
+            valorOrdenacao(item.getNomeDisciplina()),
+        String.CASE_INSENSITIVE_ORDER)
         .thenComparing(
             item -> valorOrdenacao(item.getCodigoDisciplina()),
             String.CASE_INSENSITIVE_ORDER);

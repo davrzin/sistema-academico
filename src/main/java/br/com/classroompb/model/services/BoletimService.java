@@ -114,7 +114,7 @@ public class BoletimService {
     validarMatriculaAluno(matriculaAluno);
     validarCodigoTurma(codigoTurma);
 
-    Boletim boletimExistente = buscarBoletimPorAlunoETurma(matriculaAluno, codigoTurma);
+    Boletim boletimExistente = buscarBoletimPorAlunoTurma(matriculaAluno, codigoTurma);
 
     if (boletimExistente != null) {
       return boletimExistente;
@@ -130,8 +130,7 @@ public class BoletimService {
    * @param codigoTurma codigo da turma.
    * @return boletim encontrado.
    */
-  @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
-  public Boletim buscarBoletimPorAlunoETurma(String matriculaAluno, String codigoTurma) {
+  public Boletim buscarBoletimPorAlunoTurma(String matriculaAluno, String codigoTurma) {
     validarMatriculaAluno(matriculaAluno);
     validarCodigoTurma(codigoTurma);
 
@@ -230,7 +229,7 @@ public class BoletimService {
     validarPeriodoLetivoNaoEncerrado(turma);
     validarAlunoMatriculadoNaTurma(turma, matriculaAluno);
 
-    Boletim boletim = buscarBoletimPorAlunoETurma(matriculaAluno, codigoTurma);
+    Boletim boletim = buscarBoletimPorAlunoTurma(matriculaAluno, codigoTurma);
 
     if (boletim == null) {
       throw new EntradaInvalidaException("Boletim do aluno nao encontrado para esta turma.");

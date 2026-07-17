@@ -1,16 +1,5 @@
 package br.com.classroompb.model.services;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.List;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
 import br.com.classroompb.model.entities.gestaoacademica.ItemRelatorioAlunoTurma;
@@ -30,6 +19,14 @@ import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.TurmaRepository;
 import br.com.classroompb.model.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Testes do servico de relatorios academicos.
@@ -169,7 +166,7 @@ public class RelatorioAcademicoServiceTest {
     ambiente.userRepository.salvarUsuario(professor);
   }
 
-  private Turma criarEOfertarTurma(Ambiente ambiente, int limiteVagas) {
+  private Turma criarOfertarTurma(Ambiente ambiente, int limiteVagas) {
     Turma turma =
         new Turma("dis00", "2026.2", "pr00", limiteVagas, "SEG 08:00-10:00", "LAB 01");
     ambiente.turmaService.ofertarTurma(turma);
@@ -190,7 +187,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveListarTurmasDoCursoDoCoordenador() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
 
     List<Turma> turmas =
         ambiente.relatorioAcademicoService.listarTurmasDoCoordenador(criarCoordenador());
@@ -224,7 +221,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveGerarRelatorioDeAlunosDaTurmaComAlunoMatriculado() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
     Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
     ambiente.userRepository.salvarUsuario(aluno);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
@@ -251,7 +248,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveGerarRelatorioDeAlunosDaTurmaSemMatriculados() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
 
     RelatorioAlunosTurma relatorio =
         ambiente.relatorioAcademicoService.gerarRelatorioAlunosTurma(
@@ -298,7 +295,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveCalcularOcupacaoDeVagasComTurmaParcialmenteOcupada() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 4);
+    Turma turma = criarOfertarTurma(ambiente, 4);
     Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
     ambiente.userRepository.salvarUsuario(aluno);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
@@ -318,7 +315,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveCalcularOcupacaoDeVagasComTurmaSemMatriculados() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 10);
+    Turma turma = criarOfertarTurma(ambiente, 10);
 
     RelatorioOcupacaoVagas relatorio =
         ambiente.relatorioAcademicoService.gerarRelatorioOcupacaoVagas(
@@ -333,7 +330,7 @@ public class RelatorioAcademicoServiceTest {
   public void naoDeveGerarVagasDisponiveisNegativasComTurmaLotada() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 1);
+    Turma turma = criarOfertarTurma(ambiente, 1);
     Aluno alunoMatriculado = criarAluno("Maria", "maria@email.com", "al00", "senha123");
     Aluno alunoListaEspera = criarAluno("Ana", "ana@email.com", "al01", "senha123");
     ambiente.userRepository.salvarUsuario(alunoMatriculado);
@@ -353,10 +350,9 @@ public class RelatorioAcademicoServiceTest {
   // ---- gerarRelatorioReprovacaoPorDisciplina ----
 
   @Test
-  public void deveContabilizarReprovacaoPorNotaEPorFalta() {
+  public void deveContabilizarReprovacaoPorNotaPorFalta() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
 
     Aluno alunoAprovado = criarAluno("Ana", "ana@email.com", "al00", "senha123");
     Aluno alunoReprovadoNota = criarAluno("Bia", "bia@email.com", "al01", "senha123");
@@ -364,6 +360,8 @@ public class RelatorioAcademicoServiceTest {
     ambiente.userRepository.salvarUsuario(alunoAprovado);
     ambiente.userRepository.salvarUsuario(alunoReprovadoNota);
     ambiente.userRepository.salvarUsuario(alunoReprovadoFalta);
+
+    Turma turma = criarOfertarTurma(ambiente, 30);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), alunoAprovado);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), alunoReprovadoNota);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), alunoReprovadoFalta);
@@ -391,7 +389,7 @@ public class RelatorioAcademicoServiceTest {
   public void naoDeveContabilizarBoletinsEmAndamentoNoTotalDeResultados() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
     Aluno aluno = criarAluno("Ana", "ana@email.com", "al00", "senha123");
     ambiente.userRepository.salvarUsuario(aluno);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
@@ -427,7 +425,7 @@ public class RelatorioAcademicoServiceTest {
     Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
     ambiente.userRepository.salvarUsuario(professor2);
 
-    criarEOfertarTurma(ambiente, 30);
+    criarOfertarTurma(ambiente, 30);
     Turma turmaBancoDados =
         new Turma("dis01", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
     ambiente.turmaService.ofertarTurma(turmaBancoDados);
@@ -461,7 +459,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveBuscarNomeDaDisciplinaExistente() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
 
     Assertions.assertEquals(
         "Algoritmos", ambiente.relatorioAcademicoService.buscarNomeDisciplina(turma));
@@ -492,7 +490,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveBuscarNomeDoProfessorExistente() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
 
     Assertions.assertEquals(
         "João", ambiente.relatorioAcademicoService.buscarNomeProfessor(turma));
@@ -553,7 +551,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveLancarExcecaoAoGerarRelatorioDeAlunosComCoordenadorNull() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
 
     Assertions.assertThrows(
         EntradaInvalidaException.class,
@@ -565,7 +563,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveGerarRelatorioDeAlunosComAlunoRemovidoDaBase() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
     Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
     ambiente.userRepository.salvarUsuario(aluno);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
@@ -586,7 +584,7 @@ public class RelatorioAcademicoServiceTest {
   public void deveLancarExcecaoAoGerarRelatorioDeOcupacaoComCoordenadorNull() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
 
     Assertions.assertThrows(
         EntradaInvalidaException.class,
@@ -629,7 +627,7 @@ public class RelatorioAcademicoServiceTest {
   public void naoDeveContabilizarBoletinsEmRecuperacaoNoTotalDeReprovados() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma = criarEOfertarTurma(ambiente, 30);
+    Turma turma = criarOfertarTurma(ambiente, 30);
     Aluno alunoEmRecuperacao = criarAluno("Ana", "ana@email.com", "al00", "senha123");
     ambiente.userRepository.salvarUsuario(alunoEmRecuperacao);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma.getCodigo(), alunoEmRecuperacao);
@@ -649,7 +647,6 @@ public class RelatorioAcademicoServiceTest {
   public void deveAgruparReprovacaoDeMultiplasTurmasDaMesmaDisciplina() {
     Ambiente ambiente = criarAmbiente();
     prepararDadosBasicos(ambiente);
-    Turma turma1 = criarEOfertarTurma(ambiente, 30);
     Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
     ambiente.userRepository.salvarUsuario(professor2);
     Turma turma2 = new Turma("dis00", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
@@ -659,6 +656,8 @@ public class RelatorioAcademicoServiceTest {
     Aluno alunoReprovado = criarAluno("Caio", "caio@email.com", "al01", "senha123");
     ambiente.userRepository.salvarUsuario(alunoAprovado);
     ambiente.userRepository.salvarUsuario(alunoReprovado);
+
+    Turma turma1 = criarOfertarTurma(ambiente, 30);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma1.getCodigo(), alunoAprovado);
     ambiente.turmaService.cadastrarAlunoEmTurma(turma2.getCodigo(), alunoReprovado);
 
@@ -685,7 +684,7 @@ public class RelatorioAcademicoServiceTest {
     Professor professor2 = criarProfessor("Pedro", "pedro@email.com", "senha123", "pr01");
     ambiente.userRepository.salvarUsuario(professor2);
 
-    criarEOfertarTurma(ambiente, 30);
+    criarOfertarTurma(ambiente, 30);
     Turma turmaDisciplinaDuplicada =
         new Turma("dis01", "2026.2", "pr01", 30, "TER 10:00-12:00", "LAB 02");
     ambiente.turmaService.ofertarTurma(turmaDisciplinaDuplicada);

@@ -142,8 +142,8 @@ public class HistoricoAcademicoService {
 
   private Comparator<ItemHistoricoAcademico> comparadorHistorico() {
     return Comparator.comparing(
-            (ItemHistoricoAcademico item) -> valorOrdenacao(item.getPeriodoLetivo()),
-            String.CASE_INSENSITIVE_ORDER)
+        (ItemHistoricoAcademico item) -> valorOrdenacao(item.getPeriodoLetivo()),
+        String.CASE_INSENSITIVE_ORDER)
         .thenComparing(
             item -> valorOrdenacao(item.getNomeDisciplina()), String.CASE_INSENSITIVE_ORDER)
         .thenComparing(

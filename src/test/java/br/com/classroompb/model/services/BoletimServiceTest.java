@@ -116,7 +116,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarPrimeiraNota("tur00", "al00", 10.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertEquals(10.0f, boletimAtualizado.getPrimeiraNota());
     Assertions.assertEquals(9.0f, boletimAtualizado.getSegundaNota());
     Assertions.assertEquals(9.5f, boletimAtualizado.calcularMediaFinal());
@@ -128,7 +128,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarPrimeiraNota("tur00", "al00", 0.0f, "pr00");
 
-    Boletim atualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim atualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertEquals(0.0f, atualizado.getPrimeiraNota());
     Assertions.assertNull(atualizado.getSegundaNota());
     Assertions.assertNull(atualizado.calcularMediaFinal());
@@ -140,7 +140,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarSegundaNota("tur00", "al00", 7.5f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertEquals(8.0f, boletimAtualizado.getPrimeiraNota());
     Assertions.assertEquals(7.5f, boletimAtualizado.getSegundaNota());
     Assertions.assertEquals(7.75f, boletimAtualizado.calcularMediaFinal());
@@ -152,7 +152,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarSegundaNota("tur00", "al00", 6.0f, "pr00");
 
-    Boletim atualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim atualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertNull(atualizado.getPrimeiraNota());
     Assertions.assertEquals(6.0f, atualizado.getSegundaNota());
     Assertions.assertNull(atualizado.calcularMediaFinal());
@@ -164,7 +164,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarNotas("tur00", "al00", 6.0f, 7.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertEquals(6.0f, boletimAtualizado.getPrimeiraNota());
     Assertions.assertEquals(7.0f, boletimAtualizado.getSegundaNota());
     Assertions.assertEquals(6.5f, boletimAtualizado.calcularMediaFinal());
@@ -194,7 +194,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarNotas("tur00", "al00", 10.0f, 8.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertEquals(9.0f, boletimAtualizado.calcularMediaFinal());
   }
 
@@ -243,7 +243,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarNotas("tur00", "al00", 7.0f, 8.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertEquals(7.5f, boletimAtualizado.calcularMediaFinal());
   }
 
@@ -253,7 +253,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarPrimeiraNota("tur00", "al00", 9.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertEquals(8.0f, boletimAtualizado.calcularMediaFinal());
   }
 
@@ -263,7 +263,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarSegundaNota("tur00", "al00", 8.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertEquals(7.0f, boletimAtualizado.calcularMediaFinal());
   }
 
@@ -272,7 +272,7 @@ public class BoletimServiceTest {
     prepararTurmaComBoletim(0.0f, 0.0f);
     boletimService.lancarNotas("tur00", "al00", 7.0f, 7.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     boletimAtualizado.setFrequencia(100.0);
     SituacaoAcademicaService situacaoService = new SituacaoAcademicaService();
     Assertions.assertEquals(
@@ -284,7 +284,7 @@ public class BoletimServiceTest {
     prepararTurmaComBoletim(0.0f, 0.0f);
     boletimService.lancarNotas("tur00", "al00", 5.0f, 5.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     boletimAtualizado.setFrequencia(100.0);
     SituacaoAcademicaService situacaoService = new SituacaoAcademicaService();
     Assertions.assertEquals(
@@ -296,7 +296,7 @@ public class BoletimServiceTest {
     prepararTurmaComBoletim(0.0f, 0.0f);
     boletimService.lancarNotas("tur00", "al00", 9.0f, 9.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     boletimAtualizado.setFrequencia(50.0);
     SituacaoAcademicaService situacaoService = new SituacaoAcademicaService();
     Assertions.assertEquals(
@@ -309,7 +309,7 @@ public class BoletimServiceTest {
 
     boletimService.lancarPrimeiraNota("tur00", "al00", 10.0f, "pr00");
 
-    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoETurma("al00", "tur00");
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
     Assertions.assertEquals(10.0f, boletimAtualizado.getPrimeiraNota());
     Assertions.assertEquals(5.0f, boletimAtualizado.getSegundaNota());
     Assertions.assertEquals(7.5f, boletimAtualizado.calcularMediaFinal());
@@ -324,7 +324,7 @@ public class BoletimServiceTest {
   }
 
   @Test
-  public void deveCriarBoletimQuandoNaoExistirBoletimParaAlunoETurma() {
+  public void deveCriarBoletimQuandoNaoExistirBoletimParaAlunoTurma() {
     Boletim criado = boletimService.criarBoletimSeNaoExistir("al00", "tur00");
 
     Assertions.assertNotNull(criado);
@@ -359,17 +359,17 @@ public class BoletimServiceTest {
   }
 
   @Test
-  public void deveLancarEntradaInvalidaExceptionAoBuscarBoletimPorAlunoETurmaComMatriculaVazia() {
+  public void deveLancarEntradaInvalidaExceptionAoBuscarBoletimPorAlunoTurmaComMatriculaVazia() {
     Assertions.assertThrows(
         EntradaInvalidaException.class,
-        () -> boletimService.buscarBoletimPorAlunoETurma("", "tur00"));
+        () -> boletimService.buscarBoletimPorAlunoTurma("", "tur00"));
   }
 
   @Test
-  public void deveLancarEntradaInvalidaExceptionAoBuscarBoletimPorAlunoETurmaComCodigoTurmaVazio() {
+  public void deveLancarEntradaInvalidaExceptionAoBuscarBoletimPorAlunoTurmaComCodigoTurmaVazio() {
     Assertions.assertThrows(
         EntradaInvalidaException.class,
-        () -> boletimService.buscarBoletimPorAlunoETurma("al00", ""));
+        () -> boletimService.buscarBoletimPorAlunoTurma("al00", ""));
   }
 
   @Test
