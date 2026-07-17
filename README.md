@@ -112,8 +112,14 @@ mvn.cmd checkstyle:check
 mvn.cmd exec:java
 ```
 
-## Equipe
+## Equipe (primeira unidade)
 
 - Arthur Barbosa
 - Artur Oliveira
 - Davi Roberto
+
+## Equipe (segunda unidade)
+
+- Davi Roberto
+- Alessia Bianca
+- Eric Natan
