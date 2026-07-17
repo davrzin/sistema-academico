@@ -1,9 +1,11 @@
 package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
+import br.com.classroompb.model.entities.gestaoacademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.repository.BoletimRepository;
+import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.PersistenciaPaths;
 import br.com.classroompb.model.repository.TurmaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,8 +19,10 @@ public class BoletimService {
 
   private static final Path DIRETORIO_BOLETINS = PersistenciaPaths.BOLETINS;
   private static final Path DIRETORIO_TURMAS = PersistenciaPaths.TURMAS;
+  private static final Path DIRETORIO_PERIODOS = PersistenciaPaths.PERIODOS;
   private final BoletimRepository repository;
   private final TurmaRepository turmaRepository;
+  private final PeriodoLetivoRepository periodoLetivoRepository;
 
   /**
    * Cria o servico de boletins com repositorio padrao.
@@ -26,6 +30,8 @@ public class BoletimService {
   public BoletimService() {
     this.repository = new BoletimRepository(new ObjectMapper(), DIRETORIO_BOLETINS.toString());
     this.turmaRepository = new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString());
+    this.periodoLetivoRepository =
+        new PeriodoLetivoRepository(new ObjectMapper(), DIRETORIO_PERIODOS.toString());
   }
 
   /**
@@ -36,6 +42,8 @@ public class BoletimService {
   public BoletimService(BoletimRepository repository) {
     this.repository = repository;
     this.turmaRepository = new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString());
+    this.periodoLetivoRepository =
+        new PeriodoLetivoRepository(new ObjectMapper(), DIRETORIO_PERIODOS.toString());
   }
 
   /**
@@ -45,8 +53,28 @@ public class BoletimService {
    * @param turmaRepository repositorio de turmas.
    */
   public BoletimService(BoletimRepository repository, TurmaRepository turmaRepository) {
+    this(
+        repository,
+        turmaRepository,
+        new PeriodoLetivoRepository(
+            new ObjectMapper(),
+            Path.of(turmaRepository.getDiretorioTurmas()).resolveSibling("periodos").toString()));
+  }
+
+  /**
+   * Cria o servico de boletins com todos os repositorios informados.
+   *
+   * @param repository repositorio de boletins.
+   * @param turmaRepository repositorio de turmas.
+   * @param periodoLetivoRepository repositorio de periodos letivos.
+   */
+  public BoletimService(
+      BoletimRepository repository,
+      TurmaRepository turmaRepository,
+      PeriodoLetivoRepository periodoLetivoRepository) {
     this.repository = repository;
     this.turmaRepository = turmaRepository;
+    this.periodoLetivoRepository = periodoLetivoRepository;
   }
 
   /**
@@ -199,6 +227,7 @@ public class BoletimService {
   private Boletim buscarBoletimParaLancamento(
       String codigoTurma, String matriculaAluno, String matriculaProfessor) {
     Turma turma = validarTurmaPertenceAoProfessor(codigoTurma, matriculaProfessor);
+    validarPeriodoLetivoNaoEncerrado(turma);
     validarAlunoMatriculadoNaTurma(turma, matriculaAluno);
 
     Boletim boletim = buscarBoletimPorAlunoETurma(matriculaAluno, codigoTurma);
@@ -208,6 +237,26 @@ public class BoletimService {
     }
 
     return boletim;
+  }
+
+  private void validarPeriodoLetivoNaoEncerrado(Turma turma) {
+    if (turma.getPeriodoLetivo() == null || turma.getPeriodoLetivo().isBlank()) {
+      throw new EntradaInvalidaException("A turma não possui um período letivo válido.");
+    }
+
+    for (PeriodoLetivo periodo : periodoLetivoRepository.listarPeriodos()) {
+      if (periodo.getPeriodo() != null
+          && periodo.getPeriodo().equalsIgnoreCase(turma.getPeriodoLetivo().trim())) {
+        if (periodo.getPeriodoEncerrado()) {
+          throw new EntradaInvalidaException(
+              "Não é possível lançar ou alterar notas de uma turma com período letivo encerrado.");
+        }
+
+        return;
+      }
+    }
+
+    throw new EntradaInvalidaException("O período letivo da turma não foi encontrado.");
   }
 
   private void validarBoletim(Boletim boletim) {

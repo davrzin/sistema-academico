@@ -86,6 +86,11 @@ public class PeriodoLetivoService {
       throw new EntradaInvalidaException("Período letivo não pode ser null.");
     }
 
+    if (periodo.getPeriodoEncerrado()) {
+      throw new EntradaInvalidaException(
+          "Não é possível ativar um período letivo já encerrado.");
+    }
+
     if (!repository.existePeriodoLetivoAtivo()) {
       periodo.setPeriodoAtivo(true);
       return repository.updatePeriodoLetivo(periodo, indicePeriodoEscolhido);
@@ -106,7 +111,12 @@ public class PeriodoLetivoService {
       throw new EntradaInvalidaException("Período letivo não pode ser null.");
     }
 
+    if (periodo.getPeriodoEncerrado()) {
+      throw new EntradaInvalidaException("O período letivo já está encerrado.");
+    }
+
     periodo.setPeriodoAtivo(false);
+    periodo.setPeriodoEncerrado(true);
     return repository.updatePeriodoLetivo(periodo, indicePeriodoEscolhido);
   }
 }

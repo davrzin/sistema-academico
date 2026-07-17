@@ -302,7 +302,7 @@ public class PeriodoLetivoTela {
     List<PeriodoLetivo> periodosInativos = new ArrayList<>();
 
     for (PeriodoLetivo periodo : periodos) {
-      if (!periodo.getPeriodoAtivo()) {
+      if (!periodo.getPeriodoAtivo() && !periodo.getPeriodoEncerrado()) {
         periodosInativos.add(periodo);
       }
     }

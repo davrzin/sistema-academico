@@ -1,9 +1,11 @@
 package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
+import br.com.classroompb.model.entities.gestaoacademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.repository.BoletimRepository;
+import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.TurmaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Path;
@@ -22,6 +24,7 @@ public class BoletimServiceTest {
 
   private BoletimRepository boletimRepository;
   private TurmaRepository turmaRepository;
+  private PeriodoLetivoRepository periodoLetivoRepository;
   private BoletimService boletimService;
   private Boletim boletim;
 
@@ -34,7 +37,12 @@ public class BoletimServiceTest {
     boletimRepository =
         new BoletimRepository(new ObjectMapper(), tempDir.resolve("boletins").toString());
     turmaRepository = new TurmaRepository(new ObjectMapper(), tempDir.resolve("turmas").toString());
-    boletimService = new BoletimService(boletimRepository, turmaRepository);
+    periodoLetivoRepository =
+        new PeriodoLetivoRepository(new ObjectMapper(), tempDir.resolve("periodos").toString());
+    periodoLetivoRepository.salvarPeriodoLetivo(
+        new PeriodoLetivo("2026.2", "01/07/2026", "30/11/2026"));
+    boletimService =
+        new BoletimService(boletimRepository, turmaRepository, periodoLetivoRepository);
     boletim = new Boletim("al00", "tur00");
   }
 

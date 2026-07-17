@@ -18,6 +18,7 @@ public class PeriodoLetivo {
   private String dataInicio;
   private String dataFim;
   private boolean periodoAtivo;
+  private boolean periodoEncerrado;
 
   /**
    * Cria um periodo letivo vazio.
@@ -37,6 +38,7 @@ public class PeriodoLetivo {
     setDataFim(dataFim);
     validarCoerenciaPeriodoDatas();
     this.periodoAtivo = false;
+    this.periodoEncerrado = false;
   }
 
   /**
@@ -111,7 +113,39 @@ public class PeriodoLetivo {
    * @param periodoAtivo estado ativo do periodo.
    */
   public void setPeriodoAtivo(boolean periodoAtivo) {
+    if (periodoAtivo && periodoEncerrado) {
+      throw new EntradaInvalidaException(
+          "Não é possível ativar um período letivo já encerrado.");
+    }
+
     this.periodoAtivo = periodoAtivo;
+  }
+
+  /**
+   * Retorna se o periodo foi encerrado definitivamente.
+   *
+   * @return verdadeiro se o periodo esta encerrado.
+   */
+  public boolean getPeriodoEncerrado() {
+    return periodoEncerrado;
+  }
+
+  /**
+   * Define se o periodo foi encerrado definitivamente.
+   *
+   * @param periodoEncerrado estado de encerramento do periodo.
+   */
+  public void setPeriodoEncerrado(boolean periodoEncerrado) {
+    if (this.periodoEncerrado && !periodoEncerrado) {
+      throw new EntradaInvalidaException(
+          "Não é possível reabrir um período letivo já encerrado.");
+    }
+
+    if (periodoEncerrado) {
+      this.periodoAtivo = false;
+    }
+
+    this.periodoEncerrado = periodoEncerrado;
   }
 
   /**

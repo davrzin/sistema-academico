@@ -70,7 +70,9 @@ public class TurmaService {
     this.boletimRepository =
         new BoletimRepository(new ObjectMapper(), DIRETORIO_BOLETINS.toString());
     this.aulaRepository = new AulaRepository(new ObjectMapper(), DIRETORIO_AULAS.toString());
-    this.boletimService = new BoletimService(this.boletimRepository);
+    this.boletimService =
+        new BoletimService(
+            this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
     this.usuarioService = new UsuarioService(userRepository);
   }
 
@@ -87,7 +89,9 @@ public class TurmaService {
     this.boletimRepository =
         new BoletimRepository(new ObjectMapper(), DIRETORIO_BOLETINS.toString());
     this.aulaRepository = new AulaRepository(new ObjectMapper(), DIRETORIO_AULAS.toString());
-    this.boletimService = new BoletimService(this.boletimRepository);
+    this.boletimService =
+        new BoletimService(
+            this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
     this.usuarioService = new UsuarioService(this.userRepository);
   }
 
@@ -114,7 +118,9 @@ public class TurmaService {
     this.userRepository = userRepository;
     this.boletimRepository = boletimRepository;
     this.aulaRepository = aulaRepository;
-    this.boletimService = new BoletimService(this.boletimRepository);
+    this.boletimService =
+        new BoletimService(
+            this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
     this.usuarioService = new UsuarioService(userRepository);
   }
 
