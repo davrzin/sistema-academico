@@ -5,7 +5,7 @@ import br.com.classroompb.model.enums.TipoUsuario;
 /**
  * Representa um usuario professor do sistema.
  */
-public class Professor extends Usuario {
+public final class Professor extends Usuario {
 
   private String codigoCurso;
 

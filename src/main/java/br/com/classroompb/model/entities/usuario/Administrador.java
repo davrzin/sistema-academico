@@ -5,7 +5,7 @@ import br.com.classroompb.model.enums.TipoUsuario;
 /**
  * Representa um usuario administrador do sistema.
  */
-public class Administrador extends Usuario {
+public final class Administrador extends Usuario {
 
   /**
    * Cria um administrador vazio.

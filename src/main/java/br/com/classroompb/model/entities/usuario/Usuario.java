@@ -66,7 +66,7 @@ public abstract class Usuario {
    *
    * @param nome nome do usuario.
    */
-  public void setNome(String nome) {
+  public final void setNome(String nome) {
     validarNome(nome);
     this.nome = nome;
   }
@@ -85,7 +85,7 @@ public abstract class Usuario {
    *
    * @param email email do usuario.
    */
-  public void setEmail(String email) {
+  public final void setEmail(String email) {
     validarEmail(email);
     this.email = email;
   }
@@ -104,7 +104,7 @@ public abstract class Usuario {
    *
    * @param matricula matricula do usuario.
    */
-  public void setMatricula(String matricula) {
+  public final void setMatricula(String matricula) {
     validarMatricula(matricula);
     this.matricula = matricula;
   }
@@ -123,7 +123,7 @@ public abstract class Usuario {
    *
    * @param senha senha do usuario.
    */
-  public void setSenha(String senha) {
+  public final void setSenha(String senha) {
     validarSenha(senha);
     this.senha = senha;
   }
@@ -142,7 +142,7 @@ public abstract class Usuario {
    *
    * @param tipoUsuario tipo do usuario.
    */
-  public void setTipoUsuario(TipoUsuario tipoUsuario) {
+  public final void setTipoUsuario(TipoUsuario tipoUsuario) {
     validarTipoUsuario(tipoUsuario);
     this.tipoUsuario = tipoUsuario;
   }

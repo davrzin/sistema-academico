@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Representa um usuario aluno do sistema.
  */
-public class Aluno extends Usuario {
+public final class Aluno extends Usuario {
 
   private List<String> disciplinasConcluidas;
   private List<String> turmasMatriculadas;
