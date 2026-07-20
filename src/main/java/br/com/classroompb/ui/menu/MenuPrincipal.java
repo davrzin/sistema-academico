@@ -35,20 +35,10 @@ public class MenuPrincipal {
       System.out.println();
 
       switch (opcao) {
-        case 1:
-          loginTela.login();
-          break;
-
-        case 2:
-          usuarioTela.cadastrarUsuario();
-          break;
-
-        case 0:
-          System.out.println("Fechando o sistema.");
-          break;
-
-        default:
-          System.out.println("Opção inválida.");
+        case 1 -> loginTela.login();
+        case 2 -> usuarioTela.cadastrarUsuario();
+        case 0 -> System.out.println("Fechando o sistema.");
+        default -> System.out.println("Opção inválida.");
       }
 
     } while (opcao != 0);

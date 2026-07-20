@@ -63,28 +63,23 @@ public class LoginTela {
 
   private void redirecionarUsuario(Usuario usuario) {
     switch (usuario.getTipoUsuario()) {
-      case ALUNO:
+      case ALUNO -> {
         MenuAluno menuAluno = new MenuAluno((Aluno) usuario, scanner);
         menuAluno.iniciar();
-        break;
-
-      case PROFESSOR:
+      }
+      case PROFESSOR -> {
         MenuProfessor menuProfessor = new MenuProfessor((Professor) usuario, scanner);
         menuProfessor.iniciar();
-        break;
-
-      case COORDENADOR:
+      }
+      case COORDENADOR -> {
         MenuCoordenador menuCoordenador = new MenuCoordenador((Coordenador) usuario, scanner);
         menuCoordenador.iniciar();
-        break;
-
-      case ADMINISTRADOR:
+      }
+      case ADMINISTRADOR -> {
         MenuAdministrador menuAdmin = new MenuAdministrador((Administrador) usuario, scanner);
         menuAdmin.iniciar();
-        break;
-
-      default:
-        System.out.println("Tipo de usuário inválido.");
+      }
+      default -> System.out.println("Tipo de usuário inválido.");
     }
   }
 }

@@ -50,76 +50,24 @@ public class MenuCoordenador {
       System.out.println();
 
       switch (opcao) {
-        case 1:
-          disciplinaTela.cadastrarDisciplina(usuarioLogado);
-          break;
-
-        case 2:
-          disciplinaTela.listarDisciplinas(usuarioLogado);
-          break;
-
-        case 3:
-          periodoLetivoTela.cadastrarPeriodoLetivo();
-          break;
-
-        case 4:
-          periodoLetivoTela.listarPeriodosLetivos();
-          break;
-
-        case 5:
-          periodoLetivoTela.ativarPeriodoLetivo();
-          break;
-
-        case 6:
-          periodoLetivoTela.encerrarPeriodoLetivo();
-          break;
-
-        case 7:
-          turmaTela.cadastrarTurma(usuarioLogado);
-          break;
-
-        case 8:
-          turmaTela.listarTurmas(usuarioLogado);
-          break;
-
-        case 9:
-          turmaTela.atualizarTurma(usuarioLogado);
-          break;
-
-        case 10:
-          turmaTela.cancelarTurma(usuarioLogado);
-          break;
-
-        case 11:
-          usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
-          break;
-
-        case 12:
-          turmaTela.mostrarListaEsperaTurmas(usuarioLogado);
-          break;
-
-        case 13:
-          historicoAcademicoTela.consultarHistoricoAluno(usuarioLogado);
-          break;
-
-        case 14:
-          relatorioAcademicoTela.gerarRelatorioAlunosPorTurma(usuarioLogado);
-          break;
-
-        case 15:
-          relatorioAcademicoTela.gerarRelatorioOcupacaoVagas(usuarioLogado);
-          break;
-
-        case 16:
-          relatorioAcademicoTela.gerarRelatorioReprovacaoPorDisciplina(usuarioLogado);
-          break;
-
-        case 0:
-          System.out.println("Voltando...");
-          break;
-
-        default:
-          System.out.println("Opção inválida.");
+        case 1 -> disciplinaTela.cadastrarDisciplina(usuarioLogado);
+        case 2 -> disciplinaTela.listarDisciplinas(usuarioLogado);
+        case 3 -> periodoLetivoTela.cadastrarPeriodoLetivo();
+        case 4 -> periodoLetivoTela.listarPeriodosLetivos();
+        case 5 -> periodoLetivoTela.ativarPeriodoLetivo();
+        case 6 -> periodoLetivoTela.encerrarPeriodoLetivo();
+        case 7 -> turmaTela.cadastrarTurma(usuarioLogado);
+        case 8 -> turmaTela.listarTurmas(usuarioLogado);
+        case 9 -> turmaTela.atualizarTurma(usuarioLogado);
+        case 10 -> turmaTela.cancelarTurma(usuarioLogado);
+        case 11 -> usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
+        case 12 -> turmaTela.mostrarListaEsperaTurmas(usuarioLogado);
+        case 13 -> historicoAcademicoTela.consultarHistoricoAluno(usuarioLogado);
+        case 14 -> relatorioAcademicoTela.gerarRelatorioAlunosPorTurma(usuarioLogado);
+        case 15 -> relatorioAcademicoTela.gerarRelatorioOcupacaoVagas(usuarioLogado);
+        case 16 -> relatorioAcademicoTela.gerarRelatorioReprovacaoPorDisciplina(usuarioLogado);
+        case 0 -> System.out.println("Voltando...");
+        default -> System.out.println("Opção inválida.");
       }
 
     } while (opcao != 0);

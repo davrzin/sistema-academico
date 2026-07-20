@@ -54,40 +54,15 @@ public class MenuAluno {
       System.out.println();
 
       switch (opcao) {
-        case 1:
-          disciplinaTela.listarDisciplinas(usuarioLogado);
-          break;
-
-        case 2:
-          turmaTela.listarTurmas(usuarioLogado);
-          break;
-
-        case 3:
-          turmaTela.listarMatriculasAluno(usuarioLogado);
-          break;
-
-        case 4:
-          usuarioTela.exibirBoletinAluno(usuarioLogado);
-          break;
-
-        case 5:
-          historicoAcademicoTela.listarHistoricoAluno(usuarioLogado);
-          break;
-
-        case 6:
-          turmaTela.cadastrarNovoAluno(usuarioLogado);
-          break;
-
-        case 7:
-          turmaTela.cancelarTurmaAluno(usuarioLogado);
-          break;
-
-        case 0:
-          System.out.println("Voltando...");
-          break;
-
-        default:
-          System.out.println("Opção inválida.");
+        case 1 -> disciplinaTela.listarDisciplinas(usuarioLogado);
+        case 2 -> turmaTela.listarTurmas(usuarioLogado);
+        case 3 -> turmaTela.listarMatriculasAluno(usuarioLogado);
+        case 4 -> usuarioTela.exibirBoletinAluno(usuarioLogado);
+        case 5 -> historicoAcademicoTela.listarHistoricoAluno(usuarioLogado);
+        case 6 -> turmaTela.cadastrarNovoAluno(usuarioLogado);
+        case 7 -> turmaTela.cancelarTurmaAluno(usuarioLogado);
+        case 0 -> System.out.println("Voltando...");
+        default -> System.out.println("Opção inválida.");
       }
 
     } while (opcao != 0);

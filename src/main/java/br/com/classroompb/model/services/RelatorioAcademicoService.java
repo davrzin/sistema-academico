@@ -210,22 +210,17 @@ public class RelatorioAcademicoService {
   private void contabilizarSituacao(
       ItemRelatorioReprovacaoDisciplina item, SituacaoAcademica situacao) {
     switch (situacao) {
-      case APROVADO:
-        item.setTotalResultadosFinais(item.getTotalResultadosFinais() + 1);
-        break;
-      case REPROVADO_POR_NOTA:
+      case APROVADO -> item.setTotalResultadosFinais(item.getTotalResultadosFinais() + 1);
+      case REPROVADO_POR_NOTA -> {
         item.setTotalResultadosFinais(item.getTotalResultadosFinais() + 1);
         item.setTotalReprovadosPorNota(item.getTotalReprovadosPorNota() + 1);
-        break;
-      case REPROVADO_POR_FALTA:
+      }
+      case REPROVADO_POR_FALTA -> {
         item.setTotalResultadosFinais(item.getTotalResultadosFinais() + 1);
         item.setTotalReprovadosPorFalta(item.getTotalReprovadosPorFalta() + 1);
-        break;
-      case EM_ANDAMENTO:
-      case EM_RECUPERACAO:
-        break;
-      default:
-        break;
+      }
+      case EM_ANDAMENTO, EM_RECUPERACAO -> {}
+      default -> {}
     }
   }
 

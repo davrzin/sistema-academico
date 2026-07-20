@@ -264,24 +264,14 @@ public class UsuarioService {
   }
 
   private String gerarMatricula(TipoUsuario tipoUsuario) {
-    String prefixo;
-
-    switch (tipoUsuario) {
-      case ALUNO:
-        prefixo = "al";
-        break;
-      case ADMINISTRADOR:
-        prefixo = "ad";
-        break;
-      case PROFESSOR:
-        prefixo = "pr";
-        break;
-      case COORDENADOR:
-        prefixo = "co";
-        break;
-      default:
-        throw new EntradaInvalidaException("Tipo de usuario invalido.");
-    }
+    String prefixo =
+        switch (tipoUsuario) {
+          case ALUNO -> "al";
+          case ADMINISTRADOR -> "ad";
+          case PROFESSOR -> "pr";
+          case COORDENADOR -> "co";
+          default -> throw new EntradaInvalidaException("Tipo de usuario invalido.");
+        };
 
     int contador = repository.listar(tipoUsuario).size();
     String matricula;

@@ -38,36 +38,14 @@ public class MenuProfessor {
       System.out.println();
 
       switch (opcao) {
-        case 1:
-          turmaTela.listarMinhasTurmas(usuarioLogado);
-          break;
-
-        case 2:
-          usuarioTela.listarUsuarios(usuarioLogado);
-          break;
-
-        case 3:
-          usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
-          break;
-
-        case 4:
-          turmaTela.adicionarNotas(usuarioLogado);
-          break;
-
-        case 5:
-          turmaTela.adicionarFrequencia(usuarioLogado);
-          break;
-
-        case 6:
-          System.out.println("Funcionalidade de listar diário ainda não implementada.");
-          break;
-
-        case 0:
-          System.out.println("Voltando...");
-          break;
-
-        default:
-          System.out.println("Opção inválida.");
+        case 1 -> turmaTela.listarMinhasTurmas(usuarioLogado);
+        case 2 -> usuarioTela.listarUsuarios(usuarioLogado);
+        case 3 -> usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
+        case 4 -> turmaTela.adicionarNotas(usuarioLogado);
+        case 5 -> turmaTela.adicionarFrequencia(usuarioLogado);
+        case 6 -> System.out.println("Funcionalidade de listar diário ainda não implementada.");
+        case 0 -> System.out.println("Voltando...");
+        default -> System.out.println("Opção inválida.");
       }
 
     } while (opcao != 0);

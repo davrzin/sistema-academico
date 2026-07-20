@@ -623,23 +623,20 @@ public class UsuarioTela {
       String opcao = scanner.nextLine();
 
       switch (opcao) {
-        case "0":
-          throw new EntradaTela.EntradaCanceladaException();
-
-        case "1":
+        case "0" -> throw new EntradaTela.EntradaCanceladaException();
+        case "1" -> {
           return TipoUsuario.ADMINISTRADOR;
-
-        case "2":
+        }
+        case "2" -> {
           return TipoUsuario.COORDENADOR;
-
-        case "3":
+        }
+        case "3" -> {
           return TipoUsuario.PROFESSOR;
-
-        case "4":
+        }
+        case "4" -> {
           return TipoUsuario.ALUNO;
-
-        default:
-          System.out.println("Opção inválida! Tente novamente.");
+        }
+        default -> System.out.println("Opção inválida! Tente novamente.");
       }
     }
   }
@@ -647,26 +644,25 @@ public class UsuarioTela {
   private Usuario criarUsuarioPorTipo(
       TipoUsuario tipoUsuario, String nome, String email, String senha, String codigoCurso) {
     switch (tipoUsuario) {
-      case ALUNO:
+      case ALUNO -> {
         Aluno aluno = new Aluno(nome, email, senha);
         aluno.setCodigoCurso(codigoCurso);
         return aluno;
-
-      case PROFESSOR:
+      }
+      case PROFESSOR -> {
         Professor professor = new Professor(nome, email, senha);
         professor.setCodigoCurso(codigoCurso);
         return professor;
-
-      case COORDENADOR:
+      }
+      case COORDENADOR -> {
         Coordenador coordenador = new Coordenador(nome, email, senha);
         coordenador.setCodigoCurso(codigoCurso);
         return coordenador;
-
-      case ADMINISTRADOR:
+      }
+      case ADMINISTRADOR -> {
         return new Administrador(nome, email, senha);
-
-      default:
-        throw new IllegalArgumentException("Tipo de usuário inválido.");
+      }
+      default -> throw new IllegalArgumentException("Tipo de usuário inválido.");
     }
   }
 

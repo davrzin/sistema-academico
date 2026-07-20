@@ -41,44 +41,16 @@ public class MenuAdministrador {
       System.out.println();
 
       switch (opcao) {
-        case 1:
-          usuarioTela.cadastrarUsuario();
-          break;
-
-        case 2:
-          usuarioTela.listarUsuarios(usuarioLogado);
-          break;
-
-        case 3:
-          usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
-          break;
-
-        case 4:
-          usuarioTela.atualizarUsuario(usuarioLogado);
-          break;
-
-        case 5:
-          usuarioTela.removerUsuario(usuarioLogado);
-          break;
-
-        case 6:
-          cursoTela.cadastrarCurso();
-          break;
-
-        case 7:
-          cursoTela.listarCursos();
-          break;
-
-        case 8:
-          relatorioUsuarioTela.gerarRelatorioGeralUsuarios(usuarioLogado);
-          break;
-
-        case 0:
-          System.out.println("Voltando...");
-          break;
-
-        default:
-          System.out.println("Opção inválida.");
+        case 1 -> usuarioTela.cadastrarUsuario();
+        case 2 -> usuarioTela.listarUsuarios(usuarioLogado);
+        case 3 -> usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
+        case 4 -> usuarioTela.atualizarUsuario(usuarioLogado);
+        case 5 -> usuarioTela.removerUsuario(usuarioLogado);
+        case 6 -> cursoTela.cadastrarCurso();
+        case 7 -> cursoTela.listarCursos();
+        case 8 -> relatorioUsuarioTela.gerarRelatorioGeralUsuarios(usuarioLogado);
+        case 0 -> System.out.println("Voltando...");
+        default -> System.out.println("Opção inválida.");
       }
 
     } while (opcao != 0);
