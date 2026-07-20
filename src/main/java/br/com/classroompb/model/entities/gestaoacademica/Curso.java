@@ -5,7 +5,7 @@ import br.com.classroompb.model.exception.EntradaInvalidaException;
 /**
  * Representa um curso cadastrado no sistema academico.
  */
-public class Curso {
+public final class Curso {
   private String codigo;
   private String nome;
   private int quantidadePeriodos;

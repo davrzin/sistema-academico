@@ -9,7 +9,7 @@ import java.time.format.ResolverStyle;
 /**
  * Representa um periodo letivo do sistema academico.
  */
-public class PeriodoLetivo {
+public final class PeriodoLetivo {
 
   private static final DateTimeFormatter FORMATADOR_DATA =
       DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);

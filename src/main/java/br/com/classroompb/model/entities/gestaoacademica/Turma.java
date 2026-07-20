@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Representa uma turma ofertada no sistema academico.
  */
-public class Turma {
+public final class Turma {
 
   private String codigo;
   private String codigoDisciplina;

@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Representa uma aula registrada para uma turma.
  */
-public class Aula {
+public final class Aula {
 
   private static final DateTimeFormatter FORMATADOR_DATA =
       DateTimeFormatter.ofPattern("dd/MM/yyyy");

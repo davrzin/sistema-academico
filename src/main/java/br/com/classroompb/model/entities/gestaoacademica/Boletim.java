@@ -5,7 +5,7 @@ import br.com.classroompb.model.exception.EntradaInvalidaException;
 /**
  * Representa o boletim de um aluno em uma turma.
  */
-public class Boletim {
+public final class Boletim {
 
   private String idBoletim;
   private String matriculaAluno;

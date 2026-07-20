@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Representa uma disciplina cadastrada no sistema academico.
  */
-public class Disciplina {
+public final class Disciplina {
   private String codigo;
   private String nome;
   private int cargaHoraria;
