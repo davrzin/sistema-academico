@@ -48,7 +48,7 @@ public class TurmaService {
   private final AulaRepository aulaRepository;
   private final BoletimService boletimService;
 
-  private UsuarioService usuarioService;
+  private final UsuarioService usuarioService;
 
   /**
    * Cria o servico de turmas com dependencias principais.
