@@ -247,7 +247,7 @@ public class TurmaRepository {
     return new File(diretorio, "turmas.json").getPath();
   }
 
-  private <T extends Turma> List<Turma> lerTurmas(File arquivo, Class<T> tipo) throws IOException {
+  private List<Turma> lerTurmas(File arquivo, Class<Turma> tipo) throws IOException {
     return new ArrayList<>(
         objectMapper.readValue(
             arquivo, objectMapper.getTypeFactory().constructCollectionType(List.class, tipo)));

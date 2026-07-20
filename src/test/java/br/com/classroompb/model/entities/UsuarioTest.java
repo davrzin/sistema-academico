@@ -1,7 +1,6 @@
 package br.com.classroompb.model.entities;
 
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
-import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Administrador;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;

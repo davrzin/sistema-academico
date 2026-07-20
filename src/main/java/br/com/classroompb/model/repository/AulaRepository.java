@@ -151,7 +151,7 @@ public class AulaRepository {
     return new File(diretorio, "aulas.json").getPath();
   }
 
-  private <T extends Aula> List<Aula> lerAulas(File arquivo, Class<T> tipo) throws IOException {
+  private List<Aula> lerAulas(File arquivo, Class<Aula> tipo) throws IOException {
     return new ArrayList<>(
         objectMapper.readValue(
             arquivo, objectMapper.getTypeFactory().constructCollectionType(List.class, tipo)));

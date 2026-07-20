@@ -152,7 +152,7 @@ public class DisciplinaRepository {
     return new File(diretorio, "disciplinas.json").getPath();
   }
 
-  private <T extends Disciplina> List<Disciplina> lerDisciplinas(File arquivo, Class<T> tipo)
+  private List<Disciplina> lerDisciplinas(File arquivo, Class<Disciplina> tipo)
       throws IOException {
     return new ArrayList<>(
         objectMapper.readValue(

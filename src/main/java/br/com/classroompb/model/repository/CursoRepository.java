@@ -189,7 +189,7 @@ public class CursoRepository {
     return new File(diretorio, "cursos.json").getPath();
   }
 
-  private <T extends Curso> List<Curso> lerCursos(File arquivo, Class<T> tipo) throws IOException {
+  private List<Curso> lerCursos(File arquivo, Class<Curso> tipo) throws IOException {
     return new ArrayList<>(
         objectMapper.readValue(
             arquivo, objectMapper.getTypeFactory().constructCollectionType(List.class, tipo)));

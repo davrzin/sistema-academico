@@ -188,7 +188,7 @@ public class PeriodoLetivoRepository {
     return new File(diretorio, "periodos_letivos.json").getPath();
   }
 
-  private <T extends PeriodoLetivo> List<PeriodoLetivo> lerPeriodos(File arquivo, Class<T> tipo)
+  private List<PeriodoLetivo> lerPeriodos(File arquivo, Class<PeriodoLetivo> tipo)
       throws IOException {
     return new ArrayList<>(
         objectMapper.readValue(

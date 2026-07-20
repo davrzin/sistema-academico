@@ -181,7 +181,7 @@ public class BoletimRepository {
     }
   }
 
-  private <T extends Boletim> List<Boletim> lerBoletins(File arquivo, Class<T> tipo)
+  private List<Boletim> lerBoletins(File arquivo, Class<Boletim> tipo)
       throws IOException {
 
     return new ArrayList<>(
