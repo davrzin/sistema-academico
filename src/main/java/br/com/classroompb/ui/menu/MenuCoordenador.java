@@ -1,6 +1,7 @@
 package br.com.classroompb.ui.menu;
 
 import br.com.classroompb.model.entities.usuario.Coordenador;
+import br.com.classroompb.ui.tela.DiarioTela;
 import br.com.classroompb.ui.tela.DisciplinaTela;
 import br.com.classroompb.ui.tela.HistoricoAcademicoTela;
 import br.com.classroompb.ui.tela.PeriodoLetivoTela;
@@ -14,6 +15,7 @@ public class MenuCoordenador {
 
   private final Coordenador usuarioLogado;
   private final Scanner scanner;
+  private final DiarioTela diarioTela;
   private final DisciplinaTela disciplinaTela;
   private final HistoricoAcademicoTela historicoAcademicoTela;
   private final PeriodoLetivoTela periodoLetivoTela;
@@ -25,6 +27,7 @@ public class MenuCoordenador {
   public MenuCoordenador(Coordenador usuarioLogado, Scanner scanner) {
     this.usuarioLogado = usuarioLogado;
     this.scanner = scanner;
+    this.diarioTela = new DiarioTela(scanner);
     this.disciplinaTela = new DisciplinaTela(scanner);
     this.historicoAcademicoTela = new HistoricoAcademicoTela(scanner);
     this.periodoLetivoTela = new PeriodoLetivoTela(scanner);
@@ -66,6 +69,12 @@ public class MenuCoordenador {
         case 14 -> relatorioAcademicoTela.gerarRelatorioAlunosPorTurma(usuarioLogado);
         case 15 -> relatorioAcademicoTela.gerarRelatorioOcupacaoVagas(usuarioLogado);
         case 16 -> relatorioAcademicoTela.gerarRelatorioReprovacaoPorDisciplina(usuarioLogado);
+        case 17 -> diarioTela.cadastrarDiario(usuarioLogado);
+        case 18 -> diarioTela.listarDiarios(usuarioLogado);
+        case 19 -> diarioTela.listarDiariosPorTurma(usuarioLogado);
+        case 20 -> diarioTela.atualizarDiario(usuarioLogado);
+        case 21 -> diarioTela.encerrarDiario(usuarioLogado);
+        case 22 -> diarioTela.cancelarDiario(usuarioLogado);
         case 0 -> System.out.println("Voltando...");
         default -> System.out.println("Opção inválida.");
       }
@@ -93,6 +102,12 @@ public class MenuCoordenador {
     System.out.println("║ 14 - Relatório de alunos por turma           ║");
     System.out.println("║ 15 - Relatório de ocupação de vagas          ║");
     System.out.println("║ 16 - Relatório de reprovação por disciplina  ║");
+    System.out.println("║ 17 - Cadastrar diário de turma               ║");
+    System.out.println("║ 18 - Listar diários                          ║");
+    System.out.println("║ 19 - Listar diários de uma turma             ║");
+    System.out.println("║ 20 - Atualizar diário                        ║");
+    System.out.println("║ 21 - Encerrar diário                         ║");
+    System.out.println("║ 22 - Cancelar diário                         ║");
     System.out.println("║ 0 - Voltar                                   ║");
     System.out.println("╚══════════════════════════════════════════════╝");
   }
