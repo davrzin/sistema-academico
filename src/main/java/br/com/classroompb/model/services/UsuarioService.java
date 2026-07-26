@@ -264,14 +264,7 @@ public class UsuarioService {
   }
 
   private String gerarMatricula(TipoUsuario tipoUsuario) {
-    String prefixo =
-        switch (tipoUsuario) {
-          case ALUNO -> "al";
-          case ADMINISTRADOR -> "ad";
-          case PROFESSOR -> "pr";
-          case COORDENADOR -> "co";
-          default -> throw new EntradaInvalidaException("Tipo de usuario invalido.");
-        };
+    String prefixo = prefixoMatricula(tipoUsuario);
 
     int contador = repository.listar(tipoUsuario).size();
     String matricula;
@@ -282,6 +275,21 @@ public class UsuarioService {
     } while (existeMatricula(matricula, tipoUsuario));
 
     return matricula;
+  }
+
+  private String prefixoMatricula(TipoUsuario tipoUsuario) {
+    switch (tipoUsuario) {
+      case ALUNO:
+        return "al";
+      case ADMINISTRADOR:
+        return "ad";
+      case PROFESSOR:
+        return "pr";
+      case COORDENADOR:
+        return "co";
+      default:
+        throw new EntradaInvalidaException("Tipo de usuario invalido.");
+    }
   }
 
   private boolean existeMatricula(String matricula, TipoUsuario tipoUsuario) {

@@ -68,7 +68,8 @@ public class DiarioTela {
     try {
       validarCoordenadorComCurso(coordenadorLogado);
 
-      List<Diario> diarios = diarioService.listarDiariosPorCurso(coordenadorLogado.getCodigoCurso());
+      List<Diario> diarios =
+          diarioService.listarDiariosPorCurso(coordenadorLogado.getCodigoCurso());
       exibirListaDiarios(diarios);
 
     } catch (PersistenciaException | EntradaInvalidaException e) {
@@ -142,7 +143,8 @@ public class DiarioTela {
       Diario diarioSelecionado = selecionarDiarioDoCurso(coordenadorLogado.getCodigoCurso(),
           "Informe o número do diário que deseja encerrar: ");
 
-      diarioService.encerrarDiario(diarioSelecionado.getCodigo(), coordenadorLogado.getCodigoCurso());
+      diarioService.encerrarDiario(
+          diarioSelecionado.getCodigo(), coordenadorLogado.getCodigoCurso());
 
       System.out.println("Diário encerrado com sucesso.");
 
@@ -166,7 +168,8 @@ public class DiarioTela {
       Diario diarioSelecionado = selecionarDiarioDoCurso(coordenadorLogado.getCodigoCurso(),
           "Informe o número do diário que deseja cancelar: ");
 
-      diarioService.cancelarDiario(diarioSelecionado.getCodigo(), coordenadorLogado.getCodigoCurso());
+      diarioService.cancelarDiario(
+          diarioSelecionado.getCodigo(), coordenadorLogado.getCodigoCurso());
 
       System.out.println("Diário cancelado com sucesso.");
 
@@ -314,8 +317,11 @@ public class DiarioTela {
   private void exibirDiarioDetalhado(int numero, Diario diario) {
     System.out.println(numero + " - " + diario.getDescricao());
     System.out.println("    Código interno   : " + diario.getCodigo());
-    System.out.println("    Turma            : " + nomeAmigavelTurmaPorCodigo(diario.getCodigoTurma()));
-    System.out.println("    Professor        : " + diarioService.buscarNomeProfessor(diario.getMatriculaProfessor()));
+    System.out.println(
+        "    Turma            : " + nomeAmigavelTurmaPorCodigo(diario.getCodigoTurma()));
+    System.out.println(
+        "    Professor        : "
+            + diarioService.buscarNomeProfessor(diario.getMatriculaProfessor()));
     System.out.println("    Horário          : " + diario.getHorario());
     System.out.println("    Sala             : " + diario.getSala());
     System.out.println("    Carga horária    : " + diario.getCargaHoraria() + "h");

@@ -19,7 +19,9 @@ public class DiarioTest {
    */
   @BeforeEach
   public void inicializarDiario() {
-    diario = new Diario("tur00", "Diário de aulas teóricas", "pr00", "SEG 08:00-10:00", "B-109", 60);
+    diario =
+        new Diario(
+            "tur00", "Diário de aulas teóricas", "pr00", "SEG 08:00-10:00", "B-109", 60);
   }
 
   @Test

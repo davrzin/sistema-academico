@@ -79,7 +79,8 @@ public class DiarioServiceTest {
       TurmaRepository turmaRepository,
       DisciplinaRepository disciplinaRepository,
       UserRepository userRepository) {
-    return new DiarioService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
+    return new DiarioService(
+        diarioRepository, turmaRepository, disciplinaRepository, userRepository);
   }
 
   private Professor criarProfessor(String matricula, String codigoCurso) {
@@ -91,7 +92,12 @@ public class DiarioServiceTest {
 
   private Diario criarDiario(String codigoTurma, String matriculaProfessor) {
     return new Diario(
-        codigoTurma, "Diário de aulas teóricas", matriculaProfessor, "SEG 08:00-10:00", "LAB 01", 60);
+        codigoTurma,
+        "Diário de aulas teóricas",
+        matriculaProfessor,
+        "SEG 08:00-10:00",
+        "LAB 01",
+        60);
   }
 
   private void prepararDadosBasicos(
@@ -109,13 +115,13 @@ public class DiarioServiceTest {
   }
 
   @Test
-  public void deveCadastrarDiarioComTurmaEProfessorValidos() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
+  public void deveCadastrarDiarioComTurmaProfessorValidos() {
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "pr00");
@@ -128,13 +134,13 @@ public class DiarioServiceTest {
   }
 
   @Test
-  public void deveCadastrarMaisDeUmDiarioParaAMesmaTurma() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
+  public void deveCadastrarMaisDeUmDiarioParaMesmaTurma() {
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
 
@@ -147,13 +153,13 @@ public class DiarioServiceTest {
   }
 
   @Test
-  public void deveCadastrarDiarioComCoordenadorQuandoTurmaEProfessorPertencemAoCurso() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
+  public void deveCadastrarDiarioComCoordenadorQuandoTurmaProfessorPertencemAoCurso() {
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "pr00");
@@ -166,12 +172,12 @@ public class DiarioServiceTest {
 
   @Test
   public void deveLancarExcecaoAoCadastrarDiarioComCoordenadorQuandoTurmaNaoPertenceAoCurso() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "pr00");
@@ -182,11 +188,11 @@ public class DiarioServiceTest {
 
   @Test
   public void deveLancarEntradaInvalidaExceptionAoCadastrarDiarioNulo() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
 
@@ -195,7 +201,6 @@ public class DiarioServiceTest {
 
   @Test
   public void deveLancarTurmaNaoEncontradaExceptionQuandoTurmaNaoExistir() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
@@ -203,16 +208,17 @@ public class DiarioServiceTest {
     Professor professor = criarProfessor("pr00", CODIGO_CURSO);
     userRepository.salvarUsuario(professor);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur99", "pr00");
 
-    Assertions.assertThrows(TurmaNaoEncontradaException.class, () -> service.cadastrarDiario(diario));
+    Assertions.assertThrows(
+        TurmaNaoEncontradaException.class, () -> service.cadastrarDiario(diario));
   }
 
   @Test
   public void deveLancarEntradaInvalidaExceptionQuandoProfessorNaoExistir() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
@@ -222,6 +228,7 @@ public class DiarioServiceTest {
     turmaRepository.salvarTurma(
         new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01"));
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "pr99");
@@ -231,7 +238,6 @@ public class DiarioServiceTest {
 
   @Test
   public void deveLancarEntradaInvalidaExceptionQuandoMatriculaForDeAluno() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
@@ -244,6 +250,7 @@ public class DiarioServiceTest {
     Aluno aluno = new Aluno("Maria", "maria@email.com", "al00", "senha123", CODIGO_CURSO);
     userRepository.salvarUsuario(aluno);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "al00");
@@ -253,12 +260,12 @@ public class DiarioServiceTest {
 
   @Test
   public void deveAlterarDiarioCadastrado() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "pr00");
@@ -277,12 +284,12 @@ public class DiarioServiceTest {
 
   @Test
   public void deveLancarDiarioNaoEncontradoExceptionAoAlterarDiarioInexistente() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diarioAtualizado = criarDiario("tur00", "pr00");
@@ -294,12 +301,12 @@ public class DiarioServiceTest {
 
   @Test
   public void deveEncerrarDiarioCadastrado() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "pr00");
@@ -314,12 +321,12 @@ public class DiarioServiceTest {
 
   @Test
   public void deveCancelarDiarioCadastrado() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "pr00");
@@ -334,12 +341,12 @@ public class DiarioServiceTest {
 
   @Test
   public void deveLancarExcecaoAoAlterarSituacaoDeDiarioDeOutroCurso() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "pr00");
@@ -352,12 +359,12 @@ public class DiarioServiceTest {
 
   @Test
   public void deveBuscarDiarioPorCodigo() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     Diario diario = criarDiario("tur00", "pr00");
@@ -371,11 +378,11 @@ public class DiarioServiceTest {
 
   @Test
   public void deveLancarDiarioNaoEncontradoExceptionQuandoCodigoNaoExistir() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
 
@@ -385,7 +392,6 @@ public class DiarioServiceTest {
 
   @Test
   public void deveListarDiariosPorCurso() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
@@ -396,6 +402,7 @@ public class DiarioServiceTest {
     turmaRepository.salvarTurma(
         new Turma("tur01", "dis01", "2026.2", "pr00", 30, "TER 08:00-10:00", "LAB 02"));
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     service.cadastrarDiario(criarDiario("tur00", "pr00"));
@@ -409,12 +416,12 @@ public class DiarioServiceTest {
 
   @Test
   public void deveListarDiariosPorProfessor() {
-    DiarioRepository diarioRepository = criarDiarioRepository();
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
 
+    DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     service.cadastrarDiario(criarDiario("tur00", "pr00"));

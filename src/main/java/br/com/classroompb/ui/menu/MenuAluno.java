@@ -54,13 +54,8 @@ public class MenuAluno {
       System.out.println();
 
       switch (opcao) {
-        case 1 -> disciplinaTela.listarDisciplinas(usuarioLogado);
-        case 2 -> turmaTela.listarTurmas(usuarioLogado);
-        case 3 -> turmaTela.listarMatriculasAluno(usuarioLogado);
-        case 4 -> usuarioTela.exibirBoletinAluno(usuarioLogado);
-        case 5 -> historicoAcademicoTela.listarHistoricoAluno(usuarioLogado);
-        case 6 -> turmaTela.cadastrarNovoAluno(usuarioLogado);
-        case 7 -> turmaTela.cancelarTurmaAluno(usuarioLogado);
+        case 1 -> menuAcademico();
+        case 2 -> menuMatricula();
         case 0 -> System.out.println("Voltando...");
         default -> System.out.println("Opção inválida.");
       }
@@ -68,17 +63,72 @@ public class MenuAluno {
     } while (opcao != 0);
   }
 
+  private void menuAcademico() {
+    int opcao;
+    do {
+      System.out.println("╔════════════════════════════════════╗");
+      System.out.println("║              ACADÊMICO             ║");
+      System.out.println("╠════════════════════════════════════╣");
+      System.out.println("║ 1 - Listar disciplinas             ║");
+      System.out.println("║ 2 - Listar turmas                  ║");
+      System.out.println("║ 3 - Listar matrícula               ║");
+      System.out.println("║ 4 - Listar boletim                 ║");
+      System.out.println("║ 5 - Listar histórico acadêmico     ║");
+      System.out.println("║ 0 - Voltar                         ║");
+      System.out.println("╚════════════════════════════════════╝");
+
+      opcao = lerOpcao();
+      System.out.println();
+
+      switch (opcao) {
+        case 1 -> disciplinaTela.listarDisciplinas(usuarioLogado);
+        case 2 -> turmaTela.listarTurmas(usuarioLogado);
+        case 3 -> turmaTela.listarMatriculasAluno(usuarioLogado);
+        case 4 -> usuarioTela.exibirBoletinAluno(usuarioLogado);
+        case 5 -> historicoAcademicoTela.listarHistoricoAluno(usuarioLogado);
+        case 0 -> System.out.println("Voltando...");
+        default -> System.out.println("Opção inválida.");
+      }
+
+      if (opcao != 0) {
+        System.out.println();
+      }
+    } while (opcao != 0);
+  }
+
+  private void menuMatricula() {
+    int opcao;
+    do {
+      System.out.println("╔════════════════════════════════════╗");
+      System.out.println("║              MATRÍCULA             ║");
+      System.out.println("╠════════════════════════════════════╣");
+      System.out.println("║ 1 - Matricular em turma            ║");
+      System.out.println("║ 2 - Cancelar matrícula             ║");
+      System.out.println("║ 0 - Voltar                         ║");
+      System.out.println("╚════════════════════════════════════╝");
+
+      opcao = lerOpcao();
+      System.out.println();
+
+      switch (opcao) {
+        case 1 -> turmaTela.cadastrarNovoAluno(usuarioLogado);
+        case 2 -> turmaTela.cancelarTurmaAluno(usuarioLogado);
+        case 0 -> System.out.println("Voltando...");
+        default -> System.out.println("Opção inválida.");
+      }
+
+      if (opcao != 0) {
+        System.out.println();
+      }
+    } while (opcao != 0);
+  }
+
   private void imprimirMenu() {
     System.out.println("╔════════════════════════════════════╗");
     System.out.println("║             MENU ALUNO             ║");
     System.out.println("╠════════════════════════════════════╣");
-    System.out.println("║ 1 - Listar disciplinas             ║");
-    System.out.println("║ 2 - Listar turmas                  ║");
-    System.out.println("║ 3 - Listar matrícula               ║");
-    System.out.println("║ 4 - Listar boletim                 ║");
-    System.out.println("║ 5 - Listar histórico acadêmico     ║");
-    System.out.println("║ 6 - Matricular em turma            ║");
-    System.out.println("║ 7 - Cancelar matrícula             ║");
+    System.out.println("║ 1 - Acadêmico                      ║");
+    System.out.println("║ 2 - Matrícula                      ║");
     System.out.println("║ 0 - Voltar                         ║");
     System.out.println("╚════════════════════════════════════╝");
   }

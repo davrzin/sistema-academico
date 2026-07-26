@@ -38,12 +38,8 @@ public class MenuProfessor {
       System.out.println();
 
       switch (opcao) {
-        case 1 -> turmaTela.listarMinhasTurmas(usuarioLogado);
-        case 2 -> usuarioTela.listarUsuarios(usuarioLogado);
-        case 3 -> usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
-        case 4 -> turmaTela.adicionarNotas(usuarioLogado);
-        case 5 -> turmaTela.adicionarFrequencia(usuarioLogado);
-        case 6 -> System.out.println("Funcionalidade de listar diário ainda não implementada.");
+        case 1 -> menuTurmas();
+        case 2 -> menuAlunos();
         case 0 -> System.out.println("Voltando...");
         default -> System.out.println("Opção inválida.");
       }
@@ -51,16 +47,70 @@ public class MenuProfessor {
     } while (opcao != 0);
   }
 
+  private void menuTurmas() {
+    int opcao;
+    do {
+      System.out.println("╔═══════════════════════════════════╗");
+      System.out.println("║               TURMAS              ║");
+      System.out.println("╠═══════════════════════════════════╣");
+      System.out.println("║ 1 - Listar minhas turmas          ║");
+      System.out.println("║ 2 - Lançar notas                  ║");
+      System.out.println("║ 3 - Lançar frequência             ║");
+      System.out.println("║ 4 - Listar diário                 ║");
+      System.out.println("║ 0 - Voltar                        ║");
+      System.out.println("╚═══════════════════════════════════╝");
+
+      opcao = lerOpcao();
+      System.out.println();
+
+      switch (opcao) {
+        case 1 -> turmaTela.listarMinhasTurmas(usuarioLogado);
+        case 2 -> turmaTela.adicionarNotas(usuarioLogado);
+        case 3 -> turmaTela.adicionarFrequencia(usuarioLogado);
+        case 4 -> System.out.println("Funcionalidade de listar diário ainda não implementada.");
+        case 0 -> System.out.println("Voltando...");
+        default -> System.out.println("Opção inválida.");
+      }
+
+      if (opcao != 0) {
+        System.out.println();
+      }
+    } while (opcao != 0);
+  }
+
+  private void menuAlunos() {
+    int opcao;
+    do {
+      System.out.println("╔═══════════════════════════════════╗");
+      System.out.println("║               ALUNOS              ║");
+      System.out.println("╠═══════════════════════════════════╣");
+      System.out.println("║ 1 - Listar alunos                 ║");
+      System.out.println("║ 2 - Buscar aluno por matrícula    ║");
+      System.out.println("║ 0 - Voltar                        ║");
+      System.out.println("╚═══════════════════════════════════╝");
+
+      opcao = lerOpcao();
+      System.out.println();
+
+      switch (opcao) {
+        case 1 -> usuarioTela.listarUsuarios(usuarioLogado);
+        case 2 -> usuarioTela.buscarUsuarioPorMatricula(usuarioLogado);
+        case 0 -> System.out.println("Voltando...");
+        default -> System.out.println("Opção inválida.");
+      }
+
+      if (opcao != 0) {
+        System.out.println();
+      }
+    } while (opcao != 0);
+  }
+
   private void imprimirMenu() {
     System.out.println("╔═══════════════════════════════════╗");
     System.out.println("║          MENU PROFESSOR           ║");
     System.out.println("╠═══════════════════════════════════╣");
-    System.out.println("║ 1 - Listar minhas turmas          ║");
-    System.out.println("║ 2 - Listar alunos                 ║");
-    System.out.println("║ 3 - Buscar aluno por matrícula    ║");
-    System.out.println("║ 4 - Lançar notas                  ║");
-    System.out.println("║ 5 - Lançar frequência             ║");
-    System.out.println("║ 6 - Listar diário                 ║");
+    System.out.println("║ 1 - Turmas                        ║");
+    System.out.println("║ 2 - Alunos                        ║");
     System.out.println("║ 0 - Voltar                        ║");
     System.out.println("╚═══════════════════════════════════╝");
   }
