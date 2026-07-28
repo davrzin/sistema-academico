@@ -4,7 +4,7 @@ import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.entities.usuario.Professor;
-import br.com.classroompb.model.enums.SituacaoDiario;
+/*import br.com.classroompb.model.enums.SituacaoDiario;*/
 import br.com.classroompb.model.exception.DiarioNaoEncontradoException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
