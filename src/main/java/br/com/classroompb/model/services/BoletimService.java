@@ -172,8 +172,8 @@ public class BoletimService {
   /**
    * Lanca ou retifica notas em um boletim.
    *
-   * @param matriculaAluno matricula do aluno.
    * @param codigoTurma codigo da turma.
+   * @param matriculaAluno matricula do aluno.
    * @param primeiraNota primeira nota.
    * @param segundaNota segunda nota.
    * @param matriculaProfessor matricula do professor.
@@ -188,6 +188,7 @@ public class BoletimService {
 
     boletim.setPrimeiraNota(primeiraNota);
     boletim.setSegundaNota(segundaNota);
+
     repository.atualizarBoletins(boletim);
   }
 
@@ -204,6 +205,7 @@ public class BoletimService {
     Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
 
     boletim.setPrimeiraNota(primeiraNota);
+
     repository.atualizarBoletins(boletim);
   }
 
@@ -220,6 +222,7 @@ public class BoletimService {
     Boletim boletim = buscarBoletimParaLancamento(codigoTurma, matriculaAluno, matriculaProfessor);
 
     boletim.setSegundaNota(segundaNota);
+
     repository.atualizarBoletins(boletim);
   }
 
