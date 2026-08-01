@@ -136,6 +136,31 @@ public final class Boletim {
     return (primeiraNota + segundaNota) / 2.0f;
   }
 
+  /**
+   * Calcula a media parcial a partir das notas ja lancadas ate o momento.
+   *
+   * <p>Enquanto nem todas as notas tiverem sido lancadas, a media parcial corresponde a nota
+   * ja disponivel. Quando ambas as notas ja foram lancadas, a media parcial coincide com a
+   * media final.
+   *
+   * @return media parcial, ou nula caso nenhuma nota tenha sido lancada ainda.
+   */
+  public Float calcularMediaParcial() {
+    if (possuiTodasAsNotas()) {
+      return calcularMediaFinal();
+    }
+
+    if (possuiPrimeiraNota()) {
+      return primeiraNota;
+    }
+
+    if (possuiSegundaNota()) {
+      return segundaNota;
+    }
+
+    return null;
+  }
+
   /** Retorna se a primeira nota foi lancada. */
   public boolean possuiPrimeiraNota() {
     return primeiraNota != null;

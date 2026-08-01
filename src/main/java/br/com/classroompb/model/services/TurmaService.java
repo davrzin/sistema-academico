@@ -498,6 +498,39 @@ public class TurmaService {
   }
 
   /**
+   * Lista as aulas registradas de uma turma.
+   *
+   * @param codigoTurma codigo da turma.
+   * @return lista de aulas da turma.
+   */
+  public List<Aula> listarAulasPorTurma(String codigoTurma) {
+    if (codigoTurma == null || codigoTurma.isBlank()) {
+      throw new EntradaInvalidaException("Código de turma não pode ser vazio.");
+    }
+
+    List<String> codigosAulas = turmaRepository.buscarAulasDeTurma(codigoTurma);
+    List<Aula> aulasTurma = new ArrayList<>();
+
+    for (String codigoAula : codigosAulas) {
+      aulasTurma.add(aulaRepository.buscarAulaPorId(codigoAula));
+    }
+
+    return aulasTurma;
+  }
+
+  /**
+   * Lista as aulas registradas de uma turma do professor.
+   *
+   * @param codigoTurma codigo da turma.
+   * @param matriculaProfessor matricula do professor.
+   * @return lista de aulas da turma.
+   */
+  public List<Aula> listarAulasPorTurma(String codigoTurma, String matriculaProfessor) {
+    validarTurmaPertenceAoProfessor(codigoTurma, matriculaProfessor);
+    return listarAulasPorTurma(codigoTurma);
+  }
+
+  /**
    * Atualiza a frequencia de uma turma.
    *
    * @param codigoTurma codigo da turma.

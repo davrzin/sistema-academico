@@ -2,6 +2,7 @@ package br.com.classroompb.ui.tela;
 
 import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
+import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.entities.usuario.Professor;
 /*import br.com.classroompb.model.enums.SituacaoDiario;*/
@@ -10,6 +11,7 @@ import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.services.DiarioService;
 import br.com.classroompb.model.services.TurmaService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -94,6 +96,56 @@ public class DiarioTela {
 
     } catch (EntradaTela.EntradaCanceladaException e) {
       System.out.println("Consulta cancelada.");
+
+    } catch (PersistenciaException | EntradaInvalidaException e) {
+      System.out.println("Ocorreu um erro ao listar diários: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Lista os diarios das turmas em que o professor logado e o responsavel.
+   *
+   * @param professorLogado professor logado.
+   */
+  public void listarDiariosDoProfessor(Professor professorLogado) {
+    try {
+      validarProfessorLogado(professorLogado);
+
+      List<Diario> diarios =
+          diarioService.listarDiariosPorProfessor(professorLogado.getMatricula());
+
+      System.out.println("Diários das minhas turmas:");
+      exibirListaDiarios(diarios);
+
+    } catch (PersistenciaException | EntradaInvalidaException e) {
+      System.out.println("Ocorreu um erro ao listar diários: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Lista os diarios das turmas em que o aluno logado esta matriculado.
+   *
+   * @param alunoLogado aluno logado.
+   */
+  public void listarDiariosDoAluno(Aluno alunoLogado) {
+    try {
+      validarAlunoComCurso(alunoLogado);
+
+      List<Turma> turmasMatriculadas = turmasMatriculadasDoAluno(alunoLogado);
+
+      if (turmasMatriculadas.isEmpty()) {
+        System.out.println("Você não está matriculado em nenhuma turma.");
+        return;
+      }
+
+      List<Diario> diarios = new ArrayList<>();
+
+      for (Turma turma : turmasMatriculadas) {
+        diarios.addAll(diarioService.listarDiariosPorTurma(turma.getCodigo()));
+      }
+
+      System.out.println("Diários das minhas turmas:");
+      exibirListaDiarios(diarios);
 
     } catch (PersistenciaException | EntradaInvalidaException e) {
       System.out.println("Ocorreu um erro ao listar diários: " + e.getMessage());
@@ -283,6 +335,35 @@ public class DiarioTela {
         || coordenadorLogado.getCodigoCurso().isBlank()) {
       throw new EntradaInvalidaException("Coordenador não está vinculado a nenhum curso.");
     }
+  }
+
+  private void validarProfessorLogado(Professor professorLogado) {
+    if (professorLogado == null
+        || professorLogado.getMatricula() == null
+        || professorLogado.getMatricula().isBlank()) {
+      throw new EntradaInvalidaException("Professor inválido.");
+    }
+  }
+
+  private void validarAlunoComCurso(Aluno alunoLogado) {
+    if (alunoLogado == null
+        || alunoLogado.getCodigoCurso() == null
+        || alunoLogado.getCodigoCurso().isBlank()) {
+      throw new EntradaInvalidaException("Aluno não está vinculado a nenhum curso.");
+    }
+  }
+
+  private List<Turma> turmasMatriculadasDoAluno(Aluno alunoLogado) {
+    List<Turma> turmasMatriculadas = new ArrayList<>();
+
+    for (Turma turma : turmaService.listarTurmasPorCurso(alunoLogado.getCodigoCurso())) {
+      if (turma.getMatriculados() != null
+          && turma.getMatriculados().contains(alunoLogado.getMatricula())) {
+        turmasMatriculadas.add(turma);
+      }
+    }
+
+    return turmasMatriculadas;
   }
 
   private void exibirListaDiarios(List<Diario> diarios) {
