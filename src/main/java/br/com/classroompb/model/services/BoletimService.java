@@ -1,10 +1,13 @@
 package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
+import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
+import br.com.classroompb.model.enums.SituacaoDiario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.repository.BoletimRepository;
+import br.com.classroompb.model.repository.DiarioRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.PersistenciaPaths;
 import br.com.classroompb.model.repository.TurmaRepository;
@@ -20,9 +23,11 @@ public class BoletimService {
   private static final Path DIRETORIO_BOLETINS = PersistenciaPaths.BOLETINS;
   private static final Path DIRETORIO_TURMAS = PersistenciaPaths.TURMAS;
   private static final Path DIRETORIO_PERIODOS = PersistenciaPaths.PERIODOS;
+  private static final Path DIRETORIO_DIARIOS = PersistenciaPaths.DIARIOS;
   private final BoletimRepository repository;
   private final TurmaRepository turmaRepository;
   private final PeriodoLetivoRepository periodoLetivoRepository;
+  private final DiarioRepository diarioRepository;
 
   /**
    * Cria o servico de boletins com repositorio padrao.
@@ -32,6 +37,8 @@ public class BoletimService {
     this.turmaRepository = new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString());
     this.periodoLetivoRepository =
         new PeriodoLetivoRepository(new ObjectMapper(), DIRETORIO_PERIODOS.toString());
+    this.diarioRepository =
+        new DiarioRepository(new ObjectMapper(), DIRETORIO_DIARIOS.toString());
   }
 
   /**
@@ -44,6 +51,8 @@ public class BoletimService {
     this.turmaRepository = new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString());
     this.periodoLetivoRepository =
         new PeriodoLetivoRepository(new ObjectMapper(), DIRETORIO_PERIODOS.toString());
+    this.diarioRepository =
+        new DiarioRepository(new ObjectMapper(), DIRETORIO_DIARIOS.toString());
   }
 
   /**
@@ -62,7 +71,7 @@ public class BoletimService {
   }
 
   /**
-   * Cria o servico de boletins com todos os repositorios informados.
+   * Cria o servico de boletins com repositorios informados, incluindo o de periodos letivos.
    *
    * @param repository repositorio de boletins.
    * @param turmaRepository repositorio de turmas.
@@ -72,9 +81,32 @@ public class BoletimService {
       BoletimRepository repository,
       TurmaRepository turmaRepository,
       PeriodoLetivoRepository periodoLetivoRepository) {
+    this(
+        repository,
+        turmaRepository,
+        periodoLetivoRepository,
+        new DiarioRepository(
+            new ObjectMapper(),
+            Path.of(turmaRepository.getDiretorioTurmas()).resolveSibling("diarios").toString()));
+  }
+
+  /**
+   * Cria o servico de boletins com todos os repositorios informados.
+   *
+   * @param repository repositorio de boletins.
+   * @param turmaRepository repositorio de turmas.
+   * @param periodoLetivoRepository repositorio de periodos letivos.
+   * @param diarioRepository repositorio de diarios.
+   */
+  public BoletimService(
+      BoletimRepository repository,
+      TurmaRepository turmaRepository,
+      PeriodoLetivoRepository periodoLetivoRepository,
+      DiarioRepository diarioRepository) {
     this.repository = repository;
     this.turmaRepository = turmaRepository;
     this.periodoLetivoRepository = periodoLetivoRepository;
+    this.diarioRepository = diarioRepository;
   }
 
   /**
@@ -230,6 +262,7 @@ public class BoletimService {
       String codigoTurma, String matriculaAluno, String matriculaProfessor) {
     Turma turma = validarTurmaPertenceAoProfessor(codigoTurma, matriculaProfessor);
     validarPeriodoLetivoNaoEncerrado(turma);
+    validarDiarioNaoFechado(codigoTurma);
     validarAlunoMatriculadoNaTurma(turma, matriculaAluno);
 
     Boletim boletim = buscarBoletimPorAlunoTurma(matriculaAluno, codigoTurma);
@@ -259,6 +292,34 @@ public class BoletimService {
     }
 
     throw new EntradaInvalidaException("O período letivo da turma não foi encontrado.");
+  }
+
+  /**
+   * Valida se a turma possui um diario fechado (encerrado ou cancelado) que impeça o
+   * lançamento de notas. Turmas sem nenhum diario cadastrado nao sao bloqueadas.
+   *
+   * @param codigoTurma codigo da turma do boletim.
+   */
+  private void validarDiarioNaoFechado(String codigoTurma) {
+    List<Diario> diariosDaTurma = diarioRepository.buscarDiariosPorTurma(codigoTurma);
+
+    if (diariosDaTurma.isEmpty()) {
+      return;
+    }
+
+    boolean possuiDiarioAtivo = false;
+
+    for (Diario diario : diariosDaTurma) {
+      if (diario.getSituacao() == SituacaoDiario.ATIVO) {
+        possuiDiarioAtivo = true;
+        break;
+      }
+    }
+
+    if (!possuiDiarioAtivo) {
+      throw new EntradaInvalidaException(
+          "Não é possível lançar ou alterar notas: o diário desta turma está fechado.");
+    }
   }
 
   private void validarBoletim(Boletim boletim) {

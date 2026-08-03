@@ -169,7 +169,8 @@ public class MenuCoordenador {
       System.out.println("║ 4 - Cancelar turma                           ║");
       System.out.println("║ 5 - Ver lista de espera                      ║");
       System.out.println("║ 6 - Consultar frequência de turma            ║");
-      System.out.println("║ 7 - Consultar média parcial de turma         ║");
+      System.out.println("║ 7 - Consultar frequência por aula            ║");
+      System.out.println("║ 8 - Consultar média parcial de turma         ║");
       System.out.println("║ 0 - Voltar                                   ║");
       System.out.println("╚══════════════════════════════════════════════╝");
 
@@ -183,7 +184,8 @@ public class MenuCoordenador {
         case 4 -> turmaTela.cancelarTurma(usuarioLogado);
         case 5 -> turmaTela.mostrarListaEsperaTurmas(usuarioLogado);
         case 6 -> frequenciaTela.consultarFrequenciaTurma(usuarioLogado);
-        case 7 -> mediaTela.consultarMediaParcialTurma(usuarioLogado);
+        case 7 -> frequenciaTela.consultarFrequenciaPorAula(usuarioLogado);
+        case 8 -> mediaTela.consultarMediaParcialTurma(usuarioLogado);
         case 0 -> System.out.println("Voltando...");
         default -> System.out.println("Opção inválida.");
       }

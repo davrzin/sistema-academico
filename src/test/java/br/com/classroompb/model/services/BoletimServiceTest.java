@@ -1,10 +1,13 @@
 package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
+import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
+import br.com.classroompb.model.enums.SituacaoDiario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.repository.BoletimRepository;
+import br.com.classroompb.model.repository.DiarioRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.TurmaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +28,7 @@ public class BoletimServiceTest {
   private BoletimRepository boletimRepository;
   private TurmaRepository turmaRepository;
   private PeriodoLetivoRepository periodoLetivoRepository;
+  private DiarioRepository diarioRepository;
   private BoletimService boletimService;
   private Boletim boletim;
 
@@ -41,8 +45,11 @@ public class BoletimServiceTest {
         new PeriodoLetivoRepository(new ObjectMapper(), tempDir.resolve("periodos").toString());
     periodoLetivoRepository.salvarPeriodoLetivo(
         new PeriodoLetivo("2026.2", "01/07/2026", "30/11/2026"));
+    diarioRepository =
+        new DiarioRepository(new ObjectMapper(), tempDir.resolve("diarios").toString());
     boletimService =
-        new BoletimService(boletimRepository, turmaRepository, periodoLetivoRepository);
+        new BoletimService(
+            boletimRepository, turmaRepository, periodoLetivoRepository, diarioRepository);
     boletim = new Boletim("al00", "tur00");
   }
 
@@ -416,6 +423,44 @@ public class BoletimServiceTest {
     Assertions.assertThrows(
         EntradaInvalidaException.class,
         () -> service.lancarNotas("tur00", "al00", 8.0f, 8.0f, "pr00"));
+  }
+
+  @Test
+  public void naoDeveLancarNotasQuandoDiarioDaTurmaEstiverEncerrado() {
+    prepararTurmaComBoletim(null, null);
+    diarioRepository.salvarDiario(criarDiario("dia00", "tur00", SituacaoDiario.ENCERRADO));
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarPrimeiraNota("tur00", "al00", 8.0f, "pr00"));
+  }
+
+  @Test
+  public void naoDeveLancarNotasQuandoDiarioDaTurmaEstiverCancelado() {
+    prepararTurmaComBoletim(null, null);
+    diarioRepository.salvarDiario(criarDiario("dia00", "tur00", SituacaoDiario.CANCELADO));
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> boletimService.lancarSegundaNota("tur00", "al00", 8.0f, "pr00"));
+  }
+
+  @Test
+  public void deveLancarNotasQuandoTurmaPossuiDiarioAtivo() {
+    prepararTurmaComBoletim(null, null);
+    diarioRepository.salvarDiario(criarDiario("dia00", "tur00", SituacaoDiario.ATIVO));
+
+    boletimService.lancarNotas("tur00", "al00", 7.0f, 8.0f, "pr00");
+
+    Boletim boletimAtualizado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur00");
+    Assertions.assertEquals(7.0f, boletimAtualizado.getPrimeiraNota());
+    Assertions.assertEquals(8.0f, boletimAtualizado.getSegundaNota());
+  }
+
+  private Diario criarDiario(String codigo, String codigoTurma, SituacaoDiario situacao) {
+    return new Diario(
+        codigo, codigoTurma, "Diário de teste", "pr00", "SEG 08:00-10:00", "LAB 01", 60,
+        situacao);
   }
 
   @Test

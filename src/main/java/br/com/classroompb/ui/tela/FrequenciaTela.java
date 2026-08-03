@@ -77,6 +77,49 @@ public class FrequenciaTela {
   }
 
   /**
+   * Consulta a frequencia de uma aula especifica de uma turma do professor logado.
+   *
+   * @param professorLogado professor logado.
+   */
+  public void consultarFrequenciaPorAula(Professor professorLogado) {
+    try {
+      Turma turmaSelecionada = selecionarTurmaDoProfessor(professorLogado);
+
+      if (turmaSelecionada == null) {
+        return;
+      }
+
+      exibirFrequenciaPorAula(turmaSelecionada);
+
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Consulta cancelada.");
+
+    } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {
+      System.out.println("Ocorreu um erro ao consultar frequência: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Consulta a frequencia de uma aula especifica de uma turma do curso do coordenador.
+   *
+   * @param coordenadorLogado coordenador logado.
+   */
+  public void consultarFrequenciaPorAula(Coordenador coordenadorLogado) {
+    try {
+      validarCoordenadorComCurso(coordenadorLogado);
+
+      Turma turmaSelecionada = selecionarTurmaDoCurso(coordenadorLogado.getCodigoCurso());
+      exibirFrequenciaPorAula(turmaSelecionada);
+
+    } catch (EntradaTela.EntradaCanceladaException e) {
+      System.out.println("Consulta cancelada.");
+
+    } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {
+      System.out.println("Ocorreu um erro ao consultar frequência: " + e.getMessage());
+    }
+  }
+
+  /**
    * Consulta a frequencia do aluno logado em cada turma matriculada.
    *
    * @param alunoLogado aluno logado.
@@ -128,6 +171,75 @@ public class FrequenciaTela {
 
       exibirFrequenciaDoAluno(i + 1, alunosMatriculados.get(i), turma, aulasTurma, totalAulas);
     }
+  }
+
+  private void exibirFrequenciaPorAula(Turma turma) {
+    List<Aula> aulasTurma = turmaService.listarAulasPorTurma(turma.getCodigo());
+
+    if (aulasTurma == null || aulasTurma.isEmpty()) {
+      System.out.println("A turma " + nomeAmigavelTurma(turma) + " não possui aulas registradas.");
+      return;
+    }
+
+    Aula aulaSelecionada = selecionarAula(aulasTurma);
+
+    if (aulaSelecionada == null) {
+      return;
+    }
+
+    exibirPresencasDaAula(aulaSelecionada, turma);
+  }
+
+  private Aula selecionarAula(List<Aula> aulasTurma) {
+    System.out.println("Aulas registradas:");
+    System.out.println("0 - Cancelar");
+
+    for (int i = 0; i < aulasTurma.size(); i++) {
+      Aula aula = aulasTurma.get(i);
+      System.out.println((i + 1) + " - " + aula.getData() + " às " + aula.getHorario()
+          + " (código: " + aula.getId() + ")");
+    }
+
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(scanner, "Informe o número da aula: ", aulasTurma.size());
+
+    if (opcao == 0) {
+      System.out.println("Voltando...");
+      return null;
+    }
+
+    return aulasTurma.get(opcao - 1);
+  }
+
+  private void exibirPresencasDaAula(Aula aula, Turma turma) {
+    List<String> alunosMatriculados = turma.getMatriculados();
+
+    System.out.println("Frequência da aula de " + aula.getData() + " às " + aula.getHorario()
+        + " - " + nomeAmigavelTurma(turma) + ":");
+
+    if (alunosMatriculados == null || alunosMatriculados.isEmpty()) {
+      System.out.println("A turma não possui alunos matriculados.");
+      return;
+    }
+
+    Map<String, Boolean> presencas = aula.getPresencas();
+    int presentes = 0;
+
+    for (int i = 0; i < alunosMatriculados.size(); i++) {
+      String matriculaAluno = alunosMatriculados.get(i);
+      Boolean estaPresente = presencas == null ? null : presencas.get(matriculaAluno);
+      boolean presente = Boolean.TRUE.equals(estaPresente);
+
+      if (presente) {
+        presentes++;
+      }
+
+      System.out.println((i + 1) + " - " + buscarNomeAluno(matriculaAluno)
+          + " (matrícula: " + matriculaAluno + "): " + (presente ? "Presente" : "Falta"));
+    }
+
+    System.out.println();
+    System.out.println("Presentes: " + presentes + "/" + alunosMatriculados.size());
   }
 
   private void exibirFrequenciaDoAluno(

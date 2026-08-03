@@ -67,7 +67,8 @@ public class MenuProfessor {
       System.out.println("║ 3 - Lançar frequência             ║");
       System.out.println("║ 4 - Listar diário                 ║");
       System.out.println("║ 5 - Consultar frequência          ║");
-      System.out.println("║ 6 - Consultar média parcial       ║");
+      System.out.println("║ 6 - Consultar frequência por aula ║");
+      System.out.println("║ 7 - Consultar média parcial       ║");
       System.out.println("║ 0 - Voltar                        ║");
       System.out.println("╚═══════════════════════════════════╝");
 
@@ -80,7 +81,8 @@ public class MenuProfessor {
         case 3 -> turmaTela.adicionarFrequencia(usuarioLogado);
         case 4 -> diarioTela.listarDiariosDoProfessor(usuarioLogado);
         case 5 -> frequenciaTela.consultarFrequenciaTurma(usuarioLogado);
-        case 6 -> mediaTela.consultarMediaParcialTurma(usuarioLogado);
+        case 6 -> frequenciaTela.consultarFrequenciaPorAula(usuarioLogado);
+        case 7 -> mediaTela.consultarMediaParcialTurma(usuarioLogado);
         case 0 -> System.out.println("Voltando...");
         default -> System.out.println("Opção inválida.");
       }
