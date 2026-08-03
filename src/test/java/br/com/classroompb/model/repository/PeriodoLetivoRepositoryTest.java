@@ -47,6 +47,16 @@ public class PeriodoLetivoRepositoryTest {
   }
 
   @Test
+  public void deveDefinirObjectMapperCorretamente() {
+    PeriodoLetivoRepository repository = criarRepository();
+    ObjectMapper novoMapper = new ObjectMapper();
+
+    repository.setObjectMapper(novoMapper);
+
+    Assertions.assertSame(novoMapper, repository.getObjectMapper());
+  }
+
+  @Test
   public void deveRetornarDiretorioParaArquivo() {
     PeriodoLetivoRepository repository = criarRepository();
 

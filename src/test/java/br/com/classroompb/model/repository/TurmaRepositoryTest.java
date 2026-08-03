@@ -56,6 +56,16 @@ public class TurmaRepositoryTest {
   }
 
   @Test
+  public void deveDefinirObjectMapperCorretamente() {
+    TurmaRepository repository = criarRepository();
+    ObjectMapper novoMapper = new ObjectMapper();
+
+    repository.setObjectMapper(novoMapper);
+
+    Assertions.assertSame(novoMapper, repository.getObjectMapper());
+  }
+
+  @Test
   public void deveRetornarDiretorioDasTurmas() {
     TurmaRepository repository = criarRepository();
 
@@ -204,6 +214,21 @@ public class TurmaRepositoryTest {
 
   @Test
   public void deveBuscarAulasPorTurmaCorretamente() {
+    TurmaRepository repository = criarRepository();
+    Turma turma = new Turma("tur00", "dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    turma.getAulas().add("aul00");
+    turma.getAulas().add("aul01");
+    repository.salvarTurma(turma);
+
+    List<String> aulas = repository.buscarAulasDeTurma("tur00");
+
+    Assertions.assertEquals(2, aulas.size());
+    Assertions.assertTrue(aulas.contains("aul00"));
+    Assertions.assertTrue(aulas.contains("aul01"));
+  }
+
+  @Test
+  public void deveRetornarListaVaziaAoBuscarAulasDeTurmaInexistente() {
     TurmaRepository repository = criarRepository();
 
     List<String> aulas = repository.buscarAulasDeTurma("tur00");

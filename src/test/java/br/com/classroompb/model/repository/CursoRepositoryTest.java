@@ -58,6 +58,15 @@ public class CursoRepositoryTest {
   }
 
   @Test
+  public void deveDefinirObjectMapperCorretamente() {
+
+    ObjectMapper novoMapper = new ObjectMapper();
+    repository.setObjectMapper(novoMapper);
+
+    Assertions.assertSame(novoMapper, repository.getObjectMapper());
+  }
+
+  @Test
   public void deveRetornarDiretorioCursos() {
 
     Assertions.assertNotNull(repository.getDiretorioCursos());
@@ -138,5 +147,57 @@ public class CursoRepositoryTest {
     repository.salvarCurso(curso);
 
     Assertions.assertNull(repository.buscarPorNome("Farmácia"));
+  }
+
+  @Test
+  public void deveAtualizarCursoCorretamente() {
+
+    Curso curso = new Curso("123", "Ciência da Computação", 8, 3000);
+    repository.salvarCurso(curso);
+
+    Curso cursoAtualizado = new Curso("123", "Engenharia de Software", 10, 3600);
+
+    Assertions.assertTrue(repository.atualizarCurso(cursoAtualizado));
+    Curso cursoPersistido = repository.buscarPorCodigo("123");
+    Assertions.assertEquals("Engenharia de Software", cursoPersistido.getNome());
+    Assertions.assertEquals(10, cursoPersistido.getQuantidadePeriodos());
+    Assertions.assertEquals(3600, cursoPersistido.getCargaHorariaTotal());
+  }
+
+  @Test
+  public void deveRetornarFalseAoAtualizarCursoInexistente() {
+
+    Curso curso = new Curso("123", "Ciência da Computação", 8, 3000);
+    repository.salvarCurso(curso);
+
+    Curso cursoInexistente = new Curso("999", "Farmácia", 10, 3600);
+
+    Assertions.assertFalse(repository.atualizarCurso(cursoInexistente));
+  }
+
+  @Test
+  public void deveLancarIllegalArgumentExceptionAoAtualizarCursoNull() {
+
+    Assertions.assertThrows(IllegalArgumentException.class, () -> repository.atualizarCurso(null));
+  }
+
+  @Test
+  public void deveRemoverCursoPorCodigoCorretamente() {
+
+    Curso curso = new Curso("123", "Ciência da Computação", 8, 3000);
+    repository.salvarCurso(curso);
+
+    Assertions.assertTrue(repository.removerPorCodigo("123"));
+    Assertions.assertTrue(repository.listarCursos().isEmpty());
+  }
+
+  @Test
+  public void deveRetornarFalseAoRemoverCursoInexistente() {
+
+    Curso curso = new Curso("123", "Ciência da Computação", 8, 3000);
+    repository.salvarCurso(curso);
+
+    Assertions.assertFalse(repository.removerPorCodigo("999"));
+    Assertions.assertEquals(1, repository.listarCursos().size());
   }
 }

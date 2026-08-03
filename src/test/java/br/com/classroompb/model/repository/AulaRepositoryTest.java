@@ -64,6 +64,15 @@ public class AulaRepositoryTest {
   }
 
   @Test
+  public void deveDefinirObjectMapperCorretamente() {
+
+    ObjectMapper novoMapper = new ObjectMapper();
+    aulaRepository.setObjectMapper(novoMapper);
+
+    Assertions.assertSame(novoMapper, aulaRepository.getObjectMapper());
+  }
+
+  @Test
   public void deveRetornarDiretorioAulas() {
     Assertions.assertNotNull(aulaRepository.getDiretorioAulas());
   }
@@ -120,7 +129,24 @@ public class AulaRepositoryTest {
 
     aulaRepository.salvarAula(aula);
 
-    Assertions.assertNotNull(aulaRepository.buscarAulaPorId("aula00"));
+    Aula aulaEncontrada = aulaRepository.buscarAulaPorId("aula00");
+
+    Assertions.assertNotNull(aulaEncontrada);
+    Assertions.assertEquals(aula.getId(), aulaEncontrada.getId());
+    Assertions.assertEquals(aula.getCodigoTurma(), aulaEncontrada.getCodigoTurma());
+    Assertions.assertEquals(aula.getData(), aulaEncontrada.getData());
+    Assertions.assertEquals(aula.getHorario(), aulaEncontrada.getHorario());
+  }
+
+  @Test
+  public void deveBuscarAulaPorIdIgnorandoCaixaEEspacos() {
+
+    aulaRepository.salvarAula(aula);
+
+    Aula aulaEncontrada = aulaRepository.buscarAulaPorId(" AULA00 ");
+
+    Assertions.assertNotNull(aulaEncontrada);
+    Assertions.assertEquals(aula.getId(), aulaEncontrada.getId());
   }
 
   @Test

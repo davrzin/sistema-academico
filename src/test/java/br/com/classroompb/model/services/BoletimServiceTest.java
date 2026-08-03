@@ -118,6 +118,15 @@ public class BoletimServiceTest {
   }
 
   @Test
+  public void deveRetornarNullAoBuscarBoletimDeTurmaQueAlunoNaoEstaMatriculado() {
+    boletimService.criarBoletim(boletim);
+
+    Boletim boletimEncontrado = boletimService.buscarBoletimPorAlunoTurma("al00", "tur99");
+
+    Assertions.assertNull(boletimEncontrado);
+  }
+
+  @Test
   public void deveAtualizarApenasPrimeiraNotaPreservandoSegunda() {
     prepararTurmaComBoletim(8.0f, 9.0f);
 

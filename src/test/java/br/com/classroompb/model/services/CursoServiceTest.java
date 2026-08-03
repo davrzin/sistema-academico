@@ -102,6 +102,48 @@ public class CursoServiceTest {
   }
 
   @Test
+  public void deveBuscarCoordenadorPorCursoCorretamente() {
+    Coordenador coordenador = new Coordenador("Ana", "ana@email.com", "senha123");
+    coordenador.setMatricula("co00");
+    userRepository.salvarUsuario(coordenador);
+    Curso curso = new Curso("Ciência da Computação", 8, 3200);
+
+    service.cadastrarCurso(curso, "co00");
+
+    Coordenador coordenadorEncontrado = service.buscarCoordenadorPorCurso(curso.getCodigo());
+
+    Assertions.assertNotNull(coordenadorEncontrado);
+    Assertions.assertEquals("co00", coordenadorEncontrado.getMatricula());
+  }
+
+  @Test
+  public void deveRetornarNullAoBuscarCoordenadorDeCursoSemCoordenador() {
+    Curso curso = new Curso("cur00", "Ciência da Computação", 8, 3200);
+    repository.salvarCurso(curso);
+
+    Assertions.assertNull(service.buscarCoordenadorPorCurso(curso.getCodigo()));
+  }
+
+  @Test
+  public void deveListarCoordenadoresSemCurso() {
+    Coordenador coordenadorVinculado = new Coordenador("Ana", "ana@email.com", "senha123");
+    coordenadorVinculado.setMatricula("co00");
+    userRepository.salvarUsuario(coordenadorVinculado);
+
+    Coordenador coordenadorDisponivel = new Coordenador("Beto", "beto@email.com", "senha123");
+    coordenadorDisponivel.setMatricula("co01");
+    userRepository.salvarUsuario(coordenadorDisponivel);
+
+    Curso curso = new Curso("Ciência da Computação", 8, 3200);
+    service.cadastrarCurso(curso, "co00");
+
+    List<Coordenador> coordenadoresSemCurso = service.listarCoordenadoresSemCurso();
+
+    Assertions.assertEquals(1, coordenadoresSemCurso.size());
+    Assertions.assertEquals("co01", coordenadoresSemCurso.getFirst().getMatricula());
+  }
+
+  @Test
   public void coordenadorInexistenteNaoDevePersistirCurso() {
     Curso curso = new Curso("Computacao", 8, 3200);
 

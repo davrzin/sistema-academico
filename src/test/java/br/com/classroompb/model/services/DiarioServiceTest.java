@@ -430,4 +430,127 @@ public class DiarioServiceTest {
 
     Assertions.assertEquals(1, diariosDoProfessor.size());
   }
+
+  @Test
+  public void deveBuscarDescricaoDaTurmaCorretamente() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
+
+    DiarioService service =
+        criarService(
+            criarDiarioRepository(), turmaRepository, disciplinaRepository, userRepository);
+
+    Assertions.assertEquals("Algoritmos (2026.2)", service.buscarDescricaoTurma("tur00"));
+  }
+
+  @Test
+  public void deveRetornarCodigoDaTurmaQuandoTurmaNaoExistir() {
+    DiarioService service =
+        criarService(
+            criarDiarioRepository(),
+            criarTurmaRepository(),
+            criarDisciplinaRepository(),
+            criarUserRepository());
+
+    Assertions.assertEquals("tur99", service.buscarDescricaoTurma("tur99"));
+  }
+
+  @Test
+  public void deveBuscarNomeDoProfessorCorretamente() {
+    UserRepository userRepository = criarUserRepository();
+    userRepository.salvarUsuario(criarProfessor("pr00", CODIGO_CURSO));
+
+    DiarioService service =
+        criarService(
+            criarDiarioRepository(), criarTurmaRepository(), criarDisciplinaRepository(),
+            userRepository);
+
+    Assertions.assertEquals("João", service.buscarNomeProfessor("pr00"));
+  }
+
+  @Test
+  public void deveRetornarMatriculaQuandoProfessorNaoForEncontrado() {
+    DiarioService service =
+        criarService(
+            criarDiarioRepository(),
+            criarTurmaRepository(),
+            criarDisciplinaRepository(),
+            criarUserRepository());
+
+    Assertions.assertEquals("pr99", service.buscarNomeProfessor("pr99"));
+  }
+
+  @Test
+  public void deveValidarQueDiarioPertenceAoCurso() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
+
+    DiarioRepository diarioRepository = criarDiarioRepository();
+    DiarioService service =
+        criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
+    Diario diario = criarDiario("tur00", "pr00");
+    service.cadastrarDiario(diario);
+
+    Assertions.assertDoesNotThrow(
+        () -> service.validarDiarioPertenceAoCurso(diario.getCodigo(), CODIGO_CURSO));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoValidarDiarioDeOutroCurso() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
+
+    DiarioRepository diarioRepository = criarDiarioRepository();
+    DiarioService service =
+        criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
+    Diario diario = criarDiario("tur00", "pr00");
+    service.cadastrarDiario(diario);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> service.validarDiarioPertenceAoCurso(diario.getCodigo(), OUTRO_CODIGO_CURSO));
+  }
+
+  @Test
+  public void deveAlterarSituacaoDoDiarioDiretamente() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
+
+    DiarioRepository diarioRepository = criarDiarioRepository();
+    DiarioService service =
+        criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
+    Diario diario = criarDiario("tur00", "pr00");
+    service.cadastrarDiario(diario);
+
+    service.alterarSituacaoDiario(diario.getCodigo(), SituacaoDiario.ENCERRADO, CODIGO_CURSO);
+
+    Assertions.assertEquals(
+        SituacaoDiario.ENCERRADO, service.buscarDiarioPorCodigo(diario.getCodigo()).getSituacao());
+  }
+
+  @Test
+  public void deveLancarExcecaoAoAlterarSituacaoComSituacaoNula() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
+
+    DiarioRepository diarioRepository = criarDiarioRepository();
+    DiarioService service =
+        criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
+    Diario diario = criarDiario("tur00", "pr00");
+    service.cadastrarDiario(diario);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> service.alterarSituacaoDiario(diario.getCodigo(), null, CODIGO_CURSO));
+  }
 }

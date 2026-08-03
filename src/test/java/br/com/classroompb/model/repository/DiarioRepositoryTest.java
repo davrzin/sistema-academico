@@ -67,6 +67,16 @@ public class DiarioRepositoryTest {
   }
 
   @Test
+  public void deveDefinirObjectMapperCorretamente() {
+    DiarioRepository repository = criarRepository();
+    ObjectMapper novoMapper = new ObjectMapper();
+
+    repository.setObjectMapper(novoMapper);
+
+    Assertions.assertSame(novoMapper, repository.getObjectMapper());
+  }
+
+  @Test
   public void deveRetornarDiretorioDosDiarios() {
     DiarioRepository repository = criarRepository();
 

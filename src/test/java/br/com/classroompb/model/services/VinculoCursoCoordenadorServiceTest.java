@@ -123,6 +123,52 @@ public class VinculoCursoCoordenadorServiceTest {
         EntradaInvalidaException.class, () -> service.buscarCoordenadorPorCurso("cur00"));
   }
 
+  @Test
+  public void naoDeveLancarExcecaoAoValidarCoordenadorDisponivel() {
+    salvarCoordenador("co00", "coord@email.com");
+
+    Assertions.assertDoesNotThrow(() -> service.validarCoordenadorDisponivel("co00"));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoValidarCoordenadorJaVinculado() {
+    salvarCurso("cur00", "Computacao");
+    salvarCoordenador("co00", "coord@email.com");
+    service.vincular("co00", "cur00");
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.validarCoordenadorDisponivel("co00"));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoValidarCoordenadorInexistente() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.validarCoordenadorDisponivel("co99"));
+  }
+
+  @Test
+  public void naoDeveLancarExcecaoAoValidarCursoDisponivel() {
+    salvarCurso("cur00", "Computacao");
+
+    Assertions.assertDoesNotThrow(() -> service.validarCursoDisponivel("cur00"));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoValidarCursoJaComCoordenador() {
+    salvarCurso("cur00", "Computacao");
+    salvarCoordenador("co00", "coord@email.com");
+    service.vincular("co00", "cur00");
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.validarCursoDisponivel("cur00"));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoValidarCursoInexistenteComoDisponivel() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.validarCursoDisponivel("cur99"));
+  }
+
   private Curso salvarCurso(String codigo, String nome) {
     Curso curso = new Curso(codigo, nome, 8, 3200);
     cursoRepository.salvarCurso(curso);

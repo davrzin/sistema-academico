@@ -109,7 +109,80 @@ public class BoletimRepositoryTest {
   }
 
   @Test
-  public void deveBuscarBoletimPorCodigoCorretamente() {}
+  public void deveDefinirObjectMapperCorretamente() {
+
+    ObjectMapper novoMapper = new ObjectMapper();
+    boletimRepository.setObjectMapper(novoMapper);
+
+    Assertions.assertSame(novoMapper, boletimRepository.getObjectMapper());
+  }
+
+  @Test
+  public void deveAtualizarBoletimCorretamente() {
+
+    boletim.setIdBoletim("bol00");
+    boletimRepository.salvarBoletim(boletim);
+
+    Boletim boletimAtualizado = new Boletim("al00", "tur00");
+    boletimAtualizado.setIdBoletim("bol00");
+    boletimAtualizado.setPrimeiraNota(8.5f);
+    boletimAtualizado.setSegundaNota(7.0f);
+
+    boletimRepository.atualizarBoletins(boletimAtualizado);
+
+    Boletim boletimPersistido = boletimRepository.buscarBoletimPorCodigo("bol00");
+
+    Assertions.assertEquals(8.5f, boletimPersistido.getPrimeiraNota());
+    Assertions.assertEquals(7.0f, boletimPersistido.getSegundaNota());
+  }
+
+  @Test
+  public void naoDeveAlterarBoletinsAoAtualizarCodigoInexistente() {
+
+    boletim.setIdBoletim("bol00");
+    boletimRepository.salvarBoletim(boletim);
+
+    Boletim boletimInexistente = new Boletim("al01", "tur01");
+    boletimInexistente.setIdBoletim("bol99");
+    boletimInexistente.setPrimeiraNota(10f);
+
+    boletimRepository.atualizarBoletins(boletimInexistente);
+
+    Assertions.assertEquals(1, boletimRepository.listarBoletins().size());
+    Assertions.assertNull(boletimRepository.buscarBoletimPorCodigo("bol00").getPrimeiraNota());
+  }
+
+  @Test
+  public void deveLancarEntradaInvalidaExceptionAoAtualizarBoletimNull() {
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> boletimRepository.atualizarBoletins(null));
+  }
+
+  @Test
+  public void deveBuscarBoletimPorCodigoCorretamente() {
+
+    boletim.setIdBoletim("bol00");
+    boletimRepository.salvarBoletim(boletim);
+
+    Boletim boletimEncontrado = boletimRepository.buscarBoletimPorCodigo("bol00");
+
+    Assertions.assertNotNull(boletimEncontrado);
+    Assertions.assertEquals(boletim.getIdBoletim(), boletimEncontrado.getIdBoletim());
+    Assertions.assertEquals(boletim.getMatriculaAluno(), boletimEncontrado.getMatriculaAluno());
+    Assertions.assertEquals(boletim.getCodigoTurma(), boletimEncontrado.getCodigoTurma());
+  }
+
+  @Test
+  public void deveRetornarNullAoBuscarBoletimPorCodigoInexistente() {
+
+    boletim.setIdBoletim("bol00");
+    boletimRepository.salvarBoletim(boletim);
+
+    Boletim boletimEncontrado = boletimRepository.buscarBoletimPorCodigo("bolInexistente");
+
+    Assertions.assertNull(boletimEncontrado);
+  }
 
   @Test
   public void deveLancarEntradaInvalidaExceptionAoBuscarBoletimPorCodigoNull() {

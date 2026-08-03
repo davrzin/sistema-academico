@@ -114,6 +114,57 @@ class UserRepositoryTest {
   }
 
   @Test
+  void deveRetornarObjectMapperCorretamente() {
+    UserRepository repository = criarRepository();
+
+    Assertions.assertNotNull(repository.getObjectMapper());
+  }
+
+  @Test
+  void deveDefinirObjectMapperCorretamente() {
+    UserRepository repository = criarRepository();
+    ObjectMapper novoMapper = new ObjectMapper();
+
+    repository.setObjectMapper(novoMapper);
+
+    Assertions.assertSame(novoMapper, repository.getObjectMapper());
+  }
+
+  @Test
+  void deveAtualizarUsuarioCorretamente() {
+    UserRepository repository = criarRepository();
+
+    Aluno aluno = new Aluno("Maria", "maria@email.com", "senha123");
+    aluno.setMatricula("al00");
+    repository.salvarUsuario(aluno);
+
+    Aluno alunoAtualizado = new Aluno("Maria Souza", "maria.souza@email.com", "al00", "senha123");
+
+    repository.atualizarUsuario(alunoAtualizado);
+
+    Usuario usuarioPersistido = repository.buscarPorMatricula("al00");
+    assertEquals("Maria Souza", usuarioPersistido.getNome());
+    assertEquals("maria.souza@email.com", usuarioPersistido.getEmail());
+  }
+
+  @Test
+  void deveLancarUsuarioNaoEncontradoExceptionAoAtualizarUsuarioInexistente() {
+    UserRepository repository = criarRepository();
+
+    Aluno alunoInexistente = new Aluno("Maria", "maria@email.com", "al99", "senha123");
+
+    assertThrows(
+        UsuarioNaoEncontradoException.class, () -> repository.atualizarUsuario(alunoInexistente));
+  }
+
+  @Test
+  void deveLancarIllegalArgumentExceptionAoAtualizarUsuarioNull() {
+    UserRepository repository = criarRepository();
+
+    assertThrows(IllegalArgumentException.class, () -> repository.atualizarUsuario(null));
+  }
+
+  @Test
   void deveLancarIllegalArgumentExceptionAoSalvarUsuarioNull() {
     UserRepository repository = criarRepository();
 
