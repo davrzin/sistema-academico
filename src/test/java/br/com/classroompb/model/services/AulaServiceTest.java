@@ -28,6 +28,7 @@ public class AulaServiceTest {
   private Turma turma;
   private AulaRepository aulaRepository;
   private DiarioRepository diarioRepository;
+  private TurmaRepository turmaRepository;
   private AulaService aulaService;
 
   /**
@@ -38,7 +39,8 @@ public class AulaServiceTest {
     turma = new Turma("tur00", "dis00", "6", "pro00", 40, "Seg 08:00-10:00", "C-108");
     aulaRepository = criarAulaRepository();
     diarioRepository = criarDiarioRepository();
-    aulaService = criarAulaService(aulaRepository, diarioRepository);
+    turmaRepository = criarTurmaRepository();
+    aulaService = criarAulaService(aulaRepository, diarioRepository, turmaRepository);
   }
 
   private AulaRepository criarAulaRepository() {
@@ -50,8 +52,9 @@ public class AulaServiceTest {
   }
 
   private AulaService criarAulaService(
-      AulaRepository aulaRepository, DiarioRepository diarioRepository) {
-    return new AulaService(aulaRepository, criarTurmaRepository(), diarioRepository);
+      AulaRepository aulaRepository, DiarioRepository diarioRepository,
+      TurmaRepository turmaRepository) {
+    return new AulaService(aulaRepository, turmaRepository, diarioRepository);
   }
 
   private TurmaRepository criarTurmaRepository() {
@@ -210,6 +213,69 @@ public class AulaServiceTest {
     return new Diario(
         codigo, codigoTurma, "Diário de teste", "pro00", "Seg 08:00-10:00", "C-108", 60,
         situacao);
+  }
+
+  @Test
+  public void deveSalvarAulaQuandoProfessorForDonoDaTurma() {
+    turmaRepository.salvarTurma(turma);
+
+    Map<String, Boolean> presencas = new HashMap<>();
+    presencas.put("alu00", true);
+    Aula aula = new Aula("aul00", "tur00", "17/07/2026", "Seg 08:00-10:00", presencas);
+
+    aulaService.salvarAula(aula, "pro00");
+
+    Assertions.assertEquals(1, aulaRepository.listarAulas().size());
+  }
+
+  @Test
+  public void deveLancarExcecaoQuandoProfessorNaoForDonoDaTurma() {
+    turmaRepository.salvarTurma(turma);
+
+    Map<String, Boolean> presencas = new HashMap<>();
+    presencas.put("alu00", true);
+    Aula aula = new Aula("aul00", "tur00", "17/07/2026", "Seg 08:00-10:00", presencas);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> aulaService.salvarAula(aula, "outroProfessor"));
+    Assertions.assertTrue(aulaRepository.listarAulas().isEmpty());
+  }
+
+  @Test
+  public void deveLancarExcecaoQuandoMatriculaProfessorForVaziaAoSalvarAula() {
+    turmaRepository.salvarTurma(turma);
+
+    Map<String, Boolean> presencas = new HashMap<>();
+    presencas.put("alu00", true);
+    Aula aula = new Aula("aul00", "tur00", "17/07/2026", "Seg 08:00-10:00", presencas);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> aulaService.salvarAula(aula, ""));
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> aulaService.salvarAula(aula, null));
+  }
+
+  @Test
+  public void deveLancarExcecaoQuandoTurmaDaAulaNaoExistirAoValidarProfessor() {
+    Map<String, Boolean> presencas = new HashMap<>();
+    presencas.put("alu00", true);
+    Aula aula = new Aula("aul00", "turXX", "17/07/2026", "Seg 08:00-10:00", presencas);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> aulaService.salvarAula(aula, "pro00"));
+  }
+
+  @Test
+  public void deveLancarExcecaoQuandoDiarioFechadoMesmoComProfessorDono() {
+    turmaRepository.salvarTurma(turma);
+    diarioRepository.salvarDiario(criarDiario("dia00", "tur00", SituacaoDiario.ENCERRADO));
+
+    Map<String, Boolean> presencas = new HashMap<>();
+    presencas.put("alu00", true);
+    Aula aula = new Aula("aul00", "tur00", "17/07/2026", "Seg 08:00-10:00", presencas);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> aulaService.salvarAula(aula, "pro00"));
   }
 
   @Test

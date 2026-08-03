@@ -926,7 +926,7 @@ public class TurmaTela {
       Aula aula = aulaService.gerarAula(turma);
       aula.setPresencas(presencas);
 
-      aulaService.salvarAula(aula);
+      aulaService.salvarAula(aula, professorLogado.getMatricula());
 
       turmaService.cadastrarNovaAula(aula, codigoTurma, professorLogado.getMatricula());
 

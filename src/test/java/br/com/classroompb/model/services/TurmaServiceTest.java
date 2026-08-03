@@ -1503,6 +1503,212 @@ public class TurmaServiceTest {
   }
 
   @Test
+  public void deveListarAulasPorTurmaCorretamente() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+    AulaRepository aulaRepository = criarAulaRepository();
+
+    TurmaService service =
+        new TurmaService(
+            turmaRepository,
+            disciplinaRepository,
+            periodoLetivoRepository,
+            userRepository,
+            criarBoletimRepository(),
+            aulaRepository);
+
+    Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    service.ofertarTurma(turma);
+
+    Aula aula1 = new Aula("aul00", turma.getCodigo(), "17/07/2026", "SEG 08:00-10:00");
+    Aula aula2 = new Aula("aul01", turma.getCodigo(), "24/07/2026", "SEG 08:00-10:00");
+    aulaRepository.salvarAula(aula1);
+    aulaRepository.salvarAula(aula2);
+    service.cadastrarNovaAula(aula1, turma.getCodigo());
+    service.cadastrarNovaAula(aula2, turma.getCodigo());
+
+    List<Aula> aulas = service.listarAulasPorTurma(turma.getCodigo());
+
+    Assertions.assertEquals(2, aulas.size());
+    Assertions.assertEquals("aul00", aulas.get(0).getId());
+    Assertions.assertEquals("aul01", aulas.get(1).getId());
+  }
+
+  @Test
+  public void deveRetornarListaVaziaAoListarAulasDeTurmaSemAulas() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+    Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    service.ofertarTurma(turma);
+
+    List<Aula> aulas = service.listarAulasPorTurma(turma.getCodigo());
+
+    Assertions.assertTrue(aulas.isEmpty());
+  }
+
+  @Test
+  public void deveLancarExcecaoAoListarAulasComCodigoTurmaVazio() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.listarAulasPorTurma(""));
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.listarAulasPorTurma(null));
+  }
+
+  @Test
+  public void deveListarAulasPorTurmaValidandoProfessorResponsavel() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+    AulaRepository aulaRepository = criarAulaRepository();
+
+    TurmaService service =
+        new TurmaService(
+            turmaRepository,
+            disciplinaRepository,
+            periodoLetivoRepository,
+            userRepository,
+            criarBoletimRepository(),
+            aulaRepository);
+
+    Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    service.ofertarTurma(turma);
+
+    Aula aula = new Aula("aul00", turma.getCodigo(), "17/07/2026", "SEG 08:00-10:00");
+    aulaRepository.salvarAula(aula);
+    service.cadastrarNovaAula(aula, turma.getCodigo());
+
+    List<Aula> aulas = service.listarAulasPorTurma(turma.getCodigo(), "pr00");
+
+    Assertions.assertEquals(1, aulas.size());
+  }
+
+  @Test
+  public void deveLancarExcecaoAoListarAulasComProfessorDeOutraTurma() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+
+    TurmaService service =
+        criarService(
+            turmaRepository, disciplinaRepository, periodoLetivoRepository, userRepository);
+    Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    service.ofertarTurma(turma);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> service.listarAulasPorTurma(turma.getCodigo(), "pr99"));
+  }
+
+  @Test
+  public void deveCalcularFrequenciaComFaltasEmMultiplasAulas() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+    BoletimRepository boletimRepository = criarBoletimRepository();
+    AulaRepository aulaRepository = criarAulaRepository();
+
+    TurmaService service =
+        new TurmaService(
+            turmaRepository,
+            disciplinaRepository,
+            periodoLetivoRepository,
+            userRepository,
+            boletimRepository,
+            aulaRepository);
+
+    Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    service.ofertarTurma(turma);
+
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
+    userRepository.salvarUsuario(aluno);
+    service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
+
+    // 4 aulas: aluno falta em apenas 1 delas.
+    Map<String, Boolean> presente = new HashMap<>();
+    presente.put("al00", true);
+    Map<String, Boolean> ausente = new HashMap<>();
+    ausente.put("al00", false);
+
+    Aula aula1 = new Aula("aul00", turma.getCodigo(), "01/08/2026", "SEG 08:00-10:00", presente);
+    Aula aula2 = new Aula("aul01", turma.getCodigo(), "08/08/2026", "SEG 08:00-10:00", ausente);
+    Aula aula3 = new Aula("aul02", turma.getCodigo(), "15/08/2026", "SEG 08:00-10:00", presente);
+    Aula aula4 = new Aula("aul03", turma.getCodigo(), "22/08/2026", "SEG 08:00-10:00", presente);
+
+    for (Aula aula : List.of(aula1, aula2, aula3, aula4)) {
+      aulaRepository.salvarAula(aula);
+      service.cadastrarNovaAula(aula, turma.getCodigo());
+    }
+
+    service.atualizarFrequenciaTurma(turma.getCodigo());
+
+    Boletim boletim = boletimRepository.buscarBoletinsPorTurma(turma.getCodigo()).get(0);
+    Assertions.assertEquals(75.0, boletim.getFrequencia());
+  }
+
+  @Test
+  public void deveConsiderarFaltaQuandoAlunoNaoTemRegistroDePresencaNaAula() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    PeriodoLetivoRepository periodoLetivoRepository = criarPeriodoLetivoRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
+    BoletimRepository boletimRepository = criarBoletimRepository();
+    AulaRepository aulaRepository = criarAulaRepository();
+
+    TurmaService service =
+        new TurmaService(
+            turmaRepository,
+            disciplinaRepository,
+            periodoLetivoRepository,
+            userRepository,
+            boletimRepository,
+            aulaRepository);
+
+    Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
+    service.ofertarTurma(turma);
+
+    Aluno aluno = criarAluno("Maria", "maria@email.com", "al00", "senha123");
+    userRepository.salvarUsuario(aluno);
+    service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
+
+    // Aula registrada sem nenhuma entrada de presença para o aluno (ex.: aluno ingressou depois).
+    Aula aulaSemRegistro =
+        new Aula("aul00", turma.getCodigo(), "01/08/2026", "SEG 08:00-10:00", new HashMap<>());
+    aulaRepository.salvarAula(aulaSemRegistro);
+    service.cadastrarNovaAula(aulaSemRegistro, turma.getCodigo());
+
+    service.atualizarFrequenciaTurma(turma.getCodigo());
+
+    Boletim boletim = boletimRepository.buscarBoletinsPorTurma(turma.getCodigo()).get(0);
+    Assertions.assertEquals(0.0, boletim.getFrequencia());
+  }
+
+  @Test
   public void devePromoverAlunoDaListaDeEsperaAoCancelarMatricula() {
     TurmaRepository turmaRepository = criarTurmaRepository();
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();

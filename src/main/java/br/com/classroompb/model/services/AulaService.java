@@ -21,9 +21,11 @@ import java.util.List;
 public class AulaService {
   private static final Path DIRETORIO_AULAS = PersistenciaPaths.AULAS;
   private static final Path DIRETORIO_DIARIOS = PersistenciaPaths.DIARIOS;
+  private static final Path DIRETORIO_TURMAS = PersistenciaPaths.TURMAS;
 
   private final AulaRepository aulaRepository;
   private final DiarioRepository diarioRepository;
+  private final TurmaRepository turmaRepository;
 
   /**
    * Cria o servico de aulas com dependencias padrao.
@@ -32,6 +34,8 @@ public class AulaService {
     this.aulaRepository = new AulaRepository(new ObjectMapper(), DIRETORIO_AULAS.toString());
     this.diarioRepository =
         new DiarioRepository(new ObjectMapper(), DIRETORIO_DIARIOS.toString());
+    this.turmaRepository =
+        new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString());
   }
 
   /**
@@ -42,6 +46,7 @@ public class AulaService {
    */
   public AulaService(AulaRepository aulaRepository, TurmaRepository turmaRepository) {
     this.aulaRepository = aulaRepository;
+    this.turmaRepository = turmaRepository;
     this.diarioRepository =
         new DiarioRepository(new ObjectMapper(), DIRETORIO_DIARIOS.toString());
   }
@@ -57,6 +62,7 @@ public class AulaService {
       AulaRepository aulaRepository, TurmaRepository turmaRepository,
       DiarioRepository diarioRepository) {
     this.aulaRepository = aulaRepository;
+    this.turmaRepository = turmaRepository;
     this.diarioRepository = diarioRepository;
   }
 
@@ -80,6 +86,24 @@ public class AulaService {
    * @param aula aula a ser salva.
    */
   public void salvarAula(Aula aula) {
+    validarDadosDaAula(aula);
+    aulaRepository.salvarAula(aula);
+  }
+
+  /**
+   * Salva uma aula registrada por um professor, validando que a turma da aula pertence a esse
+   * professor.
+   *
+   * @param aula aula a ser salva.
+   * @param matriculaProfessor matricula do professor que esta registrando a aula.
+   */
+  public void salvarAula(Aula aula, String matriculaProfessor) {
+    validarDadosDaAula(aula);
+    validarProfessorResponsavelPelaTurma(aula.getCodigoTurma(), matriculaProfessor);
+    aulaRepository.salvarAula(aula);
+  }
+
+  private void validarDadosDaAula(Aula aula) {
     // VALIDAÇÕES...
     if (aula == null) {
       throw new EntradaInvalidaException("A aula não pode ser nula.");
@@ -104,8 +128,31 @@ public class AulaService {
     validarDiarioNaoFechado(aula.getCodigoTurma());
 
     // -------------
+  }
 
-    aulaRepository.salvarAula(aula);
+  /**
+   * Valida se a turma da aula pertence ao professor que esta tentando registra-la.
+   *
+   * @param codigoTurma codigo da turma da aula.
+   * @param matriculaProfessor matricula do professor logado.
+   */
+  private void validarProfessorResponsavelPelaTurma(
+      String codigoTurma, String matriculaProfessor) {
+    if (matriculaProfessor == null || matriculaProfessor.isBlank()) {
+      throw new EntradaInvalidaException("Matrícula do professor logado não pode ser vazia.");
+    }
+
+    Turma turma = turmaRepository.buscarTurmaPorCodigo(codigoTurma);
+
+    if (turma == null) {
+      throw new EntradaInvalidaException("Turma não encontrada.");
+    }
+
+    if (turma.getMatriculaProfessor() == null
+        || !turma.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor.trim())) {
+      throw new EntradaInvalidaException(
+          "Professor não pode registrar aula em turma de outro professor.");
+    }
   }
 
   /**
