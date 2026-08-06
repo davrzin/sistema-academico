@@ -1,5 +1,6 @@
 package br.com.classroompb.model.services;
 
+import br.com.classroompb.model.entities.gestaoacademica.Avaliacao;
 import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
@@ -190,13 +191,33 @@ public class DiarioService {
   }
 
   /**
-   * Encerra um diario pelo codigo.
+   * Encerra um diario pelo codigo, consolidando os resultados das avaliacoes.
    *
    * @param codigo codigo do diario.
    * @param codigoCursoCoordenador codigo do curso do coordenador.
    */
   public void encerrarDiario(String codigo, String codigoCursoCoordenador) {
-    alterarSituacaoDiario(codigo, SituacaoDiario.ENCERRADO, codigoCursoCoordenador);
+    validarCodigoCursoCoordenador(codigoCursoCoordenador);
+    validarDiarioPertenceAoCurso(codigo, codigoCursoCoordenador);
+
+    Diario diario = buscarDiarioPorCodigo(codigo);
+
+    // Verificação de segurança para o fechamento
+    AvaliacaoService avaliacaoService = new AvaliacaoService();
+    List<Avaliacao> avaliacoes = avaliacaoService.listarAvaliacoesPorDiario(codigo);
+
+    if (avaliacoes == null || avaliacoes.isEmpty()) {
+      throw new EntradaInvalidaException(
+          "Não é possível encerrar um diário sem avaliações cadastradas.");
+    }
+
+    diario.setSituacao(SituacaoDiario.ENCERRADO);
+
+    boolean atualizou = diarioRepository.atualizarDiario(diario);
+
+    if (!atualizou) {
+      throw new EntradaInvalidaException("Não foi possível encerrar o diário.");
+    }
   }
 
   /**
