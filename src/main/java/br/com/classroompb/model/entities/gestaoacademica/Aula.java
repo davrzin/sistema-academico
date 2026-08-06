@@ -17,6 +17,7 @@ public final class Aula {
 
   private String id;
   private String codigoTurma;
+  private String codigoDiario;
   private String data;
   private String horario;
   private Map<String, Boolean> presencas;
@@ -39,6 +40,31 @@ public final class Aula {
       String id, String codigoTurma, String data, String horario, Map<String, Boolean> presencas) {
     setId(id);
     setCodigoTurma(codigoTurma);
+    setData(data);
+    setHorario(horario);
+    setPresencas(presencas);
+  }
+
+  /**
+   * Cria uma aula vinculada a uma turma e a um diario, com presencas informadas.
+   *
+   * @param id identificador da aula.
+   * @param codigoTurma codigo da turma.
+   * @param codigoDiario codigo do diario.
+   * @param data data da aula.
+   * @param horario horario da aula.
+   * @param presencas presencas registradas.
+   */
+  public Aula(
+      String id,
+      String codigoTurma,
+      String codigoDiario,
+      String data,
+      String horario,
+      Map<String, Boolean> presencas) {
+    setId(id);
+    setCodigoTurma(codigoTurma);
+    setCodigoDiario(codigoDiario);
     setData(data);
     setHorario(horario);
     setPresencas(presencas);
@@ -96,6 +122,27 @@ public final class Aula {
   public void setCodigoTurma(String codigoTurma) {
     validarCodigoTurma(codigoTurma);
     this.codigoTurma = codigoTurma;
+  }
+
+  /**
+   * Retorna o codigo do diario associado.
+   *
+   * @return codigo do diario, ou nulo para aulas do fluxo antigo.
+   */
+  public String getCodigoDiario() {
+    return codigoDiario;
+  }
+
+  /**
+   * Define o codigo do diario associado.
+   *
+   * @param codigoDiario codigo do diario.
+   */
+  public void setCodigoDiario(String codigoDiario) {
+    if (codigoDiario != null && codigoDiario.isBlank()) {
+      throw new EntradaInvalidaException("Codigo do diario nao pode ser vazio.");
+    }
+    this.codigoDiario = codigoDiario;
   }
 
   /**

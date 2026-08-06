@@ -78,6 +78,7 @@ public class DiarioService {
     validarDiario(diario);
     validarTurmaExistente(diario.getCodigoTurma());
     validarProfessorResponsavel(diario.getMatriculaProfessor());
+    validarConflitoHorarioProfessor(diario, null);
 
     diario.setSituacao(SituacaoDiario.ATIVO);
     diario.setCodigo(gerarCodigoDiario());
@@ -95,6 +96,7 @@ public class DiarioService {
     validarDiario(diario);
     validarTurmaDoCurso(diario.getCodigoTurma(), codigoCursoCoordenador);
     validarProfessorDoCurso(diario.getMatriculaProfessor(), codigoCursoCoordenador);
+    validarConflitoHorarioProfessor(diario, null);
 
     diario.setSituacao(SituacaoDiario.ATIVO);
     diario.setCodigo(gerarCodigoDiario());
@@ -119,8 +121,10 @@ public class DiarioService {
     validarDiario(diarioAtualizado);
     validarTurmaExistente(diarioAtualizado.getCodigoTurma());
     validarProfessorResponsavel(diarioAtualizado.getMatriculaProfessor());
+    validarConflitoHorarioProfessor(diarioAtualizado, diarioCadastrado.getCodigo());
 
     diarioAtualizado.setCodigo(diarioCadastrado.getCodigo());
+    diarioAtualizado.setSituacao(diarioCadastrado.getSituacao());
 
     boolean atualizou = diarioRepository.atualizarDiario(diarioAtualizado);
 
@@ -144,6 +148,7 @@ public class DiarioService {
     validarProfessorDoCurso(diarioAtualizado.getMatriculaProfessor(), codigoCursoCoordenador);
 
     Diario diarioCadastrado = buscarDiarioPorCodigo(codigo);
+    validarConflitoHorarioProfessor(diarioAtualizado, diarioCadastrado.getCodigo());
     diarioAtualizado.setCodigo(diarioCadastrado.getCodigo());
     diarioAtualizado.setSituacao(diarioCadastrado.getSituacao());
 
@@ -424,6 +429,48 @@ public class DiarioService {
       }
     } catch (UsuarioNaoEncontradoException e) {
       throw new EntradaInvalidaException("Professor responsável não encontrado.");
+    }
+  }
+
+  private void validarConflitoHorarioProfessor(
+      Diario diario, String codigoDiarioIgnorado) {
+    Turma turmaDoDiario = turmaRepository.buscarTurmaPorCodigo(diario.getCodigoTurma());
+    String periodoLetivo = turmaDoDiario.getPeriodoLetivo();
+
+    List<Diario> diariosDoProfessor =
+        diarioRepository.buscarDiariosPorMatriculaDeProfessor(diario.getMatriculaProfessor());
+
+    for (Diario diarioCadastrado : diariosDoProfessor) {
+      boolean mesmoDiario =
+          codigoDiarioIgnorado != null
+              && diarioCadastrado.getCodigo() != null
+              && diarioCadastrado.getCodigo().equalsIgnoreCase(codigoDiarioIgnorado.trim());
+
+      if (mesmoDiario) {
+        continue;
+      }
+
+      boolean mesmoHorario =
+          diarioCadastrado.getHorario() != null
+              && diarioCadastrado
+                  .getHorario()
+                  .trim()
+                  .equalsIgnoreCase(diario.getHorario().trim());
+
+      Turma turmaCadastrada =
+          turmaRepository.buscarTurmaPorCodigo(diarioCadastrado.getCodigoTurma());
+      boolean mesmoPeriodo =
+          turmaCadastrada != null
+              && turmaCadastrada.getPeriodoLetivo() != null
+              && turmaCadastrada
+                  .getPeriodoLetivo()
+                  .trim()
+                  .equalsIgnoreCase(periodoLetivo.trim());
+
+      if (mesmoHorario && mesmoPeriodo) {
+        throw new EntradaInvalidaException(
+            "Professor possui outro diario no mesmo periodo letivo e horario.");
+      }
     }
   }
 

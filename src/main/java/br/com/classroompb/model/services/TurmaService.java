@@ -2,12 +2,14 @@ package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.Aula;
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
+import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
 import br.com.classroompb.model.entities.gestaoacademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Professor;
 import br.com.classroompb.model.entities.usuario.Usuario;
+import br.com.classroompb.model.enums.SituacaoDiario;
 import br.com.classroompb.model.enums.TipoUsuario;
 import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
@@ -16,6 +18,7 @@ import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.AulaRepository;
 import br.com.classroompb.model.repository.BoletimRepository;
 import br.com.classroompb.model.repository.DisciplinaRepository;
+import br.com.classroompb.model.repository.DiarioRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.PersistenciaPaths;
 import br.com.classroompb.model.repository.TurmaRepository;
@@ -39,6 +42,7 @@ public class TurmaService {
   private static final Path DIRETORIO_USUARIOS = PersistenciaPaths.USUARIOS;
   private static final Path DIRETORIO_BOLETINS = PersistenciaPaths.BOLETINS;
   private static final Path DIRETORIO_AULAS = PersistenciaPaths.AULAS;
+  private static final Path DIRETORIO_DIARIOS = PersistenciaPaths.DIARIOS;
 
   private final TurmaRepository turmaRepository;
   private final DisciplinaRepository disciplinaRepository;
@@ -46,6 +50,7 @@ public class TurmaService {
   private final UserRepository userRepository;
   private final BoletimRepository boletimRepository;
   private final AulaRepository aulaRepository;
+  private final DiarioRepository diarioRepository;
   private final BoletimService boletimService;
 
   private final UsuarioService usuarioService;
@@ -70,6 +75,8 @@ public class TurmaService {
     this.boletimRepository =
         new BoletimRepository(new ObjectMapper(), DIRETORIO_BOLETINS.toString());
     this.aulaRepository = new AulaRepository(new ObjectMapper(), DIRETORIO_AULAS.toString());
+    this.diarioRepository =
+        new DiarioRepository(new ObjectMapper(), DIRETORIO_DIARIOS.toString());
     this.boletimService =
         new BoletimService(
             this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
@@ -89,6 +96,8 @@ public class TurmaService {
     this.boletimRepository =
         new BoletimRepository(new ObjectMapper(), DIRETORIO_BOLETINS.toString());
     this.aulaRepository = new AulaRepository(new ObjectMapper(), DIRETORIO_AULAS.toString());
+    this.diarioRepository =
+        new DiarioRepository(new ObjectMapper(), DIRETORIO_DIARIOS.toString());
     this.boletimService =
         new BoletimService(
             this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
@@ -112,12 +121,42 @@ public class TurmaService {
       UserRepository userRepository,
       BoletimRepository boletimRepository,
       AulaRepository aulaRepository) {
+    this(
+        turmaRepository,
+        disciplinaRepository,
+        periodoLetivoRepository,
+        userRepository,
+        boletimRepository,
+        aulaRepository,
+        new DiarioRepository(new ObjectMapper(), DIRETORIO_DIARIOS.toString()));
+  }
+
+  /**
+   * Cria o servico de turmas com todas as dependencias informadas.
+   *
+   * @param turmaRepository repositorio de turmas.
+   * @param disciplinaRepository repositorio de disciplinas.
+   * @param periodoLetivoRepository repositorio de periodos letivos.
+   * @param userRepository repositorio de usuarios.
+   * @param boletimRepository repositorio de boletins.
+   * @param aulaRepository repositorio de aulas.
+   * @param diarioRepository repositorio de diarios.
+   */
+  public TurmaService(
+      TurmaRepository turmaRepository,
+      DisciplinaRepository disciplinaRepository,
+      PeriodoLetivoRepository periodoLetivoRepository,
+      UserRepository userRepository,
+      BoletimRepository boletimRepository,
+      AulaRepository aulaRepository,
+      DiarioRepository diarioRepository) {
     this.turmaRepository = turmaRepository;
     this.disciplinaRepository = disciplinaRepository;
     this.periodoLetivoRepository = periodoLetivoRepository;
     this.userRepository = userRepository;
     this.boletimRepository = boletimRepository;
     this.aulaRepository = aulaRepository;
+    this.diarioRepository = diarioRepository;
     this.boletimService =
         new BoletimService(
             this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
@@ -133,8 +172,6 @@ public class TurmaService {
     validarTurma(turma);
     validarDisciplinaExistente(turma.getCodigoDisciplina());
     validarPeriodoLetivoExistente(turma.getPeriodoLetivo());
-    validarProfessorResponsavel(turma.getMatriculaProfessor());
-    validarConflitoHorarioProfessor(turma, null);
 
     turma.setCodigo(gerarCodigoTurma());
     turmaRepository.salvarTurma(turma);
@@ -151,8 +188,6 @@ public class TurmaService {
     validarTurma(turma);
     validarDisciplinaDoCurso(turma.getCodigoDisciplina(), codigoCursoCoordenador);
     validarPeriodoLetivoExistente(turma.getPeriodoLetivo());
-    validarProfessorDoCurso(turma.getMatriculaProfessor(), codigoCursoCoordenador);
-    validarConflitoHorarioProfessor(turma, null);
 
     turma.setCodigo(gerarCodigoTurma());
     turmaRepository.salvarTurma(turma);
@@ -176,11 +211,9 @@ public class TurmaService {
     validarTurma(turmaAtualizada);
     validarDisciplinaExistente(turmaAtualizada.getCodigoDisciplina());
     validarPeriodoLetivoExistente(turmaAtualizada.getPeriodoLetivo());
-    validarProfessorResponsavel(turmaAtualizada.getMatriculaProfessor());
 
     turmaAtualizada.setCodigo(turmaCadastrada.getCodigo());
     preservarDadosAcademicosTurma(turmaCadastrada, turmaAtualizada);
-    validarConflitoHorarioProfessor(turmaAtualizada, turmaCadastrada.getCodigo());
 
     boolean atualizou = turmaRepository.atualizarTurma(turmaAtualizada);
 
@@ -202,12 +235,10 @@ public class TurmaService {
     validarTurma(turmaAtualizada);
     validarDisciplinaDoCurso(turmaAtualizada.getCodigoDisciplina(), codigoCursoCoordenador);
     validarPeriodoLetivoExistente(turmaAtualizada.getPeriodoLetivo());
-    validarProfessorDoCurso(turmaAtualizada.getMatriculaProfessor(), codigoCursoCoordenador);
 
     Turma turmaCadastrada = buscarTurmaPorCodigo(codigo);
     turmaAtualizada.setCodigo(turmaCadastrada.getCodigo());
     preservarDadosAcademicosTurma(turmaCadastrada, turmaAtualizada);
-    validarConflitoHorarioProfessor(turmaAtualizada, turmaCadastrada.getCodigo());
 
     boolean atualizou = turmaRepository.atualizarTurma(turmaAtualizada);
 
@@ -404,10 +435,16 @@ public class TurmaService {
   private void validarTurmaPertenceAoProfessor(Turma turma, String matriculaProfessor) {
     validarMatriculaProfessorLogado(matriculaProfessor);
 
-    if (turma.getMatriculaProfessor() == null
-        || !turma.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor.trim())) {
-      throw new EntradaInvalidaException("Professor nao pode atuar em turma de outro professor.");
+    for (Diario diario :
+        diarioRepository.buscarDiariosPorMatriculaDeProfessor(matriculaProfessor)) {
+      if (diario.getCodigoTurma() != null
+          && diarioCriaVinculoComProfessor(diario)
+          && diario.getCodigoTurma().equalsIgnoreCase(turma.getCodigo())) {
+        return;
+      }
     }
+
+    throw new EntradaInvalidaException("Professor nao possui diario associado a turma.");
   }
 
   /**
@@ -421,7 +458,29 @@ public class TurmaService {
       throw new EntradaInvalidaException("Matrícula do professor não pode ser vazia.");
     }
 
-    return turmaRepository.buscarTurmaPorMatriculaDeProfessor(matriculaProfessor);
+    List<Turma> turmasDoProfessor = new ArrayList<>();
+    Set<String> codigosAdicionados = new HashSet<>();
+
+    for (Diario diario :
+        diarioRepository.buscarDiariosPorMatriculaDeProfessor(matriculaProfessor)) {
+      if (!diarioCriaVinculoComProfessor(diario)
+          || diario.getCodigoTurma() == null
+          || !codigosAdicionados.add(diario.getCodigoTurma().toLowerCase())) {
+        continue;
+      }
+
+      Turma turma = turmaRepository.buscarTurmaPorCodigo(diario.getCodigoTurma());
+      if (turma != null) {
+        turmasDoProfessor.add(turma);
+      }
+    }
+
+    return turmasDoProfessor;
+  }
+
+  private boolean diarioCriaVinculoComProfessor(Diario diario) {
+    return diario.getSituacao() == SituacaoDiario.ATIVO
+        || diario.getSituacao() == SituacaoDiario.ENCERRADO;
   }
 
   /**
@@ -663,40 +722,17 @@ public class TurmaService {
     throw new EntradaInvalidaException("Período letivo não encontrado.");
   }
 
-  private void validarProfessorResponsavel(String matriculaProfessor) {
-    if (matriculaProfessor == null || matriculaProfessor.isBlank()) {
-      throw new EntradaInvalidaException("Turma deve possuir professor responsável.");
-    }
-
-    try {
-      userRepository.buscarPorMatricula(matriculaProfessor, TipoUsuario.PROFESSOR);
-    } catch (UsuarioNaoEncontradoException e) {
-      throw new EntradaInvalidaException("Professor responsável não encontrado.");
-    }
-  }
-
-  private Professor validarProfessorDoCurso(String matriculaProfessor, String codigoCurso) {
-    if (matriculaProfessor == null || matriculaProfessor.isBlank()) {
-      throw new EntradaInvalidaException("Turma deve possuir professor responsavel.");
-    }
-
-    try {
-      Professor professor =
-          (Professor)
-              userRepository.buscarPorMatricula(matriculaProfessor.trim(), TipoUsuario.PROFESSOR);
-
-      if (professor.getCodigoCurso() == null
-          || !professor.getCodigoCurso().equalsIgnoreCase(codigoCurso.trim())) {
-        throw new EntradaInvalidaException("Professor nao pertence ao curso do coordenador.");
-      }
-
-      return professor;
-    } catch (UsuarioNaoEncontradoException e) {
-      throw new EntradaInvalidaException("Professor responsavel nao encontrado.");
-    }
-  }
-
   private void preservarDadosAcademicosTurma(Turma turmaCadastrada, Turma turmaAtualizada) {
+    if (turmaAtualizada.getMatriculaProfessor() == null) {
+      turmaAtualizada.setMatriculaProfessor(turmaCadastrada.getMatriculaProfessor());
+    }
+    if (turmaAtualizada.getHorario() == null) {
+      turmaAtualizada.setHorario(turmaCadastrada.getHorario());
+    }
+    if (turmaAtualizada.getSala() == null) {
+      turmaAtualizada.setSala(turmaCadastrada.getSala());
+    }
+
     turmaAtualizada.setMatriculados();
     turmaAtualizada.setListaEspera();
     turmaAtualizada.setAulas();
@@ -711,33 +747,6 @@ public class TurmaService {
 
     if (turmaCadastrada.getAulas() != null) {
       turmaAtualizada.getAulas().addAll(turmaCadastrada.getAulas());
-    }
-  }
-
-  private void validarConflitoHorarioProfessor(Turma novaTurma, String codigoTurmaIgnorada) {
-    List<Turma> turmasDoProfessor =
-        turmaRepository.buscarTurmaPorMatriculaDeProfessor(novaTurma.getMatriculaProfessor());
-
-    for (Turma turmaCadastrada : turmasDoProfessor) {
-      boolean mesmaTurma =
-          codigoTurmaIgnorada != null
-              && turmaCadastrada.getCodigo() != null
-              && turmaCadastrada.getCodigo().equalsIgnoreCase(codigoTurmaIgnorada);
-
-      if (mesmaTurma) {
-        continue;
-      }
-
-      boolean mesmoPeriodo =
-          turmaCadastrada.getPeriodoLetivo() != null
-              && turmaCadastrada.getPeriodoLetivo().equalsIgnoreCase(novaTurma.getPeriodoLetivo());
-      boolean mesmoHorario =
-          turmaCadastrada.getHorario() != null
-              && turmaCadastrada.getHorario().equalsIgnoreCase(novaTurma.getHorario());
-
-      if (mesmoPeriodo && mesmoHorario) {
-        throw new EntradaInvalidaException("Professor já possui turma nesse horário.");
-      }
     }
   }
 
@@ -801,14 +810,49 @@ public class TurmaService {
     }
   }
 
-  private void validarHorariosDeTurma(Aluno aluno, Turma turma) {
-    for (String codigoTurmaAluno : aluno.getTurmasMatriculadas()) {
-      Turma turmaAluno = turmaRepository.buscarTurmaPorCodigo(codigoTurmaAluno);
+  /**
+   * Valida se os diarios ativos da turma pretendida conflitam com os diarios ativos das turmas
+   * do aluno.
+   *
+   * @param aluno aluno que pretende realizar a matricula.
+   * @param turma turma pretendida.
+   */
+  public void validarHorariosDeTurma(Aluno aluno, Turma turma) {
+    List<String> horariosTurmaPretendida = listarHorariosAtivosDaTurma(turma.getCodigo());
 
-      if (turmaAluno != null && turmaAluno.getHorario().equalsIgnoreCase(turma.getHorario())) {
-        throw new AlunoNaoCumprePreRequisitosException("Turmas com choque de horário.");
+    if (horariosTurmaPretendida.isEmpty()) {
+      return;
+    }
+
+    for (String codigoTurmaAluno : aluno.getTurmasMatriculadas()) {
+      if (codigoTurmaAluno == null
+          || codigoTurmaAluno.isBlank()
+          || codigoTurmaAluno.equalsIgnoreCase(turma.getCodigo())) {
+        continue;
+      }
+
+      for (String horarioTurmaAluno : listarHorariosAtivosDaTurma(codigoTurmaAluno)) {
+        for (String horarioTurmaPretendida : horariosTurmaPretendida) {
+          if (horarioTurmaAluno.equalsIgnoreCase(horarioTurmaPretendida)) {
+            throw new AlunoNaoCumprePreRequisitosException("Turmas com choque de horário.");
+          }
+        }
       }
     }
+  }
+
+  private List<String> listarHorariosAtivosDaTurma(String codigoTurma) {
+    List<String> horarios = new ArrayList<>();
+
+    for (Diario diario : diarioRepository.buscarDiariosPorTurma(codigoTurma)) {
+      if (diario.getSituacao() == SituacaoDiario.ATIVO
+          && diario.getHorario() != null
+          && !diario.getHorario().isBlank()) {
+        horarios.add(diario.getHorario().trim());
+      }
+    }
+
+    return horarios;
   }
 
   private void validarAlunoJaMatriculado(Aluno aluno, Turma turma) {

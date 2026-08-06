@@ -1,7 +1,7 @@
 package br.com.classroompb.ui.tela;
 
 import br.com.classroompb.model.entities.gestaoacademica.Aula;
-import br.com.classroompb.model.entities.gestaoacademica.Boletim;
+import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
@@ -9,7 +9,8 @@ import br.com.classroompb.model.entities.usuario.Professor;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
-import br.com.classroompb.model.services.BoletimService;
+import br.com.classroompb.model.services.AulaService;
+import br.com.classroompb.model.services.DiarioService;
 import br.com.classroompb.model.services.TurmaService;
 import br.com.classroompb.model.services.UsuarioService;
 import java.util.ArrayList;
@@ -17,14 +18,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-/**
- * Tela de interacao para consulta de frequencia de turmas e alunos.
- */
+/** Tela de interacao para consulta de frequencia por diario. */
 public class FrequenciaTela {
 
   private final Scanner scanner;
+  private final AulaService aulaService = new AulaService();
+  private final DiarioService diarioService = new DiarioService();
   private final TurmaService turmaService = new TurmaService();
-  private final BoletimService boletimService = new BoletimService();
   private final UsuarioService usuarioService = new UsuarioService();
 
   /**
@@ -37,323 +37,286 @@ public class FrequenciaTela {
   }
 
   /**
-   * Consulta a frequencia dos alunos de uma turma do curso do coordenador.
+   * Consulta a frequencia de um diario de uma turma do curso do coordenador.
    *
    * @param coordenadorLogado coordenador logado.
    */
   public void consultarFrequenciaTurma(Coordenador coordenadorLogado) {
     try {
       validarCoordenadorComCurso(coordenadorLogado);
-
-      Turma turmaSelecionada = selecionarTurmaDoCurso(coordenadorLogado.getCodigoCurso());
-      exibirFrequenciaDaTurma(turmaSelecionada);
-
+      Turma turma = selecionarTurmaDoCurso(coordenadorLogado.getCodigoCurso());
+      Diario diario = selecionarDiario(diarioService.listarDiariosPorTurma(turma.getCodigo()));
+      if (diario != null) {
+        exibirFrequenciaDoDiario(diario, turma);
+      }
     } catch (EntradaTela.EntradaCanceladaException e) {
       System.out.println("Consulta cancelada.");
-
     } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {
-      System.out.println("Ocorreu um erro ao consultar frequência: " + e.getMessage());
+      exibirErro(e);
     }
   }
 
   /**
-   * Consulta a frequencia dos alunos de uma turma do professor logado.
+   * Consulta a frequencia de um diario do professor logado.
    *
    * @param professorLogado professor logado.
    */
   public void consultarFrequenciaTurma(Professor professorLogado) {
     try {
-      Turma turmaSelecionada = selecionarTurmaDoProfessor(professorLogado);
-
-      if (turmaSelecionada == null) {
-        return;
+      Diario diario = selecionarDiarioDoProfessor(professorLogado);
+      if (diario != null) {
+        exibirFrequenciaDoDiario(
+            diario, turmaService.buscarTurmaPorCodigo(diario.getCodigoTurma()));
       }
-
-      exibirFrequenciaDaTurma(turmaSelecionada);
-
     } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {
-      System.out.println("Ocorreu um erro ao consultar frequência: " + e.getMessage());
+      exibirErro(e);
     }
   }
 
   /**
-   * Consulta a frequencia de uma aula especifica de uma turma do professor logado.
+   * Consulta uma aula de um diario do professor logado.
    *
    * @param professorLogado professor logado.
    */
   public void consultarFrequenciaPorAula(Professor professorLogado) {
     try {
-      Turma turmaSelecionada = selecionarTurmaDoProfessor(professorLogado);
-
-      if (turmaSelecionada == null) {
-        return;
+      Diario diario = selecionarDiarioDoProfessor(professorLogado);
+      if (diario != null) {
+        exibirFrequenciaPorAula(
+            diario, turmaService.buscarTurmaPorCodigo(diario.getCodigoTurma()));
       }
-
-      exibirFrequenciaPorAula(turmaSelecionada);
-
     } catch (EntradaTela.EntradaCanceladaException e) {
       System.out.println("Consulta cancelada.");
-
     } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {
-      System.out.println("Ocorreu um erro ao consultar frequência: " + e.getMessage());
+      exibirErro(e);
     }
   }
 
   /**
-   * Consulta a frequencia de uma aula especifica de uma turma do curso do coordenador.
+   * Consulta uma aula de um diario de uma turma do curso do coordenador.
    *
    * @param coordenadorLogado coordenador logado.
    */
   public void consultarFrequenciaPorAula(Coordenador coordenadorLogado) {
     try {
       validarCoordenadorComCurso(coordenadorLogado);
-
-      Turma turmaSelecionada = selecionarTurmaDoCurso(coordenadorLogado.getCodigoCurso());
-      exibirFrequenciaPorAula(turmaSelecionada);
-
+      Turma turma = selecionarTurmaDoCurso(coordenadorLogado.getCodigoCurso());
+      Diario diario = selecionarDiario(diarioService.listarDiariosPorTurma(turma.getCodigo()));
+      if (diario != null) {
+        exibirFrequenciaPorAula(diario, turma);
+      }
     } catch (EntradaTela.EntradaCanceladaException e) {
       System.out.println("Consulta cancelada.");
-
     } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {
-      System.out.println("Ocorreu um erro ao consultar frequência: " + e.getMessage());
+      exibirErro(e);
     }
   }
 
   /**
-   * Consulta a frequencia do aluno logado em cada turma matriculada.
+   * Consulta a frequencia do aluno separada por diario.
    *
    * @param alunoLogado aluno logado.
    */
   public void consultarFrequenciaAluno(Aluno alunoLogado) {
     try {
       validarAlunoComCurso(alunoLogado);
+      List<Diario> diarios = diariosDasTurmasDoAluno(alunoLogado);
 
-      List<Turma> turmasMatriculadas = turmasMatriculadasDoAluno(alunoLogado);
-
-      if (turmasMatriculadas.isEmpty()) {
-        System.out.println("Você não está matriculado em nenhuma turma.");
+      if (diarios.isEmpty()) {
+        System.out.println("Voce nao possui diarios para consultar.");
         return;
       }
 
-      System.out.println("Minha frequência:");
+      System.out.println("Minha frequencia por diario:");
+      for (int i = 0; i < diarios.size(); i++) {
+        Diario diario = diarios.get(i);
+        Turma turma = turmaService.buscarTurmaPorCodigo(diario.getCodigoTurma());
+        List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
+        int faltas = contarFaltas(alunoLogado.getMatricula(), aulas);
 
-      for (int i = 0; i < turmasMatriculadas.size(); i++) {
         if (i > 0) {
           System.out.println();
         }
-
-        exibirFrequenciaDoAlunoNaTurma(
-            i + 1, turmasMatriculadas.get(i), alunoLogado.getMatricula());
+        System.out.println((i + 1) + " - " + diario.getDescricao()
+            + " (codigo: " + diario.getCodigo() + ")");
+        System.out.println("    Turma             : " + nomeAmigavelTurma(turma)
+            + " (codigo: " + turma.getCodigo() + ")");
+        System.out.println("    Professor         : "
+            + diarioService.buscarNomeProfessor(diario.getMatriculaProfessor()));
+        exibirTotais(aulas.size(), faltas);
       }
-
-    } catch (PersistenciaException | EntradaInvalidaException e) {
-      System.out.println("Ocorreu um erro ao consultar frequência: " + e.getMessage());
+    } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {
+      exibirErro(e);
     }
   }
 
-  private void exibirFrequenciaDaTurma(Turma turma) {
-    List<String> alunosMatriculados = turma.getMatriculados();
+  private void exibirFrequenciaDoDiario(Diario diario, Turma turma) {
+    List<String> alunos = turma.getMatriculados();
+    List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
 
-    System.out.println("Frequência da turma " + nomeAmigavelTurma(turma) + ":");
-
-    if (alunosMatriculados == null || alunosMatriculados.isEmpty()) {
-      System.out.println("A turma não possui alunos matriculados.");
+    System.out.println("Frequencia do diario " + diario.getDescricao()
+        + " (codigo: " + diario.getCodigo() + ") - " + nomeAmigavelTurma(turma) + ":");
+    if (alunos == null || alunos.isEmpty()) {
+      System.out.println("A turma nao possui alunos matriculados.");
       return;
     }
 
-    List<Aula> aulasTurma = turmaService.listarAulasPorTurma(turma.getCodigo());
-    int totalAulas = aulasTurma.size();
-
-    for (int i = 0; i < alunosMatriculados.size(); i++) {
+    for (int i = 0; i < alunos.size(); i++) {
+      String matricula = alunos.get(i);
       if (i > 0) {
         System.out.println();
       }
-
-      exibirFrequenciaDoAluno(i + 1, alunosMatriculados.get(i), turma, aulasTurma, totalAulas);
+      System.out.println((i + 1) + " - " + buscarNomeAluno(matricula)
+          + " (matricula: " + matricula + ")");
+      exibirTotais(aulas.size(), contarFaltas(matricula, aulas));
     }
   }
 
-  private void exibirFrequenciaPorAula(Turma turma) {
-    List<Aula> aulasTurma = turmaService.listarAulasPorTurma(turma.getCodigo());
-
-    if (aulasTurma == null || aulasTurma.isEmpty()) {
-      System.out.println("A turma " + nomeAmigavelTurma(turma) + " não possui aulas registradas.");
+  private void exibirFrequenciaPorAula(Diario diario, Turma turma) {
+    List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
+    if (aulas.isEmpty()) {
+      System.out.println("O diario " + diario.getDescricao() + " nao possui aulas registradas.");
       return;
     }
 
-    Aula aulaSelecionada = selecionarAula(aulasTurma);
-
-    if (aulaSelecionada == null) {
-      return;
+    Aula aula = selecionarAula(aulas);
+    if (aula != null) {
+      exibirPresencasDaAula(aula, turma);
     }
-
-    exibirPresencasDaAula(aulaSelecionada, turma);
   }
 
-  private Aula selecionarAula(List<Aula> aulasTurma) {
-    System.out.println("Aulas registradas:");
-    System.out.println("0 - Cancelar");
+  private Diario selecionarDiarioDoProfessor(Professor professorLogado) {
+    if (professorLogado == null
+        || professorLogado.getMatricula() == null
+        || professorLogado.getMatricula().isBlank()) {
+      throw new EntradaInvalidaException("Professor logado nao possui matricula valida.");
+    }
+    return selecionarDiario(
+        diarioService.listarDiariosPorProfessor(professorLogado.getMatricula()));
+  }
 
-    for (int i = 0; i < aulasTurma.size(); i++) {
-      Aula aula = aulasTurma.get(i);
-      System.out.println((i + 1) + " - " + aula.getData() + " às " + aula.getHorario()
-          + " (código: " + aula.getId() + ")");
+  private Diario selecionarDiario(List<Diario> diarios) {
+    if (diarios == null || diarios.isEmpty()) {
+      throw new EntradaInvalidaException("Nenhum diario disponivel para consulta.");
     }
 
-    int opcao =
-        EntradaTela.lerOpcaoOuCancelar(scanner, "Informe o número da aula: ", aulasTurma.size());
+    System.out.println("Diarios disponiveis:");
+    System.out.println("0 - Voltar");
+    for (int i = 0; i < diarios.size(); i++) {
+      Diario diario = diarios.get(i);
+      System.out.println((i + 1) + " - " + diario.getDescricao()
+          + " (codigo: " + diario.getCodigo() + ", situacao: "
+          + diario.getSituacao().getDescricao() + ")");
+    }
 
+    int opcao = EntradaTela.lerOpcaoOuCancelar(
+        scanner, "Informe o numero do diario: ", diarios.size());
     if (opcao == 0) {
       System.out.println("Voltando...");
       return null;
     }
+    return diarios.get(opcao - 1);
+  }
 
-    return aulasTurma.get(opcao - 1);
+  private Aula selecionarAula(List<Aula> aulas) {
+    System.out.println("Aulas registradas:");
+    System.out.println("0 - Cancelar");
+    for (int i = 0; i < aulas.size(); i++) {
+      Aula aula = aulas.get(i);
+      System.out.println((i + 1) + " - " + aula.getData() + " as " + aula.getHorario()
+          + " (codigo: " + aula.getId() + ")");
+    }
+
+    int opcao = EntradaTela.lerOpcaoOuCancelar(
+        scanner, "Informe o numero da aula: ", aulas.size());
+    return opcao == 0 ? null : aulas.get(opcao - 1);
   }
 
   private void exibirPresencasDaAula(Aula aula, Turma turma) {
-    List<String> alunosMatriculados = turma.getMatriculados();
-
-    System.out.println("Frequência da aula de " + aula.getData() + " às " + aula.getHorario()
+    List<String> alunos = turma.getMatriculados();
+    System.out.println("Frequencia da aula de " + aula.getData() + " as " + aula.getHorario()
         + " - " + nomeAmigavelTurma(turma) + ":");
-
-    if (alunosMatriculados == null || alunosMatriculados.isEmpty()) {
-      System.out.println("A turma não possui alunos matriculados.");
+    if (alunos == null || alunos.isEmpty()) {
+      System.out.println("A turma nao possui alunos matriculados.");
       return;
     }
 
     Map<String, Boolean> presencas = aula.getPresencas();
     int presentes = 0;
-
-    for (int i = 0; i < alunosMatriculados.size(); i++) {
-      String matriculaAluno = alunosMatriculados.get(i);
-      Boolean estaPresente = presencas == null ? null : presencas.get(matriculaAluno);
-      boolean presente = Boolean.TRUE.equals(estaPresente);
-
+    for (int i = 0; i < alunos.size(); i++) {
+      String matricula = alunos.get(i);
+      boolean presente = presencas != null && Boolean.TRUE.equals(presencas.get(matricula));
       if (presente) {
         presentes++;
       }
-
-      System.out.println((i + 1) + " - " + buscarNomeAluno(matriculaAluno)
-          + " (matrícula: " + matriculaAluno + "): " + (presente ? "Presente" : "Falta"));
+      System.out.println((i + 1) + " - " + buscarNomeAluno(matricula)
+          + " (matricula: " + matricula + "): " + (presente ? "Presente" : "Falta"));
     }
-
     System.out.println();
-    System.out.println("Presentes: " + presentes + "/" + alunosMatriculados.size());
+    System.out.println("Presentes: " + presentes + "/" + alunos.size());
   }
 
-  private void exibirFrequenciaDoAluno(
-      int numero, String matriculaAluno, Turma turma, List<Aula> aulasTurma, int totalAulas) {
-    int faltas = contarFaltas(matriculaAluno, aulasTurma);
-    Boletim boletim = boletimService.buscarBoletimPorAlunoTurma(matriculaAluno, turma.getCodigo());
-    Double frequencia = boletim == null ? null : boletim.getFrequencia();
-
-    System.out.println(numero + " - " + buscarNomeAluno(matriculaAluno)
-        + " (matrícula: " + matriculaAluno + ")");
-    System.out.println("    Aulas ministradas : " + totalAulas);
-    System.out.println("    Faltas            : " + faltas);
-    System.out.println("    Frequência        : " + formatarFrequencia(frequencia));
-  }
-
-  private void exibirFrequenciaDoAlunoNaTurma(int numero, Turma turma, String matriculaAluno) {
-    List<Aula> aulasTurma = turmaService.listarAulasPorTurma(turma.getCodigo());
-    int totalAulas = aulasTurma.size();
-    int faltas = contarFaltas(matriculaAluno, aulasTurma);
-    Boletim boletim = boletimService.buscarBoletimPorAlunoTurma(matriculaAluno, turma.getCodigo());
-    Double frequencia = boletim == null ? null : boletim.getFrequencia();
-
-    System.out.println(numero + " - " + nomeAmigavelTurma(turma));
-    System.out.println("    Professor         : " + buscarNomeProfessor(turma));
-    System.out.println("    Aulas ministradas : " + totalAulas);
-    System.out.println("    Faltas            : " + faltas);
-    System.out.println("    Frequência        : " + formatarFrequencia(frequencia));
-  }
-
-  private int contarFaltas(String matriculaAluno, List<Aula> aulasTurma) {
-    int faltas = 0;
-
-    for (Aula aula : aulasTurma) {
-      Map<String, Boolean> presencas = aula.getPresencas();
-      Boolean estaPresente = presencas == null ? null : presencas.get(matriculaAluno);
-
-      if (!Boolean.TRUE.equals(estaPresente)) {
-        faltas++;
+  private List<Diario> diariosDasTurmasDoAluno(Aluno alunoLogado) {
+    List<Diario> diarios = new ArrayList<>();
+    for (Turma turma : turmaService.listarTurmasPorCurso(alunoLogado.getCodigoCurso())) {
+      if (turma.getMatriculados() != null
+          && turma.getMatriculados().contains(alunoLogado.getMatricula())) {
+        diarios.addAll(diarioService.listarDiariosPorTurma(turma.getCodigo()));
       }
     }
-
-    return faltas;
+    return diarios;
   }
 
   private Turma selecionarTurmaDoCurso(String codigoCurso) {
     List<Turma> turmas = turmaService.listarTurmasPorCurso(codigoCurso);
-
     if (turmas == null || turmas.isEmpty()) {
       throw new EntradaInvalidaException("Nenhuma turma cadastrada para o curso.");
     }
 
     System.out.println("Turmas do curso:");
     System.out.println("0 - Cancelar");
-
     for (int i = 0; i < turmas.size(); i++) {
       System.out.println((i + 1) + " - " + nomeAmigavelTurma(turmas.get(i))
-          + " (código: " + turmas.get(i).getCodigo() + ")");
+          + " (codigo: " + turmas.get(i).getCodigo() + ")");
     }
-
-    int opcao =
-        EntradaTela.lerOpcaoOuCancelar(scanner, "Informe o número da turma: ", turmas.size());
-
+    int opcao = EntradaTela.lerOpcaoOuCancelar(
+        scanner, "Informe o numero da turma: ", turmas.size());
     if (opcao == 0) {
       throw new EntradaTela.EntradaCanceladaException();
     }
-
     return turmas.get(opcao - 1);
   }
 
-  private Turma selecionarTurmaDoProfessor(Professor professorLogado) {
-    List<Turma> turmas = turmaService.listarTurmasPorProfessor(professorLogado.getMatricula());
-
-    if (turmas == null || turmas.isEmpty()) {
-      System.out.println("Professor não possui turmas cadastradas.");
-      return null;
-    }
-
-    System.out.println("Turmas do professor:");
-    System.out.println("0 - Voltar");
-
-    for (int i = 0; i < turmas.size(); i++) {
-      System.out.println((i + 1) + " - " + nomeAmigavelTurma(turmas.get(i))
-          + " (código: " + turmas.get(i).getCodigo() + ")");
-    }
-
-    int opcao =
-        EntradaTela.lerOpcaoOuCancelar(scanner, "Informe o número da turma: ", turmas.size());
-
-    if (opcao == 0) {
-      System.out.println("Voltando...");
-      return null;
-    }
-
-    return turmas.get(opcao - 1);
-  }
-
-  private List<Turma> turmasMatriculadasDoAluno(Aluno alunoLogado) {
-    List<Turma> turmasMatriculadas = new ArrayList<>();
-
-    for (Turma turma : turmaService.listarTurmasPorCurso(alunoLogado.getCodigoCurso())) {
-      if (turma.getMatriculados() != null
-          && turma.getMatriculados().contains(alunoLogado.getMatricula())) {
-        turmasMatriculadas.add(turma);
+  private int contarFaltas(String matriculaAluno, List<Aula> aulas) {
+    int faltas = 0;
+    for (Aula aula : aulas) {
+      Map<String, Boolean> presencas = aula.getPresencas();
+      if (presencas == null || !Boolean.TRUE.equals(presencas.get(matriculaAluno))) {
+        faltas++;
       }
     }
+    return faltas;
+  }
 
-    return turmasMatriculadas;
+  private void exibirTotais(int totalAulas, int faltas) {
+    System.out.println("    Aulas ministradas : " + totalAulas);
+    System.out.println("    Faltas            : " + faltas);
+    System.out.println("    Frequencia        : " + formatarFrequencia(totalAulas, faltas));
+  }
+
+  private String formatarFrequencia(int totalAulas, int faltas) {
+    if (totalAulas == 0) {
+      return "ainda nao calculada";
+    }
+    double frequencia = (totalAulas - faltas) * 100.0 / totalAulas;
+    return String.format("%.1f%%", frequencia);
   }
 
   private void validarCoordenadorComCurso(Coordenador coordenadorLogado) {
     if (coordenadorLogado == null
         || coordenadorLogado.getCodigoCurso() == null
         || coordenadorLogado.getCodigoCurso().isBlank()) {
-      throw new EntradaInvalidaException("Coordenador não está vinculado a nenhum curso.");
+      throw new EntradaInvalidaException("Coordenador nao esta vinculado a nenhum curso.");
     }
   }
 
@@ -361,7 +324,7 @@ public class FrequenciaTela {
     if (alunoLogado == null
         || alunoLogado.getCodigoCurso() == null
         || alunoLogado.getCodigoCurso().isBlank()) {
-      throw new EntradaInvalidaException("Aluno não está vinculado a nenhum curso.");
+      throw new EntradaInvalidaException("Aluno nao esta vinculado a nenhum curso.");
     }
   }
 
@@ -373,25 +336,12 @@ public class FrequenciaTela {
     }
   }
 
-  private String buscarNomeProfessor(Turma turma) {
-    return turmaService.buscarNomeProfessor(turma.getMatriculaProfessor());
-  }
-
   private String nomeAmigavelTurma(Turma turma) {
-    if (turma == null) {
-      return "-";
-    }
-
     return turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina())
-        + " - "
-        + turma.getPeriodoLetivo();
+        + " - " + turma.getPeriodoLetivo();
   }
 
-  private String formatarFrequencia(Double frequencia) {
-    if (frequencia == null) {
-      return "ainda não calculada";
-    }
-
-    return String.format("%.1f%%", frequencia);
+  private void exibirErro(RuntimeException e) {
+    System.out.println("Ocorreu um erro ao consultar frequencia: " + e.getMessage());
   }
 }

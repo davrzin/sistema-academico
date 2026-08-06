@@ -121,6 +121,29 @@ public class AulaRepository {
   }
 
   /**
+   * Lista as aulas vinculadas ao diario informado.
+   *
+   * @param codigoDiario codigo do diario.
+   * @return aulas vinculadas ao diario.
+   */
+  public List<Aula> buscarAulasPorDiario(String codigoDiario) {
+    List<Aula> aulasDoDiario = new ArrayList<>();
+
+    if (codigoDiario == null || codigoDiario.isBlank()) {
+      return aulasDoDiario;
+    }
+
+    for (Aula aula : listarAulas()) {
+      if (aula.getCodigoDiario() != null
+          && aula.getCodigoDiario().equalsIgnoreCase(codigoDiario.trim())) {
+        aulasDoDiario.add(aula);
+      }
+    }
+
+    return aulasDoDiario;
+  }
+
+  /**
    * Busca uma aula pelo identificador.
    *
    * @param id identificador da aula.

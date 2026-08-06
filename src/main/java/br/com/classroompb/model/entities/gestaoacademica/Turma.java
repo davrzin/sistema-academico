@@ -1,6 +1,7 @@
 package br.com.classroompb.model.entities.gestaoacademica;
 
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +25,35 @@ public final class Turma {
    * Cria uma turma vazia.
    */
   public Turma() {}
+
+  /**
+   * Cria uma oferta de turma sem dados operacionais de diario.
+   *
+   * @param codigoDisciplina codigo da disciplina.
+   * @param periodoLetivo periodo letivo.
+   * @param limiteVagas limite de vagas.
+   */
+  public Turma(String codigoDisciplina, String periodoLetivo, int limiteVagas) {
+    setCodigoDisciplina(codigoDisciplina);
+    setPeriodoLetivo(periodoLetivo);
+    setLimiteVagas(limiteVagas);
+    setMatriculados();
+    setListaEspera();
+    setAulas();
+  }
+
+  /**
+   * Cria uma oferta completa sem dados operacionais de diario.
+   *
+   * @param codigo codigo da turma.
+   * @param codigoDisciplina codigo da disciplina.
+   * @param periodoLetivo periodo letivo.
+   * @param limiteVagas limite de vagas.
+   */
+  public Turma(String codigo, String codigoDisciplina, String periodoLetivo, int limiteVagas) {
+    this(codigoDisciplina, periodoLetivo, limiteVagas);
+    setCodigo(codigo);
+  }
 
   /**
    * Cria uma turma sem codigo.
@@ -146,6 +176,7 @@ public final class Turma {
    *
    * @return matricula do professor.
    */
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   public String getMatriculaProfessor() {
     return matriculaProfessor;
   }
@@ -156,7 +187,6 @@ public final class Turma {
    * @param matriculaProfessor matricula do professor.
    */
   public void setMatriculaProfessor(String matriculaProfessor) {
-    validarCampoObrigatorio(matriculaProfessor, "Turma deve possuir professor responsável.");
     this.matriculaProfessor = matriculaProfessor;
   }
 
@@ -184,6 +214,7 @@ public final class Turma {
    *
    * @return horario da turma.
    */
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   public String getHorario() {
     return horario;
   }
@@ -194,7 +225,6 @@ public final class Turma {
    * @param horario horario da turma.
    */
   public void setHorario(String horario) {
-    validarCampoObrigatorio(horario, "Horário da turma não pode ser vazio.");
     this.horario = horario;
   }
 
@@ -203,6 +233,7 @@ public final class Turma {
    *
    * @return sala da turma.
    */
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   public String getSala() {
     return sala;
   }
@@ -213,7 +244,6 @@ public final class Turma {
    * @param sala sala da turma.
    */
   public void setSala(String sala) {
-    validarCampoObrigatorio(sala, "Sala da turma não pode ser vazia.");
     this.sala = sala;
   }
 
@@ -271,10 +301,7 @@ public final class Turma {
   public void validarDadosBasicos() {
     validarCampoObrigatorio(codigoDisciplina, "Código da disciplina não pode ser vazio.");
     validarCampoObrigatorio(periodoLetivo, "Período letivo da turma não pode ser vazio.");
-    validarCampoObrigatorio(matriculaProfessor, "Turma deve possuir professor responsável.");
     validarLimiteVagas(limiteVagas);
-    validarCampoObrigatorio(horario, "Horário da turma não pode ser vazio.");
-    validarCampoObrigatorio(sala, "Sala da turma não pode ser vazia.");
   }
 
   private void validarCampoObrigatorio(String valor, String mensagemErro) {

@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Servico responsavel pelas operacoes de aula.
@@ -81,12 +82,41 @@ public class AulaService {
   }
 
   /**
+   * Gera uma aula vinculada ao diario informado.
+   *
+   * @param diario diario da aula.
+   * @param presencas presencas registradas.
+   * @return aula gerada.
+   */
+  public Aula gerarAula(Diario diario, Map<String, Boolean> presencas) {
+    if (diario == null) {
+      throw new EntradaInvalidaException("Diario da aula nao pode ser nulo.");
+    }
+    if (diario.getCodigo() == null || diario.getCodigo().isBlank()) {
+      throw new EntradaInvalidaException("Codigo do diario da aula nao pode ser vazio.");
+    }
+
+    return new Aula(
+        gerarCodigoAula(),
+        diario.getCodigoTurma(),
+        diario.getCodigo(),
+        LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+        diario.getHorario(),
+        presencas);
+  }
+
+  /**
    * Salva uma aula.
    *
    * @param aula aula a ser salva.
    */
   public void salvarAula(Aula aula) {
     validarDadosDaAula(aula);
+    if (aula.getCodigoDiario() != null) {
+      throw new EntradaInvalidaException(
+          "Professor responsavel deve ser informado para aula vinculada a diario.");
+    }
+    validarDiarioNaoFechado(aula.getCodigoTurma());
     aulaRepository.salvarAula(aula);
   }
 
@@ -99,8 +129,33 @@ public class AulaService {
    */
   public void salvarAula(Aula aula, String matriculaProfessor) {
     validarDadosDaAula(aula);
-    validarProfessorResponsavelPelaTurma(aula.getCodigoTurma(), matriculaProfessor);
+
+    if (aula.getCodigoDiario() == null) {
+      validarDiarioNaoFechado(aula.getCodigoTurma());
+      validarProfessorResponsavelPelaTurma(aula.getCodigoTurma(), matriculaProfessor);
+    } else {
+      validarAulaVinculadaAoDiario(aula, matriculaProfessor);
+    }
+
     aulaRepository.salvarAula(aula);
+  }
+
+  /**
+   * Lista somente as aulas vinculadas ao diario informado.
+   *
+   * @param codigoDiario codigo do diario.
+   * @return aulas do diario.
+   */
+  public List<Aula> listarAulasPorDiario(String codigoDiario) {
+    if (codigoDiario == null || codigoDiario.isBlank()) {
+      throw new EntradaInvalidaException("Codigo do diario nao pode ser vazio.");
+    }
+
+    if (diarioRepository.buscarDiarioPorCodigo(codigoDiario) == null) {
+      throw new EntradaInvalidaException("Diario nao encontrado.");
+    }
+
+    return aulaRepository.buscarAulasPorDiario(codigoDiario);
   }
 
   private void validarDadosDaAula(Aula aula) {
@@ -124,10 +179,39 @@ public class AulaService {
     if (aula.getPresencas() == null || aula.getPresencas().isEmpty()) {
       throw new EntradaInvalidaException("A aula deve possuir registros de frequência.");
     }
+  }
 
-    validarDiarioNaoFechado(aula.getCodigoTurma());
+  private void validarAulaVinculadaAoDiario(Aula aula, String matriculaProfessor) {
+    if (matriculaProfessor == null || matriculaProfessor.isBlank()) {
+      throw new EntradaInvalidaException("Matricula do professor logado nao pode ser vazia.");
+    }
 
-    // -------------
+    Diario diario = diarioRepository.buscarDiarioPorCodigo(aula.getCodigoDiario());
+
+    if (diario == null) {
+      throw new EntradaInvalidaException("Diario da aula nao encontrado.");
+    }
+
+    if (diario.getMatriculaProfessor() == null
+        || !diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor.trim())) {
+      throw new EntradaInvalidaException(
+          "Professor nao pode registrar aula em diario de outro professor.");
+    }
+
+    if (diario.getSituacao() != SituacaoDiario.ATIVO) {
+      throw new EntradaInvalidaException(
+          "Nao e possivel registrar aula em diario encerrado ou cancelado.");
+    }
+
+    Turma turma = turmaRepository.buscarTurmaPorCodigo(diario.getCodigoTurma());
+
+    if (turma == null) {
+      throw new EntradaInvalidaException("Turma associada ao diario nao encontrada.");
+    }
+
+    if (!turma.getCodigo().equalsIgnoreCase(aula.getCodigoTurma().trim())) {
+      throw new EntradaInvalidaException("Aula nao pertence a turma associada ao diario.");
+    }
   }
 
   /**
