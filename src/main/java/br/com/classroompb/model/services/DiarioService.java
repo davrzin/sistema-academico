@@ -11,6 +11,7 @@ import br.com.classroompb.model.exception.DiarioNaoEncontradoException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
+import br.com.classroompb.model.repository.AvaliacaoRepository;
 import br.com.classroompb.model.repository.DiarioRepository;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.PersistenciaPaths;
@@ -38,16 +39,17 @@ public class DiarioService {
   private final TurmaRepository turmaRepository;
   private final DisciplinaRepository disciplinaRepository;
   private final UserRepository userRepository;
+  private final AvaliacaoService avaliacaoService;
 
   /**
    * Cria o servico de diarios com dependencias padrao.
    */
   public DiarioService() {
-    this.diarioRepository = new DiarioRepository(new ObjectMapper(), DIRETORIO_DIARIOS.toString());
-    this.turmaRepository = new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString());
-    this.disciplinaRepository =
-        new DisciplinaRepository(new ObjectMapper(), DIRETORIO_DISCIPLINAS.toString());
-    this.userRepository = new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString());
+    this(
+        new DiarioRepository(new ObjectMapper(), DIRETORIO_DIARIOS.toString()),
+        new TurmaRepository(new ObjectMapper(), DIRETORIO_TURMAS.toString()),
+        new DisciplinaRepository(new ObjectMapper(), DIRETORIO_DISCIPLINAS.toString()),
+        new UserRepository(new ObjectMapper(), DIRETORIO_USUARIOS.toString()));
   }
 
   /**
@@ -63,10 +65,34 @@ public class DiarioService {
       TurmaRepository turmaRepository,
       DisciplinaRepository disciplinaRepository,
       UserRepository userRepository) {
+    this(
+        diarioRepository,
+        turmaRepository,
+        disciplinaRepository,
+        userRepository,
+        criarAvaliacaoService(diarioRepository, turmaRepository, userRepository));
+  }
+
+  /**
+   * Cria o servico de diarios com todas as dependencias, incluindo avaliacoes.
+   *
+   * @param diarioRepository repositorio de diarios.
+   * @param turmaRepository repositorio de turmas.
+   * @param disciplinaRepository repositorio de disciplinas.
+   * @param userRepository repositorio de usuarios.
+   * @param avaliacaoService servico de avaliacoes do mesmo ambiente de persistencia.
+   */
+  public DiarioService(
+      DiarioRepository diarioRepository,
+      TurmaRepository turmaRepository,
+      DisciplinaRepository disciplinaRepository,
+      UserRepository userRepository,
+      AvaliacaoService avaliacaoService) {
     this.diarioRepository = diarioRepository;
     this.turmaRepository = turmaRepository;
     this.disciplinaRepository = disciplinaRepository;
     this.userRepository = userRepository;
+    this.avaliacaoService = avaliacaoService;
   }
 
   /**
@@ -212,7 +238,6 @@ public class DiarioService {
     validarProfessorResponsavelPeloDiario(diario, matriculaProfessor);
 
     // Verificação de segurança para o fechamento
-    AvaliacaoService avaliacaoService = new AvaliacaoService();
     List<Avaliacao> avaliacoes = avaliacaoService.listarAvaliacoesPorDiario(codigo);
 
     if (avaliacoes == null || avaliacoes.isEmpty()) {
@@ -513,5 +538,16 @@ public class DiarioService {
     } while (diarioRepository.buscarDiarioPorCodigo(codigo) != null);
 
     return codigo;
+  }
+
+  private static AvaliacaoService criarAvaliacaoService(
+      DiarioRepository diarioRepository,
+      TurmaRepository turmaRepository,
+      UserRepository userRepository) {
+    AvaliacaoRepository avaliacaoRepository =
+        new AvaliacaoRepository(
+            diarioRepository.getObjectMapper(), diarioRepository.getDiretorioDiarios());
+    return new AvaliacaoService(
+        avaliacaoRepository, diarioRepository, turmaRepository, userRepository);
   }
 }
