@@ -20,6 +20,7 @@ import java.util.Map;
  * Servico responsavel pelas operacoes de aula.
  */
 public class AulaService {
+  private static final int HORAS_POR_AULA = 2;
   private static final Path DIRETORIO_AULAS = PersistenciaPaths.AULAS;
   private static final Path DIRETORIO_DIARIOS = PersistenciaPaths.DIARIOS;
   private static final Path DIRETORIO_TURMAS = PersistenciaPaths.TURMAS;
@@ -203,6 +204,8 @@ public class AulaService {
           "Nao e possivel registrar aula em diario encerrado ou cancelado.");
     }
 
+    validarLimiteCargaHoraria(diario);
+
     Turma turma = turmaRepository.buscarTurmaPorCodigo(diario.getCodigoTurma());
 
     if (turma == null) {
@@ -211,6 +214,16 @@ public class AulaService {
 
     if (!turma.getCodigo().equalsIgnoreCase(aula.getCodigoTurma().trim())) {
       throw new EntradaInvalidaException("Aula nao pertence a turma associada ao diario.");
+    }
+  }
+
+  private void validarLimiteCargaHoraria(Diario diario) {
+    int quantidadeAulas = aulaRepository.buscarAulasPorDiario(diario.getCodigo()).size();
+    int horasAposNovoRegistro = (quantidadeAulas + 1) * HORAS_POR_AULA;
+
+    if (horasAposNovoRegistro > diario.getCargaHoraria()) {
+      throw new EntradaInvalidaException(
+          "Nao e possivel registrar aula alem da carga horaria do diario.");
     }
   }
 
