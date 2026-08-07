@@ -51,7 +51,8 @@ public class AvaliacaoTela {
       String strPeso = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Informe o peso da avaliação (ex: 1.0, 2.0): ", "Peso");
       float peso = Float.parseFloat(strPeso);
 
-      int etapa = EntradaTela.lerInteiroPositivoOuCancelar(scanner, "Informe a etapa (ex: 1 para N1, 2 para N2): ");
+      int etapa = selecionarEtapa();
+      if (etapa == 0) return;
 
       String strNotaMax = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Informe a nota máxima (ex: 10.0): ", "Nota Máxima");
       float notaMaxima = Float.parseFloat(strNotaMax);
@@ -69,6 +70,14 @@ public class AvaliacaoTela {
     } catch (EntradaInvalidaException e) {
       System.out.println("Erro ao cadastrar avaliação: " + e.getMessage());
     }
+  }
+
+  private int selecionarEtapa() {
+    System.out.println("Selecione a unidade da avaliação:");
+    System.out.println("1 - Primeira unidade");
+    System.out.println("2 - Segunda unidade");
+    System.out.println("0 - Voltar");
+    return EntradaTela.lerOpcaoOuCancelar(scanner, "Informe a opção: ", 2);
   }
 
   /**

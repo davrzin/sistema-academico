@@ -85,8 +85,8 @@ public class Avaliacao {
   }
 
   public void setEtapa(int etapa) {
-    if (etapa <= 0) {
-      throw new EntradaInvalidaException("Etapa da avaliação deve ser maior que zero.");
+    if (etapa != 1 && etapa != 2) {
+      throw new EntradaInvalidaException("Etapa da avaliação deve ser 1 ou 2.");
     }
     this.etapa = etapa;
   }
