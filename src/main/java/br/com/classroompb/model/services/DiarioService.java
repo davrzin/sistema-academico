@@ -446,7 +446,7 @@ public class DiarioService {
               && diarioCadastrado.getCodigo() != null
               && diarioCadastrado.getCodigo().equalsIgnoreCase(codigoDiarioIgnorado.trim());
 
-      if (mesmoDiario) {
+      if (mesmoDiario || diarioCadastrado.getSituacao() != SituacaoDiario.ATIVO) {
         continue;
       }
 
