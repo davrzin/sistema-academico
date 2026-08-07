@@ -20,6 +20,7 @@ import br.com.classroompb.model.repository.AvaliacaoRepository;
 import br.com.classroompb.model.repository.BoletimRepository;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.DiarioRepository;
+import br.com.classroompb.model.repository.HistoricoAcademicoRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.PersistenciaPaths;
 import br.com.classroompb.model.repository.TurmaRepository;
@@ -54,6 +55,7 @@ public class TurmaService {
   private final BoletimService boletimService;
   private final AulaService aulaService;
   private final AvaliacaoService avaliacaoService;
+  private final HistoricoAcademicoService historicoAcademicoService;
 
   private final UsuarioService usuarioService;
 
@@ -87,6 +89,7 @@ public class TurmaService {
     this.avaliacaoService =
         criarAvaliacaoService(this.diarioRepository, this.turmaRepository, this.userRepository);
     this.usuarioService = new UsuarioService(userRepository);
+    this.historicoAcademicoService = criarHistoricoAcademicoService();
   }
 
   /**
@@ -112,6 +115,7 @@ public class TurmaService {
     this.avaliacaoService =
         criarAvaliacaoService(this.diarioRepository, this.turmaRepository, this.userRepository);
     this.usuarioService = new UsuarioService(this.userRepository);
+    this.historicoAcademicoService = criarHistoricoAcademicoService();
   }
 
   /**
@@ -240,6 +244,7 @@ public class TurmaService {
     this.aulaService = aulaService;
     this.avaliacaoService = avaliacaoService;
     this.usuarioService = new UsuarioService(userRepository);
+    this.historicoAcademicoService = criarHistoricoAcademicoService();
   }
 
   /**
@@ -759,6 +764,8 @@ public class TurmaService {
       } else {
         boletimRepository.atualizarBoletins(boletim);
       }
+      historicoAcademicoService.registrarResultadoConsolidado(
+          usuarioService.buscarAlunoPorMatricula(resultado.matriculaAluno()), boletim);
     }
   }
 
@@ -1132,5 +1139,14 @@ public class TurmaService {
             diarioRepository.getObjectMapper(), diarioRepository.getDiretorioDiarios());
     return new AvaliacaoService(
         avaliacaoRepository, diarioRepository, turmaRepository, userRepository);
+  }
+
+  private HistoricoAcademicoService criarHistoricoAcademicoService() {
+    Path diretorioHistoricos =
+        Path.of(boletimRepository.getDiretorioBoletins()).resolveSibling("historicos");
+    HistoricoAcademicoRepository historicoRepository =
+        new HistoricoAcademicoRepository(
+            boletimRepository.getObjectMapper(), diretorioHistoricos.toString());
+    return new HistoricoAcademicoService(boletimService, this, historicoRepository);
   }
 }

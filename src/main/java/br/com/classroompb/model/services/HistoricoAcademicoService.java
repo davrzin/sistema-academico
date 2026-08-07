@@ -5,6 +5,8 @@ import br.com.classroompb.model.entities.gestaoacademica.ItemHistoricoAcademico;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
+import br.com.classroompb.model.repository.HistoricoAcademicoRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Comparator;
 import java.util.List;
 
@@ -16,6 +18,7 @@ public class HistoricoAcademicoService {
   private final BoletimService boletimService;
   private final TurmaService turmaService;
   private final SituacaoAcademicaService situacaoAcademicaService;
+  private final HistoricoAcademicoRepository historicoRepository;
 
   /**
    * Cria o servico de historico academico com dependencias padrao.
@@ -31,9 +34,39 @@ public class HistoricoAcademicoService {
    * @param turmaService servico de turmas.
    */
   public HistoricoAcademicoService(BoletimService boletimService, TurmaService turmaService) {
+    this(boletimService, turmaService, new HistoricoAcademicoRepository(new ObjectMapper()));
+  }
+
+  /**
+   * Cria o servico com a persistencia de historico informada.
+   *
+   * @param boletimService servico de boletins.
+   * @param turmaService servico de turmas.
+   * @param historicoRepository repositorio de historicos consolidados.
+   */
+  public HistoricoAcademicoService(
+      BoletimService boletimService,
+      TurmaService turmaService,
+      HistoricoAcademicoRepository historicoRepository) {
     this.boletimService = boletimService;
     this.turmaService = turmaService;
     this.situacaoAcademicaService = new SituacaoAcademicaService();
+    this.historicoRepository = historicoRepository;
+  }
+
+  /**
+   * Registra ou atualiza o resultado final consolidado de um aluno e turma.
+   *
+   * @param aluno aluno do resultado.
+   * @param boletim boletim consolidado.
+   * @return item persistido no historico.
+   */
+  public ItemHistoricoAcademico registrarResultadoConsolidado(Aluno aluno, Boletim boletim) {
+    validarAluno(aluno);
+    validarBoletimConsolidado(boletim);
+    ItemHistoricoAcademico item = montarItemHistorico(aluno, boletim, false);
+    historicoRepository.salvarOuAtualizar(item);
+    return item;
   }
 
   /**
@@ -46,7 +79,7 @@ public class HistoricoAcademicoService {
     validarAluno(aluno);
 
     return boletimService.buscarBoletinsPorAluno(aluno.getMatricula()).stream()
-        .map(boletim -> montarItemHistorico(aluno, boletim))
+        .map(boletim -> montarItemHistorico(aluno, boletim, true))
         .sorted(comparadorHistorico())
         .toList();
   }
@@ -57,7 +90,17 @@ public class HistoricoAcademicoService {
     }
   }
 
-  private ItemHistoricoAcademico montarItemHistorico(Aluno aluno, Boletim boletim) {
+  private void validarBoletimConsolidado(Boletim boletim) {
+    if (boletim == null
+        || !boletim.possuiTodasAsNotas()
+        || !boletim.possuiFrequenciaCalculada()) {
+      throw new EntradaInvalidaException(
+          "Boletim deve possuir resultado final consolidado.");
+    }
+  }
+
+  private ItemHistoricoAcademico montarItemHistorico(
+      Aluno aluno, Boletim boletim, boolean incluirProfessorLegado) {
     Turma turma = buscarTurma(boletim);
     ItemHistoricoAcademico item = new ItemHistoricoAcademico();
 
@@ -67,7 +110,9 @@ public class HistoricoAcademicoService {
     item.setPeriodoLetivo(buscarPeriodoLetivo(turma));
     item.setCodigoDisciplina(buscarCodigoDisciplina(turma));
     item.setNomeDisciplina(buscarNomeDisciplina(turma));
-    item.setNomeProfessor(buscarNomeProfessor(turma));
+    if (incluirProfessorLegado) {
+      item.setNomeProfessor(buscarNomeProfessor(turma));
+    }
     item.setNotaFinal(calcularNotaFinal(boletim));
     item.setFrequencia(buscarFrequencia(boletim));
     item.setSituacao(situacaoAcademicaService.determinar(boletim).getDescricao());
