@@ -1,13 +1,12 @@
 package br.com.classroompb.ui.menu;
 
 import br.com.classroompb.model.entities.usuario.Aluno;
+import br.com.classroompb.ui.tela.AvaliacaoTela;
 import br.com.classroompb.ui.tela.DiarioTela;
 import br.com.classroompb.ui.tela.DisciplinaTela;
 import br.com.classroompb.ui.tela.FrequenciaTela;
 import br.com.classroompb.ui.tela.HistoricoAcademicoTela;
-import br.com.classroompb.ui.tela.MediaTela;
 import br.com.classroompb.ui.tela.TurmaTela;
-import br.com.classroompb.ui.tela.UsuarioTela;
 import java.util.Scanner;
 
 /** Menu de funcionalidades do aluno. */
@@ -15,25 +14,23 @@ public class MenuAluno {
 
   private final Scanner scanner;
   private Aluno usuarioLogado;
+  private final AvaliacaoTela avaliacaoTela;
   private final DiarioTela diarioTela;
   private final DisciplinaTela disciplinaTela;
   private final FrequenciaTela frequenciaTela;
   private final HistoricoAcademicoTela historicoAcademicoTela;
-  private final MediaTela mediaTela;
   private final TurmaTela turmaTela;
-  private final UsuarioTela usuarioTela;
 
   /** Cria o menu para o aluno logado. */
   public MenuAluno(Aluno usuarioLogado, Scanner scanner) {
     this.usuarioLogado = usuarioLogado;
     this.scanner = scanner;
+    this.avaliacaoTela = new AvaliacaoTela(scanner);
     this.diarioTela = new DiarioTela(scanner);
     this.disciplinaTela = new DisciplinaTela(scanner);
     this.frequenciaTela = new FrequenciaTela(scanner);
     this.historicoAcademicoTela = new HistoricoAcademicoTela(scanner);
-    this.mediaTela = new MediaTela(scanner);
     this.turmaTela = new TurmaTela(scanner);
-    this.usuarioTela = new UsuarioTela(scanner);
   }
 
   /** Retorna o aluno logado. */
@@ -81,11 +78,10 @@ public class MenuAluno {
       System.out.println("║ 1 - Listar disciplinas             ║");
       System.out.println("║ 2 - Listar turmas                  ║");
       System.out.println("║ 3 - Listar matrícula               ║");
-      System.out.println("║ 4 - Listar boletim                 ║");
+      System.out.println("║ 4 - Consultar notas por avaliação  ║");
       System.out.println("║ 5 - Listar histórico acadêmico     ║");
       System.out.println("║ 6 - Listar diários                 ║");
       System.out.println("║ 7 - Consultar frequência           ║");
-      System.out.println("║ 8 - Consultar média parcial        ║");
       System.out.println("║ 0 - Voltar                         ║");
       System.out.println("╚════════════════════════════════════╝");
 
@@ -96,11 +92,10 @@ public class MenuAluno {
         case 1 -> disciplinaTela.listarDisciplinas(usuarioLogado);
         case 2 -> turmaTela.listarTurmas(usuarioLogado);
         case 3 -> turmaTela.listarMatriculasAluno(usuarioLogado);
-        case 4 -> usuarioTela.exibirBoletinAluno(usuarioLogado);
+        case 4 -> avaliacaoTela.consultarNotasAluno(usuarioLogado);
         case 5 -> historicoAcademicoTela.listarHistoricoAluno(usuarioLogado);
         case 6 -> diarioTela.listarDiariosDoAluno(usuarioLogado);
         case 7 -> frequenciaTela.consultarFrequenciaAluno(usuarioLogado);
-        case 8 -> mediaTela.consultarMediaParcial(usuarioLogado);
         case 0 -> System.out.println("Voltando...");
         default -> System.out.println("Opção inválida.");
       }
