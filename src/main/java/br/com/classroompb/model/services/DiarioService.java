@@ -245,6 +245,7 @@ public class DiarioService {
           "Não é possível encerrar um diário sem avaliações cadastradas.");
     }
 
+    validarNotasLancadasParaTodosOsAlunos(diario, avaliacoes);
     diario.setSituacao(SituacaoDiario.ENCERRADO);
 
     boolean atualizou = diarioRepository.atualizarDiario(diario);
@@ -420,6 +421,28 @@ public class DiarioService {
             .trim()
             .equalsIgnoreCase(matriculaProfessor.trim())) {
       throw new EntradaInvalidaException("Professor não é responsável por este diário.");
+    }
+  }
+
+  private void validarNotasLancadasParaTodosOsAlunos(
+      Diario diario, List<Avaliacao> avaliacoes) {
+    Turma turma = turmaRepository.buscarTurmaPorCodigo(diario.getCodigoTurma());
+
+    if (turma == null) {
+      throw new TurmaNaoEncontradaException();
+    }
+
+    if (turma.getMatriculados() == null) {
+      return;
+    }
+
+    for (String matriculaAluno : turma.getMatriculados()) {
+      for (Avaliacao avaliacao : avaliacoes) {
+        if (avaliacaoService.buscarNotaDoAluno(avaliacao.getCodigo(), matriculaAluno) == null) {
+          throw new EntradaInvalidaException(
+              "Não é possível encerrar o diário enquanto houver notas pendentes.");
+        }
+      }
     }
   }
 
