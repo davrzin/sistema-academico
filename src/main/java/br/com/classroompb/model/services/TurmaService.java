@@ -28,7 +28,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -52,6 +51,7 @@ public class TurmaService {
   private final AulaRepository aulaRepository;
   private final DiarioRepository diarioRepository;
   private final BoletimService boletimService;
+  private final AulaService aulaService;
 
   private final UsuarioService usuarioService;
 
@@ -80,6 +80,8 @@ public class TurmaService {
     this.boletimService =
         new BoletimService(
             this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
+    this.aulaService =
+        new AulaService(this.aulaRepository, this.turmaRepository, this.diarioRepository);
     this.usuarioService = new UsuarioService(userRepository);
   }
 
@@ -101,6 +103,8 @@ public class TurmaService {
     this.boletimService =
         new BoletimService(
             this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
+    this.aulaService =
+        new AulaService(this.aulaRepository, this.turmaRepository, this.diarioRepository);
     this.usuarioService = new UsuarioService(this.userRepository);
   }
 
@@ -160,6 +164,8 @@ public class TurmaService {
     this.boletimService =
         new BoletimService(
             this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
+    this.aulaService =
+        new AulaService(this.aulaRepository, this.turmaRepository, this.diarioRepository);
     this.usuarioService = new UsuarioService(userRepository);
   }
 
@@ -596,36 +602,11 @@ public class TurmaService {
    */
   public void atualizarFrequenciaTurma(String codigoTurma) {
     List<Boletim> boletinsTurma = boletimRepository.buscarBoletinsPorTurma(codigoTurma);
-
-    List<String> codigoAulas = turmaRepository.buscarAulasDeTurma(codigoTurma);
-
-    int quantidadeDeAulas = codigoAulas.size();
-
-    List<Aula> aulasTurma = new ArrayList<>();
-
-    for (String codigoAula : codigoAulas) {
-      aulasTurma.add(aulaRepository.buscarAulaPorId(codigoAula));
-    }
+    List<Aula> aulasTurma = aulaService.listarAulasValidasPorTurma(codigoTurma);
 
     for (Boletim boletim : boletinsTurma) {
-
-      int contadorDeFaltas = 0;
-
-      for (Aula aula : aulasTurma) {
-        Map<String, Boolean> presencas = aula.getPresencas();
-
-        Boolean estaPresente = presencas.get(boletim.getMatriculaAluno());
-
-        if (!Boolean.TRUE.equals(estaPresente)) {
-          contadorDeFaltas += 1;
-        }
-      }
-
-      Turma turma = turmaRepository.buscarTurmaPorCodigo(boletim.getCodigoTurma());
-
-      Disciplina disciplina = disciplinaRepository.buscarPorCodigo(turma.getCodigoDisciplina());
-
-      boletim.calcularFrequencia(contadorDeFaltas, quantidadeDeAulas, disciplina.getCargaHoraria());
+      boletim.setFrequencia(
+          aulaService.calcularFrequencia(boletim.getMatriculaAluno(), aulasTurma));
       boletimRepository.atualizarBoletins(boletim);
     }
   }

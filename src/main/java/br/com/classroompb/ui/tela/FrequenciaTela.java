@@ -6,6 +6,7 @@ import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.entities.usuario.Professor;
+import br.com.classroompb.model.enums.SituacaoDiario;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
@@ -132,7 +133,7 @@ public class FrequenciaTela {
         Diario diario = diarios.get(i);
         Turma turma = turmaService.buscarTurmaPorCodigo(diario.getCodigoTurma());
         List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
-        int faltas = contarFaltas(alunoLogado.getMatricula(), aulas);
+        int faltasHora = aulaService.calcularFaltasHora(alunoLogado.getMatricula(), aulas);
 
         if (i > 0) {
           System.out.println();
@@ -143,7 +144,7 @@ public class FrequenciaTela {
             + " (codigo: " + turma.getCodigo() + ")");
         System.out.println("    Professor         : "
             + diarioService.buscarNomeProfessor(diario.getMatriculaProfessor()));
-        exibirTotais(aulas.size(), faltas);
+        exibirTotais(aulas, alunoLogado.getMatricula(), faltasHora);
       }
     } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {
       exibirErro(e);
@@ -168,7 +169,7 @@ public class FrequenciaTela {
       }
       System.out.println((i + 1) + " - " + buscarNomeAluno(matricula)
           + " (matricula: " + matricula + ")");
-      exibirTotais(aulas.size(), contarFaltas(matricula, aulas));
+      exibirTotais(aulas, matricula, aulaService.calcularFaltasHora(matricula, aulas));
     }
   }
 
@@ -196,26 +197,27 @@ public class FrequenciaTela {
   }
 
   private Diario selecionarDiario(List<Diario> diarios) {
-    if (diarios == null || diarios.isEmpty()) {
+    List<Diario> diariosValidos = filtrarDiariosValidos(diarios);
+    if (diariosValidos.isEmpty()) {
       throw new EntradaInvalidaException("Nenhum diario disponivel para consulta.");
     }
 
     System.out.println("Diarios disponiveis:");
     System.out.println("0 - Voltar");
-    for (int i = 0; i < diarios.size(); i++) {
-      Diario diario = diarios.get(i);
+    for (int i = 0; i < diariosValidos.size(); i++) {
+      Diario diario = diariosValidos.get(i);
       System.out.println((i + 1) + " - " + diario.getDescricao()
           + " (codigo: " + diario.getCodigo() + ", situacao: "
           + diario.getSituacao().getDescricao() + ")");
     }
 
     int opcao = EntradaTela.lerOpcaoOuCancelar(
-        scanner, "Informe o numero do diario: ", diarios.size());
+        scanner, "Informe o numero do diario: ", diariosValidos.size());
     if (opcao == 0) {
       System.out.println("Voltando...");
       return null;
     }
-    return diarios.get(opcao - 1);
+    return diariosValidos.get(opcao - 1);
   }
 
   private Aula selecionarAula(List<Aula> aulas) {
@@ -261,10 +263,26 @@ public class FrequenciaTela {
     for (Turma turma : turmaService.listarTurmasPorCurso(alunoLogado.getCodigoCurso())) {
       if (turma.getMatriculados() != null
           && turma.getMatriculados().contains(alunoLogado.getMatricula())) {
-        diarios.addAll(diarioService.listarDiariosPorTurma(turma.getCodigo()));
+        diarios.addAll(
+            filtrarDiariosValidos(diarioService.listarDiariosPorTurma(turma.getCodigo())));
       }
     }
     return diarios;
+  }
+
+  private List<Diario> filtrarDiariosValidos(List<Diario> diarios) {
+    List<Diario> diariosValidos = new ArrayList<>();
+    if (diarios == null) {
+      return diariosValidos;
+    }
+    for (Diario diario : diarios) {
+      if (diario != null
+          && (diario.getSituacao() == SituacaoDiario.ATIVO
+              || diario.getSituacao() == SituacaoDiario.ENCERRADO)) {
+        diariosValidos.add(diario);
+      }
+    }
+    return diariosValidos;
   }
 
   private Turma selecionarTurmaDoCurso(String codigoCurso) {
@@ -287,29 +305,18 @@ public class FrequenciaTela {
     return turmas.get(opcao - 1);
   }
 
-  private int contarFaltas(String matriculaAluno, List<Aula> aulas) {
-    int faltas = 0;
-    for (Aula aula : aulas) {
-      Map<String, Boolean> presencas = aula.getPresencas();
-      if (presencas == null || !Boolean.TRUE.equals(presencas.get(matriculaAluno))) {
-        faltas++;
-      }
-    }
-    return faltas;
+  private void exibirTotais(List<Aula> aulas, String matriculaAluno, int faltasHora) {
+    System.out.println("    Horas ministradas : " + aulaService.calcularHorasMinistradas(aulas));
+    System.out.println("    Faltas-hora       : " + faltasHora);
+    System.out.println("    Frequencia        : " + formatarFrequencia(matriculaAluno, aulas));
   }
 
-  private void exibirTotais(int totalAulas, int faltas) {
-    System.out.println("    Aulas ministradas : " + totalAulas);
-    System.out.println("    Faltas            : " + faltas);
-    System.out.println("    Frequencia        : " + formatarFrequencia(totalAulas, faltas));
-  }
-
-  private String formatarFrequencia(int totalAulas, int faltas) {
-    if (totalAulas == 0) {
+  private String formatarFrequencia(String matriculaAluno, List<Aula> aulas) {
+    Double frequencia = aulaService.calcularFrequencia(matriculaAluno, aulas);
+    if (frequencia == null) {
       return "ainda nao calculada";
     }
-    double frequencia = (totalAulas - faltas) * 100.0 / totalAulas;
-    return String.format("%.1f%%", frequencia);
+    return String.format("%.2f%%", frequencia);
   }
 
   private void validarCoordenadorComCurso(Coordenador coordenadorLogado) {

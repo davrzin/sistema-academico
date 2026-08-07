@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -152,11 +153,93 @@ public class AulaService {
       throw new EntradaInvalidaException("Codigo do diario nao pode ser vazio.");
     }
 
-    if (diarioRepository.buscarDiarioPorCodigo(codigoDiario) == null) {
+    Diario diario = diarioRepository.buscarDiarioPorCodigo(codigoDiario);
+    if (diario == null) {
       throw new EntradaInvalidaException("Diario nao encontrado.");
     }
 
+    if (!diarioValidoParaFrequencia(diario)) {
+      return new ArrayList<>();
+    }
+
     return aulaRepository.buscarAulasPorDiario(codigoDiario);
+  }
+
+  /**
+   * Lista as aulas dos diarios validos associados a uma turma.
+   *
+   * @param codigoTurma codigo da turma.
+   * @return aulas vinculadas a diarios ativos ou encerrados.
+   */
+  public List<Aula> listarAulasValidasPorTurma(String codigoTurma) {
+    if (codigoTurma == null || codigoTurma.isBlank()) {
+      throw new EntradaInvalidaException("Codigo da turma nao pode ser vazio.");
+    }
+
+    List<Aula> aulas = new ArrayList<>();
+    for (Diario diario : diarioRepository.buscarDiariosPorTurma(codigoTurma)) {
+      if (diarioValidoParaFrequencia(diario)) {
+        aulas.addAll(aulaRepository.buscarAulasPorDiario(diario.getCodigo()));
+      }
+    }
+    return aulas;
+  }
+
+  /**
+   * Calcula as horas ministradas considerando duas horas-aula por registro.
+   *
+   * @param aulas aulas consideradas.
+   * @return total de horas ministradas.
+   */
+  public int calcularHorasMinistradas(List<Aula> aulas) {
+    return aulas == null ? 0 : aulas.size() * HORAS_POR_AULA;
+  }
+
+  /**
+   * Calcula as faltas-hora de um aluno.
+   *
+   * @param matriculaAluno matricula do aluno.
+   * @param aulas aulas consideradas.
+   * @return total de faltas-hora.
+   */
+  public int calcularFaltasHora(String matriculaAluno, List<Aula> aulas) {
+    if (matriculaAluno == null || matriculaAluno.isBlank()) {
+      throw new EntradaInvalidaException("Matricula do aluno nao pode ser vazia.");
+    }
+
+    int faltasHora = 0;
+    if (aulas == null) {
+      return faltasHora;
+    }
+    for (Aula aula : aulas) {
+      Map<String, Boolean> presencas = aula.getPresencas();
+      if (presencas == null || !Boolean.TRUE.equals(presencas.get(matriculaAluno))) {
+        faltasHora += HORAS_POR_AULA;
+      }
+    }
+    return faltasHora;
+  }
+
+  /**
+   * Calcula a frequencia de um aluno em horas-aula.
+   *
+   * @param matriculaAluno matricula do aluno.
+   * @param aulas aulas consideradas.
+   * @return percentual de frequencia, ou {@code null} quando nao ha aulas.
+   */
+  public Double calcularFrequencia(String matriculaAluno, List<Aula> aulas) {
+    int horasMinistradas = calcularHorasMinistradas(aulas);
+    if (horasMinistradas == 0) {
+      return null;
+    }
+    int faltasHora = calcularFaltasHora(matriculaAluno, aulas);
+    return (horasMinistradas - faltasHora) * 100.0 / horasMinistradas;
+  }
+
+  private boolean diarioValidoParaFrequencia(Diario diario) {
+    return diario != null
+        && (diario.getSituacao() == SituacaoDiario.ATIVO
+            || diario.getSituacao() == SituacaoDiario.ENCERRADO);
   }
 
   private void validarDadosDaAula(Aula aula) {
