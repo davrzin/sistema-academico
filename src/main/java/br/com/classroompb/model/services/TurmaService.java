@@ -16,6 +16,7 @@ import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.AulaRepository;
+import br.com.classroompb.model.repository.AvaliacaoRepository;
 import br.com.classroompb.model.repository.BoletimRepository;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.DiarioRepository;
@@ -52,6 +53,7 @@ public class TurmaService {
   private final DiarioRepository diarioRepository;
   private final BoletimService boletimService;
   private final AulaService aulaService;
+  private final AvaliacaoService avaliacaoService;
 
   private final UsuarioService usuarioService;
 
@@ -82,6 +84,8 @@ public class TurmaService {
             this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
     this.aulaService =
         new AulaService(this.aulaRepository, this.turmaRepository, this.diarioRepository);
+    this.avaliacaoService =
+        criarAvaliacaoService(this.diarioRepository, this.turmaRepository, this.userRepository);
     this.usuarioService = new UsuarioService(userRepository);
   }
 
@@ -105,6 +109,8 @@ public class TurmaService {
             this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
     this.aulaService =
         new AulaService(this.aulaRepository, this.turmaRepository, this.diarioRepository);
+    this.avaliacaoService =
+        criarAvaliacaoService(this.diarioRepository, this.turmaRepository, this.userRepository);
     this.usuarioService = new UsuarioService(this.userRepository);
   }
 
@@ -154,6 +160,73 @@ public class TurmaService {
       BoletimRepository boletimRepository,
       AulaRepository aulaRepository,
       DiarioRepository diarioRepository) {
+    this(
+        turmaRepository,
+        disciplinaRepository,
+        periodoLetivoRepository,
+        userRepository,
+        boletimRepository,
+        aulaRepository,
+        diarioRepository,
+        criarAvaliacaoService(diarioRepository, turmaRepository, userRepository));
+  }
+
+  /**
+   * Cria o servico de turmas com todas as dependencias, incluindo avaliacoes.
+   *
+   * @param turmaRepository repositorio de turmas.
+   * @param disciplinaRepository repositorio de disciplinas.
+   * @param periodoLetivoRepository repositorio de periodos letivos.
+   * @param userRepository repositorio de usuarios.
+   * @param boletimRepository repositorio de boletins.
+   * @param aulaRepository repositorio de aulas.
+   * @param diarioRepository repositorio de diarios.
+   * @param avaliacaoService servico de avaliacoes do mesmo ambiente de persistencia.
+   */
+  public TurmaService(
+      TurmaRepository turmaRepository,
+      DisciplinaRepository disciplinaRepository,
+      PeriodoLetivoRepository periodoLetivoRepository,
+      UserRepository userRepository,
+      BoletimRepository boletimRepository,
+      AulaRepository aulaRepository,
+      DiarioRepository diarioRepository,
+      AvaliacaoService avaliacaoService) {
+    this(
+        turmaRepository,
+        disciplinaRepository,
+        periodoLetivoRepository,
+        userRepository,
+        boletimRepository,
+        aulaRepository,
+        diarioRepository,
+        avaliacaoService,
+        new AulaService(aulaRepository, turmaRepository, diarioRepository));
+  }
+
+  /**
+   * Cria o servico de turmas com services de avaliacoes e aulas injetados.
+   *
+   * @param turmaRepository repositorio de turmas.
+   * @param disciplinaRepository repositorio de disciplinas.
+   * @param periodoLetivoRepository repositorio de periodos letivos.
+   * @param userRepository repositorio de usuarios.
+   * @param boletimRepository repositorio de boletins.
+   * @param aulaRepository repositorio de aulas.
+   * @param diarioRepository repositorio de diarios.
+   * @param avaliacaoService servico de avaliacoes.
+   * @param aulaService servico de aulas.
+   */
+  public TurmaService(
+      TurmaRepository turmaRepository,
+      DisciplinaRepository disciplinaRepository,
+      PeriodoLetivoRepository periodoLetivoRepository,
+      UserRepository userRepository,
+      BoletimRepository boletimRepository,
+      AulaRepository aulaRepository,
+      DiarioRepository diarioRepository,
+      AvaliacaoService avaliacaoService,
+      AulaService aulaService) {
     this.turmaRepository = turmaRepository;
     this.disciplinaRepository = disciplinaRepository;
     this.periodoLetivoRepository = periodoLetivoRepository;
@@ -164,8 +237,8 @@ public class TurmaService {
     this.boletimService =
         new BoletimService(
             this.boletimRepository, this.turmaRepository, this.periodoLetivoRepository);
-    this.aulaService =
-        new AulaService(this.aulaRepository, this.turmaRepository, this.diarioRepository);
+    this.aulaService = aulaService;
+    this.avaliacaoService = avaliacaoService;
     this.usuarioService = new UsuarioService(userRepository);
   }
 
@@ -622,6 +695,80 @@ public class TurmaService {
     atualizarFrequenciaTurma(codigoTurma);
   }
 
+  /**
+   * Consolida notas e frequencia dos diarios encerrados de uma turma nos boletins dos alunos.
+   *
+   * @param codigoTurma codigo da turma.
+   */
+  public void consolidarResultadosTurma(String codigoTurma) {
+    validarCodigoTurma(codigoTurma);
+    Turma turma = turmaRepository.buscarTurmaPorCodigo(codigoTurma);
+    if (turma == null) {
+      throw new TurmaNaoEncontradaException();
+    }
+
+    List<Diario> diariosValidos =
+        diarioRepository.buscarDiariosPorTurma(turma.getCodigo()).stream()
+            .filter(diario -> diario.getSituacao() != SituacaoDiario.CANCELADO)
+            .toList();
+    if (diariosValidos.isEmpty()) {
+      throw new EntradaInvalidaException("A turma não possui diário válido.");
+    }
+    if (diariosValidos.stream()
+        .anyMatch(diario -> diario.getSituacao() != SituacaoDiario.ENCERRADO)) {
+      throw new EntradaInvalidaException(
+          "Todos os diários válidos da turma devem estar encerrados.");
+    }
+
+    List<Aula> aulas = aulaService.listarAulasValidasPorTurma(turma.getCodigo());
+    List<ResultadoConsolidacao> resultados = new ArrayList<>();
+    List<String> matriculados =
+        turma.getMatriculados() == null ? List.of() : turma.getMatriculados();
+
+    for (String matriculaAluno : matriculados) {
+      double primeiraUnidade =
+          avaliacaoService.calcularNotaUnidade(turma.getCodigo(), matriculaAluno, 1);
+      double segundaUnidade =
+          avaliacaoService.calcularNotaUnidade(turma.getCodigo(), matriculaAluno, 2);
+      Double frequencia = aulaService.calcularFrequencia(matriculaAluno, aulas);
+      if (frequencia == null) {
+        throw new EntradaInvalidaException(
+            "Não é possível consolidar a turma sem aulas registradas.");
+      }
+      resultados.add(
+          new ResultadoConsolidacao(
+              matriculaAluno,
+              (float) primeiraUnidade,
+              (float) segundaUnidade,
+              frequencia,
+              boletimService.buscarBoletimPorAlunoTurma(matriculaAluno, turma.getCodigo())));
+    }
+
+    for (ResultadoConsolidacao resultado : resultados) {
+      Boletim boletim = resultado.boletimExistente();
+      boolean novoBoletim = boletim == null;
+      if (novoBoletim) {
+        boletim = new Boletim(resultado.matriculaAluno(), turma.getCodigo());
+      }
+      boletim.setPrimeiraNota(resultado.primeiraUnidade());
+      boletim.setSegundaNota(resultado.segundaUnidade());
+      boletim.setFrequencia(resultado.frequencia());
+
+      if (novoBoletim) {
+        boletimService.criarBoletim(boletim);
+      } else {
+        boletimRepository.atualizarBoletins(boletim);
+      }
+    }
+  }
+
+  private record ResultadoConsolidacao(
+      String matriculaAluno,
+      Float primeiraUnidade,
+      Float segundaUnidade,
+      Double frequencia,
+      Boletim boletimExistente) {}
+
   private void adicionarAlunoListaEspera(Aluno alunoLogado, Turma turma) {
     validarAlunoNaListaEspera(alunoLogado, turma);
 
@@ -962,5 +1109,16 @@ public class TurmaService {
     } while (turmaRepository.buscarTurmaPorCodigo(codigo) != null);
 
     return codigo;
+  }
+
+  private static AvaliacaoService criarAvaliacaoService(
+      DiarioRepository diarioRepository,
+      TurmaRepository turmaRepository,
+      UserRepository userRepository) {
+    AvaliacaoRepository avaliacaoRepository =
+        new AvaliacaoRepository(
+            diarioRepository.getObjectMapper(), diarioRepository.getDiretorioDiarios());
+    return new AvaliacaoService(
+        avaliacaoRepository, diarioRepository, turmaRepository, userRepository);
   }
 }
