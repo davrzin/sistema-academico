@@ -16,6 +16,7 @@ public final class PersistenciaPaths {
   public static final Path PERIODOS = DATA.resolve("periodos");
   public static final Path AULAS = DATA.resolve("aulas");
   public static final Path DIARIOS = DATA.resolve("diarios");
+  public static final Path HISTORICOS = DATA.resolve("historicos");
 
   public static final Path USUARIO_ADMINISTRADOR = USUARIOS.resolve("administrador.json");
   public static final Path USUARIO_ALUNO = USUARIOS.resolve("aluno.json");
@@ -28,6 +29,7 @@ public final class PersistenciaPaths {
   public static final Path PERIODOS_ARQUIVO = PERIODOS.resolve("periodos_letivos.json");
   public static final Path AULAS_ARQUIVO = AULAS.resolve("aulas.json");
   public static final Path DIARIOS_ARQUIVO = DIARIOS.resolve("diarios.json");
+  public static final Path HISTORICOS_ARQUIVO = HISTORICOS.resolve("historicos.json");
 
   private PersistenciaPaths() {}
 }
