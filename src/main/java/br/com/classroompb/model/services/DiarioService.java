@@ -118,6 +118,7 @@ public class DiarioService {
       throw new DiarioNaoEncontradoException();
     }
 
+    validarDiarioNaoEncerrado(diarioCadastrado);
     validarDiario(diarioAtualizado);
     validarTurmaExistente(diarioAtualizado.getCodigoTurma());
     validarProfessorResponsavel(diarioAtualizado.getMatriculaProfessor());
@@ -143,11 +144,13 @@ public class DiarioService {
   public void alterarDiario(String codigo, Diario diarioAtualizado, String codigoCursoCoordenador) {
     validarCodigoCursoCoordenador(codigoCursoCoordenador);
     validarDiarioPertenceAoCurso(codigo, codigoCursoCoordenador);
+
+    Diario diarioCadastrado = buscarDiarioPorCodigo(codigo);
+    validarDiarioNaoEncerrado(diarioCadastrado);
     validarDiario(diarioAtualizado);
     validarTurmaDoCurso(diarioAtualizado.getCodigoTurma(), codigoCursoCoordenador);
     validarProfessorDoCurso(diarioAtualizado.getMatriculaProfessor(), codigoCursoCoordenador);
 
-    Diario diarioCadastrado = buscarDiarioPorCodigo(codigo);
     validarConflitoHorarioProfessor(diarioAtualizado, diarioCadastrado.getCodigo());
     diarioAtualizado.setCodigo(diarioCadastrado.getCodigo());
     diarioAtualizado.setSituacao(diarioCadastrado.getSituacao());
@@ -171,11 +174,13 @@ public class DiarioService {
     validarCodigoCursoCoordenador(codigoCursoCoordenador);
     validarDiarioPertenceAoCurso(codigo, codigoCursoCoordenador);
 
+    Diario diario = buscarDiarioPorCodigo(codigo);
+    validarDiarioNaoEncerrado(diario);
+
     if (novaSituacao == null) {
       throw new EntradaInvalidaException("Situação do diário não pode ser vazia.");
     }
 
-    Diario diario = buscarDiarioPorCodigo(codigo);
     diario.setSituacao(novaSituacao);
 
     boolean atualizou = diarioRepository.atualizarDiario(diario);
@@ -366,6 +371,12 @@ public class DiarioService {
   private void validarCodigoCursoCoordenador(String codigoCurso) {
     if (codigoCurso == null || codigoCurso.isBlank()) {
       throw new EntradaInvalidaException("Coordenador não está vinculado a nenhum curso.");
+    }
+  }
+
+  private void validarDiarioNaoEncerrado(Diario diario) {
+    if (diario.getSituacao() == SituacaoDiario.ENCERRADO) {
+      throw new EntradaInvalidaException("Não é possível alterar um diário encerrado.");
     }
   }
 
