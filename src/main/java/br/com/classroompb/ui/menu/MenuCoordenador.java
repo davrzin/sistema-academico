@@ -5,7 +5,6 @@ import br.com.classroompb.ui.tela.DiarioTela;
 import br.com.classroompb.ui.tela.DisciplinaTela;
 import br.com.classroompb.ui.tela.FrequenciaTela;
 import br.com.classroompb.ui.tela.HistoricoAcademicoTela;
-import br.com.classroompb.ui.tela.MediaTela;
 import br.com.classroompb.ui.tela.PeriodoLetivoTela;
 import br.com.classroompb.ui.tela.RelatorioAcademicoTela;
 import br.com.classroompb.ui.tela.TurmaTela;
@@ -21,7 +20,6 @@ public class MenuCoordenador {
   private final DisciplinaTela disciplinaTela;
   private final FrequenciaTela frequenciaTela;
   private final HistoricoAcademicoTela historicoAcademicoTela;
-  private final MediaTela mediaTela;
   private final PeriodoLetivoTela periodoLetivoTela;
   private final RelatorioAcademicoTela relatorioAcademicoTela;
   private final TurmaTela turmaTela;
@@ -35,7 +33,6 @@ public class MenuCoordenador {
     this.disciplinaTela = new DisciplinaTela(scanner);
     this.frequenciaTela = new FrequenciaTela(scanner);
     this.historicoAcademicoTela = new HistoricoAcademicoTela(scanner);
-    this.mediaTela = new MediaTela(scanner);
     this.periodoLetivoTela = new PeriodoLetivoTela(scanner);
     this.relatorioAcademicoTela = new RelatorioAcademicoTela();
     this.turmaTela = new TurmaTela(scanner);
@@ -170,7 +167,7 @@ public class MenuCoordenador {
       System.out.println("║ 5 - Ver lista de espera                      ║");
       System.out.println("║ 6 - Consultar frequência de turma            ║");
       System.out.println("║ 7 - Consultar frequência por aula            ║");
-      System.out.println("║ 8 - Consultar média parcial de turma         ║");
+      System.out.println("║ 8 - Consolidar resultados da turma           ║");
       System.out.println("║ 0 - Voltar                                   ║");
       System.out.println("╚══════════════════════════════════════════════╝");
 
@@ -185,7 +182,7 @@ public class MenuCoordenador {
         case 5 -> turmaTela.mostrarListaEsperaTurmas(usuarioLogado);
         case 6 -> frequenciaTela.consultarFrequenciaTurma(usuarioLogado);
         case 7 -> frequenciaTela.consultarFrequenciaPorAula(usuarioLogado);
-        case 8 -> mediaTela.consultarMediaParcialTurma(usuarioLogado);
+        case 8 -> turmaTela.consolidarResultadosTurma(usuarioLogado);
         case 0 -> System.out.println("Voltando...");
         default -> System.out.println("Opção inválida.");
       }

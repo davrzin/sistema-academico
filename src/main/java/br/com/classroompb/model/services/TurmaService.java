@@ -762,6 +762,18 @@ public class TurmaService {
     }
   }
 
+  /**
+   * Consolida os resultados de uma turma pertencente ao curso do coordenador.
+   *
+   * @param codigoTurma codigo da turma.
+   * @param codigoCursoCoordenador codigo do curso coordenado.
+   */
+  public void consolidarResultadosTurma(
+      String codigoTurma, String codigoCursoCoordenador) {
+    validarTurmaPertenceAoCurso(codigoTurma, codigoCursoCoordenador);
+    consolidarResultadosTurma(codigoTurma);
+  }
+
   private record ResultadoConsolidacao(
       String matriculaAluno,
       Float primeiraUnidade,

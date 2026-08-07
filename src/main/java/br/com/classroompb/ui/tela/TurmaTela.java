@@ -383,6 +383,45 @@ public class TurmaTela {
     }
   }
 
+  /**
+   * Consolida os resultados de uma turma do curso do coordenador.
+   *
+   * @param coordenadorLogado coordenador autenticado.
+   */
+  public void consolidarResultadosTurma(Coordenador coordenadorLogado) {
+    try {
+      validarCoordenadorComCurso(coordenadorLogado);
+      List<Turma> turmas =
+          turmaService.listarTurmasPorCurso(coordenadorLogado.getCodigoCurso());
+      if (turmas == null || turmas.isEmpty()) {
+        System.out.println("Nenhuma turma cadastrada para o curso.");
+        return;
+      }
+
+      System.out.println("Turmas do curso:");
+      System.out.println("0 - Voltar");
+      for (int i = 0; i < turmas.size(); i++) {
+        Turma turma = turmas.get(i);
+        System.out.println((i + 1) + " - " + nomeAmigavelTurma(turma)
+            + " (codigo: " + turma.getCodigo() + ")");
+      }
+
+      int opcao =
+          EntradaTela.lerOpcaoOuCancelar(
+              scanner, "Informe o numero da turma: ", turmas.size());
+      if (opcao == 0) {
+        System.out.println("Voltando...");
+        return;
+      }
+
+      turmaService.consolidarResultadosTurma(
+          turmas.get(opcao - 1).getCodigo(), coordenadorLogado.getCodigoCurso());
+      System.out.println("Resultados da turma consolidados com sucesso.");
+    } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {
+      System.out.println("Ocorreu um erro ao consolidar a turma: " + e.getMessage());
+    }
+  }
+
   private Turma selecionarTurmaParaListaEsperaCoordenador(String codigoCurso) {
     List<Turma> turmas = turmaService.listarTurmasPorCurso(codigoCurso);
 
