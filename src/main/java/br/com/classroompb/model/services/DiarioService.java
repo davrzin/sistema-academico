@@ -201,16 +201,15 @@ public class DiarioService {
   }
 
   /**
-   * Encerra um diario pelo codigo, consolidando os resultados das avaliacoes.
+   * Encerra um diario ativo sob responsabilidade do professor informado.
    *
    * @param codigo codigo do diario.
-   * @param codigoCursoCoordenador codigo do curso do coordenador.
+   * @param matriculaProfessor matricula do professor autenticado.
    */
-  public void encerrarDiario(String codigo, String codigoCursoCoordenador) {
-    validarCodigoCursoCoordenador(codigoCursoCoordenador);
-    validarDiarioPertenceAoCurso(codigo, codigoCursoCoordenador);
-
+  public void encerrarDiario(String codigo, String matriculaProfessor) {
     Diario diario = buscarDiarioPorCodigo(codigo);
+    validarDiarioAtivoParaEncerramento(diario);
+    validarProfessorResponsavelPeloDiario(diario, matriculaProfessor);
 
     // Verificação de segurança para o fechamento
     AvaliacaoService avaliacaoService = new AvaliacaoService();
@@ -377,6 +376,25 @@ public class DiarioService {
   private void validarDiarioNaoEncerrado(Diario diario) {
     if (diario.getSituacao() == SituacaoDiario.ENCERRADO) {
       throw new EntradaInvalidaException("Não é possível alterar um diário encerrado.");
+    }
+  }
+
+  private void validarDiarioAtivoParaEncerramento(Diario diario) {
+    if (diario.getSituacao() != SituacaoDiario.ATIVO) {
+      throw new EntradaInvalidaException("Somente diário ativo pode ser encerrado.");
+    }
+  }
+
+  private void validarProfessorResponsavelPeloDiario(
+      Diario diario, String matriculaProfessor) {
+    if (matriculaProfessor == null
+        || matriculaProfessor.isBlank()
+        || diario.getMatriculaProfessor() == null
+        || !diario
+            .getMatriculaProfessor()
+            .trim()
+            .equalsIgnoreCase(matriculaProfessor.trim())) {
+      throw new EntradaInvalidaException("Professor não é responsável por este diário.");
     }
   }
 

@@ -5,7 +5,7 @@ import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Coordenador;
 import br.com.classroompb.model.entities.usuario.Professor;
-/*import br.com.classroompb.model.enums.SituacaoDiario;*/
+import br.com.classroompb.model.enums.SituacaoDiario;
 import br.com.classroompb.model.exception.DiarioNaoEncontradoException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.PersistenciaException;
@@ -184,19 +184,18 @@ public class DiarioTela {
   }
 
   /**
-   * Solicita o encerramento de um diario do curso do coordenador.
+   * Solicita o encerramento de um diario ativo do professor.
    *
-   * @param coordenadorLogado coordenador logado.
+   * @param professorLogado professor logado.
    */
-  public void encerrarDiario(Coordenador coordenadorLogado) {
+  public void encerrarDiario(Professor professorLogado) {
     try {
-      validarCoordenadorComCurso(coordenadorLogado);
+      validarProfessorLogado(professorLogado);
 
-      Diario diarioSelecionado = selecionarDiarioDoCurso(coordenadorLogado.getCodigoCurso(),
-          "Informe o número do diário que deseja encerrar: ");
+      Diario diarioSelecionado = selecionarDiarioAtivoDoProfessor(professorLogado);
 
       diarioService.encerrarDiario(
-          diarioSelecionado.getCodigo(), coordenadorLogado.getCodigoCurso());
+          diarioSelecionado.getCodigo(), professorLogado.getMatricula());
 
       System.out.println("Diário encerrado com sucesso.");
 
@@ -299,6 +298,34 @@ public class DiarioTela {
     }
 
     int opcao = EntradaTela.lerOpcaoOuCancelar(scanner, prompt, diarios.size());
+
+    if (opcao == 0) {
+      throw new EntradaTela.EntradaCanceladaException();
+    }
+
+    return diarios.get(opcao - 1);
+  }
+
+  private Diario selecionarDiarioAtivoDoProfessor(Professor professorLogado) {
+    List<Diario> diarios =
+        diarioService.listarDiariosPorProfessor(professorLogado.getMatricula()).stream()
+            .filter(diario -> diario.getSituacao() == SituacaoDiario.ATIVO)
+            .toList();
+
+    if (diarios.isEmpty()) {
+      throw new EntradaInvalidaException("Professor não possui diário ativo para encerrar.");
+    }
+
+    System.out.println("Diários ativos do professor:");
+    System.out.println("0 - Voltar");
+
+    for (int i = 0; i < diarios.size(); i++) {
+      exibirDiarioResumido(i + 1, diarios.get(i));
+    }
+
+    int opcao =
+        EntradaTela.lerOpcaoOuCancelar(
+            scanner, "Informe o número do diário que deseja encerrar: ", diarios.size());
 
     if (opcao == 0) {
       throw new EntradaTela.EntradaCanceladaException();

@@ -235,8 +235,7 @@ public class MenuCoordenador {
       System.out.println("║ 2 - Listar diários                           ║");
       System.out.println("║ 3 - Listar diários de uma turma              ║");
       System.out.println("║ 4 - Atualizar diário                         ║");
-      System.out.println("║ 5 - Encerrar diário                          ║");
-      System.out.println("║ 6 - Cancelar diário                          ║");
+      System.out.println("║ 5 - Cancelar diário                          ║");
       System.out.println("║ 0 - Voltar                                   ║");
       System.out.println("╚══════════════════════════════════════════════╝");
 
@@ -248,8 +247,7 @@ public class MenuCoordenador {
         case 2 -> diarioTela.listarDiarios(usuarioLogado);
         case 3 -> diarioTela.listarDiariosPorTurma(usuarioLogado);
         case 4 -> diarioTela.atualizarDiario(usuarioLogado);
-        case 5 -> diarioTela.encerrarDiario(usuarioLogado);
-        case 6 -> diarioTela.cancelarDiario(usuarioLogado);
+        case 5 -> diarioTela.cancelarDiario(usuarioLogado);
         case 0 -> System.out.println("Voltando...");
         default -> System.out.println("Opção inválida.");
       }

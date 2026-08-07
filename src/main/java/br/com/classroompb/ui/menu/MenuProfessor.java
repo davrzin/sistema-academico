@@ -69,6 +69,7 @@ public class MenuProfessor {
       System.out.println("║ 5 - Consultar frequência          ║");
       System.out.println("║ 6 - Consultar frequência por aula ║");
       System.out.println("║ 7 - Consultar notas por avaliação ║");
+      System.out.println("║ 8 - Encerrar diário                ║");
       System.out.println("║ 0 - Voltar                        ║");
       System.out.println("╚═══════════════════════════════════╝");
 
@@ -83,6 +84,7 @@ public class MenuProfessor {
         case 5 -> frequenciaTela.consultarFrequenciaTurma(usuarioLogado);
         case 6 -> frequenciaTela.consultarFrequenciaPorAula(usuarioLogado);
         case 7 -> avaliacaoTela.consultarNotasProfessor(usuarioLogado);
+        case 8 -> diarioTela.encerrarDiario(usuarioLogado);
         case 0 -> System.out.println("Voltando...");
         default -> System.out.println("Opção inválida.");
       }
