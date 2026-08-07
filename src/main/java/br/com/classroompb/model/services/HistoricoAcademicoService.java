@@ -11,11 +11,10 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Servico responsavel por montar o historico academico a partir dos boletins.
+ * Servico responsavel pelo registro e consulta do historico academico consolidado.
  */
 public class HistoricoAcademicoService {
 
-  private final BoletimService boletimService;
   private final TurmaService turmaService;
   private final SituacaoAcademicaService situacaoAcademicaService;
   private final HistoricoAcademicoRepository historicoRepository;
@@ -48,7 +47,6 @@ public class HistoricoAcademicoService {
       BoletimService boletimService,
       TurmaService turmaService,
       HistoricoAcademicoRepository historicoRepository) {
-    this.boletimService = boletimService;
     this.turmaService = turmaService;
     this.situacaoAcademicaService = new SituacaoAcademicaService();
     this.historicoRepository = historicoRepository;
@@ -64,7 +62,7 @@ public class HistoricoAcademicoService {
   public ItemHistoricoAcademico registrarResultadoConsolidado(Aluno aluno, Boletim boletim) {
     validarAluno(aluno);
     validarBoletimConsolidado(boletim);
-    ItemHistoricoAcademico item = montarItemHistorico(aluno, boletim, false);
+    ItemHistoricoAcademico item = montarItemHistorico(aluno, boletim);
     historicoRepository.salvarOuAtualizar(item);
     return item;
   }
@@ -78,8 +76,7 @@ public class HistoricoAcademicoService {
   public List<ItemHistoricoAcademico> listarHistoricoAluno(Aluno aluno) {
     validarAluno(aluno);
 
-    return boletimService.buscarBoletinsPorAluno(aluno.getMatricula()).stream()
-        .map(boletim -> montarItemHistorico(aluno, boletim, true))
+    return historicoRepository.buscarPorAluno(aluno.getMatricula()).stream()
         .sorted(comparadorHistorico())
         .toList();
   }
@@ -99,8 +96,7 @@ public class HistoricoAcademicoService {
     }
   }
 
-  private ItemHistoricoAcademico montarItemHistorico(
-      Aluno aluno, Boletim boletim, boolean incluirProfessorLegado) {
+  private ItemHistoricoAcademico montarItemHistorico(Aluno aluno, Boletim boletim) {
     Turma turma = buscarTurma(boletim);
     ItemHistoricoAcademico item = new ItemHistoricoAcademico();
 
@@ -110,9 +106,6 @@ public class HistoricoAcademicoService {
     item.setPeriodoLetivo(buscarPeriodoLetivo(turma));
     item.setCodigoDisciplina(buscarCodigoDisciplina(turma));
     item.setNomeDisciplina(buscarNomeDisciplina(turma));
-    if (incluirProfessorLegado) {
-      item.setNomeProfessor(buscarNomeProfessor(turma));
-    }
     item.setNotaFinal(calcularNotaFinal(boletim));
     item.setFrequencia(buscarFrequencia(boletim));
     item.setSituacao(situacaoAcademicaService.determinar(boletim).getDescricao());
@@ -158,22 +151,6 @@ public class HistoricoAcademicoService {
     }
 
     return nomeDisciplina;
-  }
-
-  private String buscarNomeProfessor(Turma turma) {
-    if (turma == null || turma.getMatriculaProfessor() == null) {
-      return "Professor nao encontrado";
-    }
-
-    String nomeProfessor = turmaService.buscarNomeProfessor(turma.getMatriculaProfessor());
-
-    if (nomeProfessor == null
-        || nomeProfessor.isBlank()
-        || nomeProfessor.equalsIgnoreCase(turma.getMatriculaProfessor())) {
-      return "Professor nao encontrado";
-    }
-
-    return nomeProfessor;
   }
 
   private Double calcularNotaFinal(Boletim boletim) {

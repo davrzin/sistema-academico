@@ -16,8 +16,8 @@ import java.util.Scanner;
 public class HistoricoAcademicoTela {
 
   private final Scanner scanner;
-  private final HistoricoAcademicoService historicoService = new HistoricoAcademicoService();
-  private final UsuarioService usuarioService = new UsuarioService();
+  private final HistoricoAcademicoService historicoService;
+  private final UsuarioService usuarioService;
 
   /**
    * Cria a tela de historico academico.
@@ -25,7 +25,23 @@ public class HistoricoAcademicoTela {
    * @param scanner leitor de entrada.
    */
   public HistoricoAcademicoTela(Scanner scanner) {
+    this(scanner, new HistoricoAcademicoService(), new UsuarioService());
+  }
+
+  /**
+   * Cria a tela com as dependencias informadas.
+   *
+   * @param scanner leitor de entrada.
+   * @param historicoService servico de historico.
+   * @param usuarioService servico de usuarios.
+   */
+  public HistoricoAcademicoTela(
+      Scanner scanner,
+      HistoricoAcademicoService historicoService,
+      UsuarioService usuarioService) {
     this.scanner = scanner;
+    this.historicoService = historicoService;
+    this.usuarioService = usuarioService;
   }
 
   /**
@@ -146,7 +162,6 @@ public class HistoricoAcademicoTela {
   private void exibirItemHistorico(int numero, ItemHistoricoAcademico item) {
     System.out.println(numero + " - " + formatarValor(item.getNomeDisciplina()));
     System.out.println("    Período letivo: " + formatarValor(item.getPeriodoLetivo()));
-    System.out.println("    Professor: " + formatarValor(item.getNomeProfessor()));
     System.out.println("    Turma: " + formatarValor(item.getCodigoTurma()));
     System.out.println("    Nota final: " + formatarDecimal(item.getNotaFinal()));
     System.out.println("    Frequencia: " + formatarFrequencia(item.getFrequencia()));
