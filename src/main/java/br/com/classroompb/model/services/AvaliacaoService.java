@@ -50,9 +50,8 @@ public class AvaliacaoService {
     Diario diario = buscarDiarioAtivo(avaliacao.getCodigoDiario());
     validarProfessorResponsavel(diario, matriculaProfessor);
 
-    if (avaliacao.getNotaMaxima() <= 0 || avaliacao.getNotaMaxima() > 10.0) {
-      throw new EntradaInvalidaException("Nota máxima inválida (deve ser entre 0.1 e 10.0).");
-    }
+    avaliacao.setPeso(Avaliacao.PESO_PADRAO);
+    avaliacao.setNotaMaxima(Avaliacao.NOTA_MAXIMA_PADRAO);
 
     int total = avaliacaoRepository.listarAvaliacoes().size();
     avaliacao.setCodigo("avl" + String.format("%02d", total));
@@ -84,9 +83,8 @@ public class AvaliacaoService {
     validarProfessorResponsavel(diario, matriculaProfessor);
     validarAlunoMatriculado(diario, matriculaAluno);
 
-    if (nota < 0 || nota > avaliacao.getNotaMaxima()) {
-      throw new EntradaInvalidaException(
-          "A nota deve estar entre 0.0 e a nota máxima (" + avaliacao.getNotaMaxima() + ").");
+    if (!Double.isFinite(nota) || nota < 0 || nota > Avaliacao.NOTA_MAXIMA_PADRAO) {
+      throw new EntradaInvalidaException("A nota deve estar entre 0.0 e 10.0.");
     }
 
     avaliacaoRepository.salvarNota(

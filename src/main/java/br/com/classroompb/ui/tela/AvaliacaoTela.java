@@ -47,17 +47,17 @@ public class AvaliacaoTela {
       if (diarioSelecionado == null) return;
 
       String descricao = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Descrição da avaliação (ex: P1, Trabalho): ", "Descrição");
-      
-      String strPeso = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Informe o peso da avaliação (ex: 1.0, 2.0): ", "Peso");
-      float peso = Float.parseFloat(strPeso);
 
       int etapa = selecionarEtapa();
       if (etapa == 0) return;
 
-      String strNotaMax = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Informe a nota máxima (ex: 10.0): ", "Nota Máxima");
-      float notaMaxima = Float.parseFloat(strNotaMax);
-
-      Avaliacao novaAvaliacao = new Avaliacao(diarioSelecionado.getCodigo(), descricao, peso, etapa, notaMaxima);
+      Avaliacao novaAvaliacao =
+          new Avaliacao(
+              diarioSelecionado.getCodigo(),
+              descricao,
+              Avaliacao.PESO_PADRAO,
+              etapa,
+              Avaliacao.NOTA_MAXIMA_PADRAO);
       avaliacaoService.cadastrarAvaliacao(
           novaAvaliacao, professorLogado.getMatricula());
 

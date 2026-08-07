@@ -7,6 +7,9 @@ import br.com.classroompb.model.exception.EntradaInvalidaException;
  */
 public class Avaliacao {
 
+  public static final double PESO_PADRAO = 1.0;
+  public static final double NOTA_MAXIMA_PADRAO = 10.0;
+
   private String codigo;
   private String codigoDiario;
   private String descricao;
