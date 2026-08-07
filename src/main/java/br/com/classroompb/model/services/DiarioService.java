@@ -12,6 +12,7 @@ import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import br.com.classroompb.model.exception.UsuarioNaoEncontradoException;
 import br.com.classroompb.model.repository.AvaliacaoRepository;
+import br.com.classroompb.model.repository.AulaRepository;
 import br.com.classroompb.model.repository.DiarioRepository;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.PersistenciaPaths;
@@ -40,6 +41,7 @@ public class DiarioService {
   private final DisciplinaRepository disciplinaRepository;
   private final UserRepository userRepository;
   private final AvaliacaoService avaliacaoService;
+  private final AulaService aulaService;
 
   /**
    * Cria o servico de diarios com dependencias padrao.
@@ -70,7 +72,8 @@ public class DiarioService {
         turmaRepository,
         disciplinaRepository,
         userRepository,
-        criarAvaliacaoService(diarioRepository, turmaRepository, userRepository));
+        criarAvaliacaoService(diarioRepository, turmaRepository, userRepository),
+        criarAulaService(diarioRepository, turmaRepository));
   }
 
   /**
@@ -88,11 +91,38 @@ public class DiarioService {
       DisciplinaRepository disciplinaRepository,
       UserRepository userRepository,
       AvaliacaoService avaliacaoService) {
+    this(
+        diarioRepository,
+        turmaRepository,
+        disciplinaRepository,
+        userRepository,
+        avaliacaoService,
+        criarAulaService(diarioRepository, turmaRepository));
+  }
+
+  /**
+   * Cria o servico de diarios com todas as dependencias, incluindo avaliacoes e aulas.
+   *
+   * @param diarioRepository repositorio de diarios.
+   * @param turmaRepository repositorio de turmas.
+   * @param disciplinaRepository repositorio de disciplinas.
+   * @param userRepository repositorio de usuarios.
+   * @param avaliacaoService servico de avaliacoes do mesmo ambiente de persistencia.
+   * @param aulaService servico de aulas do mesmo ambiente de persistencia.
+   */
+  public DiarioService(
+      DiarioRepository diarioRepository,
+      TurmaRepository turmaRepository,
+      DisciplinaRepository disciplinaRepository,
+      UserRepository userRepository,
+      AvaliacaoService avaliacaoService,
+      AulaService aulaService) {
     this.diarioRepository = diarioRepository;
     this.turmaRepository = turmaRepository;
     this.disciplinaRepository = disciplinaRepository;
     this.userRepository = userRepository;
     this.avaliacaoService = avaliacaoService;
+    this.aulaService = aulaService;
   }
 
   /**
@@ -236,6 +266,7 @@ public class DiarioService {
     Diario diario = buscarDiarioPorCodigo(codigo);
     validarDiarioAtivoParaEncerramento(diario);
     validarProfessorResponsavelPeloDiario(diario, matriculaProfessor);
+    validarCargaHorariaCompleta(diario);
 
     // Verificação de segurança para o fechamento
     List<Avaliacao> avaliacoes = avaliacaoService.listarAvaliacoesPorDiario(codigo);
@@ -446,6 +477,21 @@ public class DiarioService {
     }
   }
 
+  private void validarCargaHorariaCompleta(Diario diario) {
+    int horasMinistradas =
+        aulaService.calcularHorasMinistradas(
+            aulaService.listarAulasPorDiario(diario.getCodigo()));
+
+    if (horasMinistradas < diario.getCargaHoraria()) {
+      throw new EntradaInvalidaException(
+          "Não é possível encerrar o diário com carga horária incompleta.");
+    }
+    if (horasMinistradas > diario.getCargaHoraria()) {
+      throw new EntradaInvalidaException(
+          "Não é possível encerrar o diário com carga horária acima do previsto.");
+    }
+  }
+
   private void validarTurmaExistente(String codigoTurma) {
     if (codigoTurma == null || codigoTurma.isBlank()) {
       throw new EntradaInvalidaException("Diário deve estar associado a uma turma.");
@@ -572,5 +618,14 @@ public class DiarioService {
             diarioRepository.getObjectMapper(), diarioRepository.getDiretorioDiarios());
     return new AvaliacaoService(
         avaliacaoRepository, diarioRepository, turmaRepository, userRepository);
+  }
+
+  private static AulaService criarAulaService(
+      DiarioRepository diarioRepository, TurmaRepository turmaRepository) {
+    Path diretorioAulas =
+        Path.of(diarioRepository.getDiretorioDiarios()).resolveSibling("aulas");
+    AulaRepository aulaRepository =
+        new AulaRepository(diarioRepository.getObjectMapper(), diretorioAulas.toString());
+    return new AulaService(aulaRepository, turmaRepository, diarioRepository);
   }
 }
