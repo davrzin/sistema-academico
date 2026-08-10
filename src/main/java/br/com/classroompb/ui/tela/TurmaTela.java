@@ -961,8 +961,6 @@ public class TurmaTela {
 
       aulaService.salvarAula(aula, professorLogado.getMatricula());
 
-      turmaService.cadastrarNovaAula(aula, codigoTurma);
-
       turmaService.atualizarFrequenciaTurma(codigoTurma);
 
     } catch (TurmaNaoEncontradaException | EntradaInvalidaException | PersistenciaException e) {
@@ -1477,15 +1475,7 @@ public class TurmaTela {
   }
 
   private void exibirTurmaDetalhada(int numero, Turma turma) {
-    int vagasOcupadas = turma.getMatriculados() == null ? 0 : turma.getMatriculados().size();
-
-    System.out.println(numero + " - " + nomeAmigavelTurma(turma));
-    System.out.println("    Codigo interno: " + formatarValor(turma.getCodigo()));
-    System.out.println("    Professor: " + buscarNomeProfessorTurma(turma));
-    System.out.println("    Periodo letivo: " + formatarValor(turma.getPeriodoLetivo()));
-    System.out.println("    Horario: " + formatarValor(turma.getHorario()));
-    System.out.println("    Sala: " + formatarValor(turma.getSala()));
-    System.out.println("    Vagas: " + vagasOcupadas + "/" + turma.getLimiteVagas());
+    exibirTurmaDetalhadaComDiarios(numero, turma);
   }
 
   private String nomeAmigavelTurma(Turma turma) {
@@ -1552,14 +1542,6 @@ public class TurmaTela {
     }
 
     return formatarValor(turmaService.buscarNomeDisciplina(turma.getCodigoDisciplina()));
-  }
-
-  private String buscarNomeProfessorTurma(Turma turma) {
-    if (turma == null) {
-      return "-";
-    }
-
-    return formatarValor(turmaService.buscarNomeProfessor(turma.getMatriculaProfessor()));
   }
 
   private String formatarValor(String valor) {
