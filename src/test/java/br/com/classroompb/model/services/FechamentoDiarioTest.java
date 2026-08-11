@@ -1,5 +1,6 @@
 package br.com.classroompb.model.services;
 
+import br.com.classroompb.model.entities.gestaoacademica.Avaliacao;
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
 import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
@@ -42,6 +43,7 @@ public class FechamentoDiarioTest {
 
   private DiarioService diarioService;
   private BoletimService boletimService;
+  private AvaliacaoService avaliacaoService;
 
   @BeforeEach
   public void setUp() {
@@ -64,8 +66,8 @@ public class FechamentoDiarioTest {
     boletimService =
         new BoletimService(
             boletimRepository, turmaRepository, periodoLetivoRepository, diarioRepository);
+    avaliacaoService = new AvaliacaoService();
 
-    // Salva o periodo letivo ativo padrao
     periodoLetivoRepository.salvarPeriodoLetivo(
         new PeriodoLetivo("2026.2", "01/07/2026", "30/11/2026"));
   }
@@ -111,11 +113,26 @@ public class FechamentoDiarioTest {
   }
 
   @Test
+  public void deveLancarExcecaoAoEncerrarDiarioSemAvaliacoes() {
+    prepararAmbienteCompleto();
+    Diario diario =
+        new Diario("tur00", "Diário Teórico", "pr00", "SEG 08:00", "LAB 01", 60);
+    diarioService.cadastrarDiario(diario, CODIGO_CURSO);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> diarioService.encerrarDiario(diario.getCodigo(), CODIGO_CURSO));
+  }
+
+  @Test
   public void deveEncerrarDiarioEAlterarSituacaoParaEncerrado() {
     prepararAmbienteCompleto();
     Diario diario =
         new Diario("tur00", "Diário Teórico", "pr00", "SEG 08:00", "LAB 01", 60);
     diarioService.cadastrarDiario(diario, CODIGO_CURSO);
+
+    Avaliacao avaliacao = new Avaliacao(diario.getCodigo(), "P1", 1.0, 1, 10.0);
+    avaliacaoService.cadastrarAvaliacao(avaliacao, CODIGO_CURSO);
 
     diarioService.encerrarDiario(diario.getCodigo(), CODIGO_CURSO);
 
@@ -131,13 +148,14 @@ public class FechamentoDiarioTest {
         new Diario("tur00", "Diário Teórico", "pr00", "SEG 08:00", "LAB 01", 60);
     diarioService.cadastrarDiario(diario, CODIGO_CURSO);
 
+    Avaliacao avaliacao = new Avaliacao(diario.getCodigo(), "P1", 1.0, 1, 10.0);
+    avaliacaoService.cadastrarAvaliacao(avaliacao, CODIGO_CURSO);
+
     Boletim boletim = new Boletim("al00", "tur00");
     boletimService.criarBoletim(boletim);
 
-    // Encerra o diario
     diarioService.encerrarDiario(diario.getCodigo(), CODIGO_CURSO);
 
-    // Tenta lancar nota e deve ser bloqueado
     Assertions.assertThrows(
         EntradaInvalidaException.class,
         () -> boletimService.lancarNotas("tur00", "al00", 9.0f, 9.0f, "pr00"));
@@ -168,6 +186,10 @@ public class FechamentoDiarioTest {
     Diario diario =
         new Diario("tur00", "Diário Teórico", "pr00", "SEG 08:00", "LAB 01", 60);
     diarioService.cadastrarDiario(diario, CODIGO_CURSO);
+
+    Avaliacao avaliacao = new Avaliacao(diario.getCodigo(), "P1", 1.0, 1, 10.0);
+    avaliacaoService.cadastrarAvaliacao(avaliacao, CODIGO_CURSO);
+
     diarioService.encerrarDiario(diario.getCodigo(), CODIGO_CURSO);
 
     List<Diario> diariosGuardados = diarioService.listarDiariosPorTurma("tur00");
