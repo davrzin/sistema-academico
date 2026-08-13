@@ -29,17 +29,22 @@ src/main/java/br/com/classroompb/application/Program.java
 
 ## Como Validar
 
-Execute os comandos abaixo na raiz do projeto:
+Execute na raiz do projeto:
 
 ```bash
-mvn.cmd clean test
-mvn.cmd checkstyle:check
+mvn.cmd test
 ```
 
-O estado atual esperado e:
+Baseline do HEAD `4507d5a`:
 
-- testes passando;
-- Checkstyle com 0 violacoes.
+- compilacao do codigo de producao aprovada;
+- 776 testes executados;
+- 19 falhas e 41 erros em testes legados incompativeis com a Release 4;
+- 60 ocorrencias conhecidas no total;
+- fluxo completo da Release 4 validado manualmente.
+
+Portanto, a suite completa ainda nao deve ser descrita como aprovada. O Checkstyle nao
+faz parte deste baseline.
 
 Para gerar o relatorio de cobertura de testes (JaCoCo):
 
@@ -61,18 +66,61 @@ continua 100% medida pelo relatorio.
 
 ## Persistencia
 
-Os dados da aplicacao ficam em `data/`.
+Os caminhos sao centralizados em `PersistenciaPaths` e partem de
+`<diretorio-de-execucao>/data`. A estrutura efetivamente usada e:
 
 ```text
 data/
-  aulas/
-  boletins/
-  cursos/
-  disciplinas/
-  periodos/
-  turmas/
   usuarios/
+    administrador.json
+    aluno.json
+    coordenador.json
+    professor.json
+  cursos/cursos.json
+  disciplinas/disciplinas.json
+  turmas/turmas.json
+  boletins/boletins.json
+  periodos/periodos_letivos.json
+  aulas/aulas.json
+  diarios/
+    diarios.json
+    avaliacoes.json
+    notas_avaliacoes.json
+  historicos/historicos.json
 ```
+
+Todos esses arquivos tem uma lista JSON (`[]`) na raiz. No fluxo da Release 4, os
+registros principais seguem estas formas (valores ilustrativos):
+
+`diarios/diarios.json`:
+
+```json
+[{"codigo":"dia00","codigoTurma":"tur00","descricao":"Teorico","matriculaProfessor":"pr00","horario":"SEG 08:00","sala":"A-01","cargaHoraria":60,"situacao":"ATIVO"}]
+```
+
+`aulas/aulas.json`:
+
+```json
+[{"id":"aul00","codigoTurma":"tur00","codigoDiario":"dia00","data":"13/08/2026","horario":"SEG 08:00","presencas":{"al00":true}}]
+```
+
+`diarios/avaliacoes.json` e `diarios/notas_avaliacoes.json`:
+
+```json
+[{"codigo":"avl00","codigoDiario":"dia00","descricao":"P1","peso":1.0,"etapa":1,"notaMaxima":10.0}]
+[{"codigoAvaliacao":"avl00","matriculaAluno":"al00","valorNota":8.5}]
+```
+
+`historicos/historicos.json`:
+
+```json
+[{"matriculaAluno":"al00","nomeAluno":"Aluno","periodoLetivo":"2026.2","codigoTurma":"tur00","codigoDisciplina":"cmp00","nomeDisciplina":"Disciplina","nomeProfessor":null,"notaFinal":8.0,"frequencia":100.0,"situacao":"Aprovado"}]
+```
+
+`turmas/turmas.json` conserva a oferta: codigo, disciplina, periodo letivo, limite de
+vagas, matriculados, lista de espera e a lista legada de aulas. Professor, horario, sala
+e carga horaria pertencem ao diario. Os valores dos enums sao serializados pelo Jackson
+conforme as classes do dominio.
 
 Os arquivos `.json` nao sao versionados. Eles continuam ignorados pelo Git para
 evitar que dados locais ou dados de demonstracao sejam enviados ao repositorio.
@@ -83,6 +131,30 @@ automaticamente com uma lista vazia (`[]`).
 
 Em um clone limpo, a aplicacao deve criar os arquivos JSON conforme as operacoes
 forem executadas.
+
+## Fluxo Academico da Release 4
+
+A **Turma** representa a oferta de uma disciplina em um periodo letivo, com vagas e
+alunos matriculados. O **Diario** representa a execucao dessa oferta: uma turma pode ter
+varios diarios (por exemplo, Teorico e Laboratorio), e cada diario tem um professor
+responsavel, horario, sala, carga horaria e situacao propria.
+
+O professor trabalha apenas nos diarios sob sua responsabilidade. Cada registro de
+`Aula` e vinculado ao diario e equivale a duas horas-aula; uma ausencia soma duas
+faltas-hora. O limite de registros e determinado pela carga horaria do diario.
+
+As avaliacoes sao cadastradas no diario para a primeira ou a segunda unidade. Todas usam
+peso 1 e nota maxima 10, e as notas sao lancadas por aluno e por avaliacao. Para encerrar
+o diario, o professor precisa completar a carga horaria, cadastrar avaliacoes e lancar
+todas as notas. Um diario encerrado fica bloqueado para alteracoes, novas aulas,
+frequencias e notas.
+
+Depois que todos os diarios validos estiverem encerrados, o coordenador usa
+`consolidarResultadosTurma`. Diarios cancelados sao ignorados. O sistema calcula as
+notas das unidades com as avaliacoes dos diarios validos, consolida a frequencia das
+aulas, atualiza o boletim e cria ou atualiza o resultado final persistido em
+`data/historicos/historicos.json`. Os detalhes permanecem nos arquivos de diario; o
+historico armazena o resultado consolidado da turma.
 
 ## Usuarios de Teste e Apresentacao
 
@@ -113,25 +185,28 @@ docs/                                 Documentos do projeto
 Releases/                             Relatorios de processo e de release
 ```
 
-## Roteiro Simples de Apresentacao
+## Roteiro de Apresentacao da Release 4
 
-1. Rodar `mvn.cmd clean test` para mostrar que os testes passam.
-2. Rodar `mvn.cmd checkstyle:check` para mostrar que o padrao de codigo passa.
-3. Rodar `mvn.cmd exec:java` para abrir o sistema.
-4. Cadastrar ou usar dados locais previamente preparados.
-5. Demonstrar login por perfil.
-6. Demonstrar fluxo de administrador: cadastro/listagem de usuarios e cursos.
-7. Demonstrar fluxo de coordenador: disciplinas, periodos e turmas.
-8. Demonstrar fluxo de aluno: listagem de turmas, matricula e cancelamento.
-9. Demonstrar fluxo de professor: turmas, notas e frequencia.
-
-Observacao: a funcionalidade de "listar diario" no menu do professor ainda nao
-foi implementada e nao deve ser apresentada como concluida.
+1. Rodar `mvn.cmd exec:java`, entrar como coordenador e preparar disciplina, periodo,
+   turma e alunos matriculados.
+2. Em **Diarios**, cadastrar dois diarios para a mesma turma (por exemplo, Teorico e
+   Laboratorio), com professores, horarios, salas e cargas horarias definidos.
+3. Entrar como cada professor e usar **Listar diario** para conferir somente os diarios
+   sob sua responsabilidade.
+4. Registrar as aulas e frequencias de cada diario, lembrando que cada aula corresponde
+   a duas horas-aula e cada ausencia a duas faltas-hora.
+5. Em **Avaliacoes e notas**, cadastrar avaliacoes das unidades 1 e 2 e lancar a nota de
+   cada aluno por avaliacao.
+6. Encerrar cada diario pelo menu do professor e demonstrar o bloqueio de edicao.
+7. Voltar como coordenador e, em **Turmas**, usar **Consolidar resultados da turma**;
+   se houver diario cancelado, mostrar que ele nao participa do calculo.
+8. Entrar como aluno para consultar diarios, frequencia, notas por avaliacao e o historico
+   academico consolidado; conferir tambem a persistencia em `data/historicos/`.
 
 ## Comandos Uteis
 
 ```bash
-mvn.cmd clean test
+mvn.cmd test
 mvn.cmd checkstyle:check
 mvn.cmd clean verify
 mvn.cmd exec:java
