@@ -88,7 +88,7 @@ public class HistoricoAcademicoRepository {
    * @param codigoTurma codigo da turma.
    * @return registro encontrado ou {@code null}.
    */
-  public ItemHistoricoAcademico buscarPorAlunoETurma(
+  public ItemHistoricoAcademico buscarPorAlunoTurma(
       String matriculaAluno, String codigoTurma) {
     validarChave(matriculaAluno, codigoTurma);
     String matriculaNormalizada = matriculaAluno.trim();

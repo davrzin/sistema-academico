@@ -132,8 +132,6 @@ public class FrequenciaTela {
       for (int i = 0; i < diarios.size(); i++) {
         Diario diario = diarios.get(i);
         Turma turma = turmaService.buscarTurmaPorCodigo(diario.getCodigoTurma());
-        List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
-        int faltasHora = aulaService.calcularFaltasHora(alunoLogado.getMatricula(), aulas);
 
         if (i > 0) {
           System.out.println();
@@ -144,6 +142,8 @@ public class FrequenciaTela {
             + " (codigo: " + turma.getCodigo() + ")");
         System.out.println("    Professor         : "
             + diarioService.buscarNomeProfessor(diario.getMatriculaProfessor()));
+        List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
+        int faltasHora = aulaService.calcularFaltasHora(alunoLogado.getMatricula(), aulas);
         exibirTotais(aulas, alunoLogado.getMatricula(), faltasHora);
       }
     } catch (PersistenciaException | EntradaInvalidaException | TurmaNaoEncontradaException e) {

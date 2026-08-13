@@ -1,7 +1,6 @@
 package br.com.classroompb.model.entities.gestaoacademica;
 
 import br.com.classroompb.model.exception.EntradaInvalidaException;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -176,7 +175,6 @@ public final class Turma {
    *
    * @return matricula do professor.
    */
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   public String getMatriculaProfessor() {
     return matriculaProfessor;
   }
@@ -187,6 +185,7 @@ public final class Turma {
    * @param matriculaProfessor matricula do professor.
    */
   public void setMatriculaProfessor(String matriculaProfessor) {
+    validarCampoObrigatorio(matriculaProfessor, "Matrícula do professor não pode ser vazia.");
     this.matriculaProfessor = matriculaProfessor;
   }
 
@@ -214,7 +213,6 @@ public final class Turma {
    *
    * @return horario da turma.
    */
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   public String getHorario() {
     return horario;
   }
@@ -233,7 +231,6 @@ public final class Turma {
    *
    * @return sala da turma.
    */
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   public String getSala() {
     return sala;
   }

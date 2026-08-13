@@ -1,5 +1,6 @@
 package br.com.classroompb.model.services;
 
+import br.com.classroompb.model.entities.gestaoacademica.Avaliacao;
 import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
@@ -9,6 +10,8 @@ import br.com.classroompb.model.enums.SituacaoDiario;
 import br.com.classroompb.model.exception.DiarioNaoEncontradoException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
+import br.com.classroompb.model.repository.AulaRepository;
+import br.com.classroompb.model.repository.AvaliacaoRepository;
 import br.com.classroompb.model.repository.DiarioRepository;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.TurmaRepository;
@@ -16,7 +19,9 @@ import br.com.classroompb.model.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -145,11 +150,89 @@ public class DiarioServiceTest {
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
 
     service.cadastrarDiario(criarDiario("tur00", "pr00"));
-    service.cadastrarDiario(criarDiario("tur00", "pr00"));
+    service.cadastrarDiario(
+        new Diario("tur00", "Diário de aulas práticas", "pr00", "TER 08:00-10:00", "LAB 01", 60));
 
     List<Diario> diariosDaTurma = service.listarDiariosPorTurma("tur00");
 
     Assertions.assertEquals(2, diariosDaTurma.size());
+  }
+
+  // --- Regressão: refactor "considera apenas diarios ativos no conflito de horario" (b3da122)
+
+  @Test
+  public void deveLancarExcecaoAoCadastrarDiarioComConflitoDeHorarioEmDiarioAtivo() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
+    disciplinaRepository.salvarDisciplina(
+        new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, CODIGO_CURSO, List.of()));
+    turmaRepository.salvarTurma(
+        new Turma("tur01", "dis01", "2026.2", "pr00", 30, "TER 08:00-10:00", "LAB 02"));
+
+    DiarioRepository diarioRepository = criarDiarioRepository();
+    DiarioService service =
+        criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
+    service.cadastrarDiario(criarDiario("tur00", "pr00"));
+
+    // Mesmo professor, mesmo periodo letivo e mesmo horario de outra turma.
+    Diario diarioConflitante =
+        new Diario("tur01", "Diário conflitante", "pr00", "SEG 08:00-10:00", "LAB 02", 60);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> service.cadastrarDiario(diarioConflitante));
+  }
+
+  @Test
+  public void devePermitirCadastrarDiarioComMesmoHorarioQuandoOutroDiarioEstaEncerrado() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
+    disciplinaRepository.salvarDisciplina(
+        new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, CODIGO_CURSO, List.of()));
+    turmaRepository.salvarTurma(
+        new Turma("tur01", "dis01", "2026.2", "pr00", 30, "TER 08:00-10:00", "LAB 02"));
+
+    DiarioRepository diarioRepository = criarDiarioRepository();
+    DiarioService service =
+        criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
+    Diario diarioExistente = criarDiario("tur00", "pr00");
+    service.cadastrarDiario(diarioExistente);
+    diarioExistente.setSituacao(SituacaoDiario.ENCERRADO);
+    diarioRepository.atualizarDiario(diarioExistente);
+
+    // Mesmo horario/professor/periodo, mas o diario anterior nao esta mais ativo: nao deve
+    // haver conflito.
+    Diario diarioNovo =
+        new Diario("tur01", "Diário nova turma", "pr00", "SEG 08:00-10:00", "LAB 02", 60);
+
+    Assertions.assertDoesNotThrow(() -> service.cadastrarDiario(diarioNovo));
+  }
+
+  @Test
+  public void devePermitirCadastrarDiarioComMesmoHorarioQuandoOutroDiarioEstaCancelado() {
+    TurmaRepository turmaRepository = criarTurmaRepository();
+    DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
+    UserRepository userRepository = criarUserRepository();
+    prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
+    disciplinaRepository.salvarDisciplina(
+        new Disciplina("dis01", "Estrutura de Dados", 60, 2, 4, CODIGO_CURSO, List.of()));
+    turmaRepository.salvarTurma(
+        new Turma("tur01", "dis01", "2026.2", "pr00", 30, "TER 08:00-10:00", "LAB 02"));
+
+    DiarioRepository diarioRepository = criarDiarioRepository();
+    DiarioService service =
+        criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
+    Diario diarioExistente = criarDiario("tur00", "pr00");
+    service.cadastrarDiario(diarioExistente);
+    service.cancelarDiario(diarioExistente.getCodigo(), CODIGO_CURSO);
+
+    Diario diarioNovo =
+        new Diario("tur01", "Diário nova turma", "pr00", "SEG 08:00-10:00", "LAB 02", 60);
+
+    Assertions.assertDoesNotThrow(() -> service.cadastrarDiario(diarioNovo));
   }
 
   @Test
@@ -305,18 +388,54 @@ public class DiarioServiceTest {
     DisciplinaRepository disciplinaRepository = criarDisciplinaRepository();
     UserRepository userRepository = criarUserRepository();
     prepararDadosBasicos(disciplinaRepository, turmaRepository, userRepository);
+    Turma turma = turmaRepository.buscarTurmaPorCodigo("tur00");
+    turma.getMatriculados().add("al00");
+    turmaRepository.atualizarTurma(turma);
+    userRepository.salvarUsuario(criarAluno("al00", CODIGO_CURSO));
 
     DiarioRepository diarioRepository = criarDiarioRepository();
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
-    Diario diario = criarDiario("tur00", "pr00");
+    Diario diario =
+        new Diario("tur00", "Diário de aulas teóricas", "pr00", "SEG 08:00-10:00", "LAB 01", 2);
     service.cadastrarDiario(diario, CODIGO_CURSO);
 
-    service.encerrarDiario(diario.getCodigo(), CODIGO_CURSO);
+    // Encerrar o diario agora exige carga horaria cumprida, avaliacao cadastrada e notas
+    // lancadas para todos os alunos (regressão dos refactors de fechamento do diário).
+    AulaService aulaService =
+        new AulaService(criarAulaRepository(diarioRepository), turmaRepository, diarioRepository);
+    Map<String, Boolean> presencas = new HashMap<>();
+    presencas.put("al00", true);
+    aulaService.salvarAula(aulaService.gerarAula(diario, presencas), "pr00");
+
+    AvaliacaoService avaliacaoService =
+        new AvaliacaoService(
+            new AvaliacaoRepository(
+                diarioRepository.getObjectMapper(), diarioRepository.getDiretorioDiarios()),
+            diarioRepository,
+            turmaRepository,
+            userRepository);
+    Avaliacao avaliacao = new Avaliacao(diario.getCodigo(), "P1", 1.0, 1, 10.0);
+    avaliacaoService.cadastrarAvaliacao(avaliacao, "pr00");
+    avaliacaoService.lancarNota(avaliacao.getCodigo(), "al00", 8.0, "pr00");
+
+    service.encerrarDiario(diario.getCodigo(), "pr00");
 
     Diario diarioEncontrado = service.buscarDiarioPorCodigo(diario.getCodigo());
 
     Assertions.assertEquals(SituacaoDiario.ENCERRADO, diarioEncontrado.getSituacao());
+  }
+
+  private AulaRepository criarAulaRepository(DiarioRepository diarioRepository) {
+    return new AulaRepository(
+        diarioRepository.getObjectMapper(),
+        Path.of(diarioRepository.getDiretorioDiarios()).resolveSibling("aulas").toString());
+  }
+
+  private Aluno criarAluno(String matricula, String codigoCurso) {
+    Aluno aluno = new Aluno("Aluno", matricula + "@email.com", "senha123", codigoCurso);
+    aluno.setMatricula(matricula);
+    return aluno;
   }
 
   @Test
@@ -406,7 +525,8 @@ public class DiarioServiceTest {
     DiarioService service =
         criarService(diarioRepository, turmaRepository, disciplinaRepository, userRepository);
     service.cadastrarDiario(criarDiario("tur00", "pr00"));
-    service.cadastrarDiario(criarDiario("tur01", "pr00"));
+    service.cadastrarDiario(
+        new Diario("tur01", "Diário de aulas práticas", "pr00", "TER 08:00-10:00", "LAB 02", 60));
 
     List<Diario> diariosDoCurso = service.listarDiariosPorCurso(CODIGO_CURSO);
 

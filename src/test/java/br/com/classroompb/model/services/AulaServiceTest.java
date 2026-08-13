@@ -299,4 +299,163 @@ public class AulaServiceTest {
 
     Assertions.assertEquals("aul01", novaAula.getId());
   }
+
+  // --- Regressão: refactor "calcula frequencia por horas aula" (6b31621) ---
+
+  @Test
+  public void deveCalcularHorasMinistradasComDuasHorasPorAula() {
+    Diario diario = criarDiario("dia00", "tur00", SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+    turmaRepository.salvarTurma(turma);
+
+    registrarAulaNoDiario(diario, "al00", true);
+    registrarAulaNoDiario(diario, "al00", true);
+    registrarAulaNoDiario(diario, "al00", false);
+
+    List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
+
+    Assertions.assertEquals(6, aulaService.calcularHorasMinistradas(aulas));
+  }
+
+  @Test
+  public void deveRetornarZeroHorasMinistradasQuandoNaoHaAulas() {
+    Assertions.assertEquals(0, aulaService.calcularHorasMinistradas(null));
+    Assertions.assertEquals(0, aulaService.calcularHorasMinistradas(List.of()));
+  }
+
+  @Test
+  public void deveCalcularFaltasHoraConsiderandoDuasHorasPorAulaAusente() {
+    Diario diario = criarDiario("dia00", "tur00", SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+    turmaRepository.salvarTurma(turma);
+
+    registrarAulaNoDiario(diario, "al00", true);
+    registrarAulaNoDiario(diario, "al00", false);
+    registrarAulaNoDiario(diario, "al00", false);
+
+    List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
+
+    Assertions.assertEquals(4, aulaService.calcularFaltasHora("al00", aulas));
+  }
+
+  @Test
+  public void deveConsiderarFaltaQuandoAlunoNaoPossuiRegistroDePresenca() {
+    Diario diario = criarDiario("dia00", "tur00", SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+    turmaRepository.salvarTurma(turma);
+
+    registrarAulaNoDiario(diario, "outroAluno", true);
+
+    List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
+
+    Assertions.assertEquals(2, aulaService.calcularFaltasHora("al00", aulas));
+  }
+
+  @Test
+  public void deveLancarExcecaoAoCalcularFaltasHoraComMatriculaVazia() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> aulaService.calcularFaltasHora("", List.of()));
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> aulaService.calcularFaltasHora(null, List.of()));
+  }
+
+  @Test
+  public void deveCalcularFrequenciaComoPercentualDeHorasComparecidas() {
+    Diario diario = criarDiario("dia00", "tur00", SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+    turmaRepository.salvarTurma(turma);
+
+    registrarAulaNoDiario(diario, "al00", true);
+    registrarAulaNoDiario(diario, "al00", true);
+    registrarAulaNoDiario(diario, "al00", true);
+    registrarAulaNoDiario(diario, "al00", false);
+
+    List<Aula> aulas = aulaService.listarAulasPorDiario(diario.getCodigo());
+
+    Assertions.assertEquals(75.0, aulaService.calcularFrequencia("al00", aulas));
+  }
+
+  @Test
+  public void deveRetornarFrequenciaNulaQuandoNaoHaAulasMinistradas() {
+    Assertions.assertNull(aulaService.calcularFrequencia("al00", List.of()));
+  }
+
+  @Test
+  public void deveListarApenasAulasDeDiariosAtivosOuEncerradosNaFrequenciaDaTurma() {
+    Diario diarioAtivo = criarDiario("dia00", "tur00", SituacaoDiario.ATIVO);
+    Diario diarioEncerrado = criarDiario("dia01", "tur00", SituacaoDiario.ENCERRADO);
+    Diario diarioCancelado = criarDiario("dia02", "tur00", SituacaoDiario.CANCELADO);
+    diarioRepository.salvarDiario(diarioAtivo);
+    diarioRepository.salvarDiario(diarioEncerrado);
+    diarioRepository.salvarDiario(diarioCancelado);
+    turmaRepository.salvarTurma(turma);
+
+    // As aulas de diarios encerrados/cancelados sao inseridas diretamente no repositorio, pois
+    // o fluxo normal de registro (salvarAula) so permite lancamentos em diarios ativos - o
+    // objetivo aqui e simular aulas ja ministradas antes do diario ter sido fechado.
+    registrarAulaNoDiario(diarioAtivo, "al00", true);
+    aulaRepository.salvarAula(aulaComPresenca(diarioEncerrado, "al00", true));
+    aulaRepository.salvarAula(aulaComPresenca(diarioCancelado, "al00", true));
+
+    List<Aula> aulasValidas = aulaService.listarAulasValidasPorTurma("tur00");
+
+    Assertions.assertEquals(2, aulasValidas.size());
+  }
+
+  @Test
+  public void deveLancarExcecaoAoListarAulasValidasComCodigoTurmaVazio() {
+    Assertions.assertThrows(
+        EntradaInvalidaException.class, () -> aulaService.listarAulasValidasPorTurma(""));
+  }
+
+  // --- Regressão: refactor "limita aulas pela carga horaria do diario" (44d8c59) ---
+
+  @Test
+  public void naoDevePermitirRegistrarAulaVinculadaAoDiarioAlemDaCargaHoraria() {
+    Diario diario =
+        new Diario("dia00", "tur00", "Diário", "pro00", "Seg 08:00-10:00", "C-108", 2,
+            SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+    turmaRepository.salvarTurma(turma);
+
+    registrarAulaNoDiario(diario, "al00", true);
+
+    Map<String, Boolean> presencas = new HashMap<>();
+    presencas.put("al00", true);
+    Aula aulaExcedente = aulaService.gerarAula(diario, presencas);
+
+    Assertions.assertThrows(
+        EntradaInvalidaException.class,
+        () -> aulaService.salvarAula(aulaExcedente, "pro00"));
+  }
+
+  @Test
+  public void devePermitirRegistrarAulaVinculadaAoDiarioDentroDaCargaHoraria() {
+    Diario diario =
+        new Diario("dia00", "tur00", "Diário", "pro00", "Seg 08:00-10:00", "C-108", 4,
+            SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+    turmaRepository.salvarTurma(turma);
+
+    registrarAulaNoDiario(diario, "al00", true);
+
+    Map<String, Boolean> presencas = new HashMap<>();
+    presencas.put("al00", true);
+    Aula segundaAula = aulaService.gerarAula(diario, presencas);
+
+    aulaService.salvarAula(segundaAula, "pro00");
+
+    Assertions.assertEquals(2, aulaRepository.buscarAulasPorDiario("dia00").size());
+  }
+
+  private void registrarAulaNoDiario(Diario diario, String matriculaAluno, boolean presente) {
+    Aula aula = aulaComPresenca(diario, matriculaAluno, presente);
+    aulaService.salvarAula(aula, diario.getMatriculaProfessor());
+  }
+
+  private Aula aulaComPresenca(Diario diario, String matriculaAluno, boolean presente) {
+    Map<String, Boolean> presencas = new HashMap<>();
+    presencas.put(matriculaAluno, presente);
+    return aulaService.gerarAula(diario, presencas);
+  }
 }

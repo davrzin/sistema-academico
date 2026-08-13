@@ -26,6 +26,11 @@ public class AvaliacaoTela {
   private final TurmaService turmaService = new TurmaService();
   private final UsuarioService usuarioService = new UsuarioService();
 
+  /**
+   * Cria a tela de avaliações.
+   *
+   * @param scanner leitor de entrada do console
+   */
   public AvaliacaoTela(Scanner scanner) {
     this.scanner = scanner;
   }
@@ -44,12 +49,18 @@ public class AvaliacaoTela {
       }
 
       Diario diarioSelecionado = selecionarDiario(diarios);
-      if (diarioSelecionado == null) return;
+      if (diarioSelecionado == null) {
+        return;
+      }
 
-      String descricao = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Descrição da avaliação (ex: P1, Trabalho): ", "Descrição");
+      String descricao =
+          EntradaTela.lerTextoObrigatorioOuCancelar(
+              scanner, "Descrição da avaliação (ex: P1, Trabalho): ", "Descrição");
 
       int etapa = selecionarEtapa();
-      if (etapa == 0) return;
+      if (etapa == 0) {
+        return;
+      }
 
       Avaliacao novaAvaliacao =
           new Avaliacao(
@@ -92,9 +103,12 @@ public class AvaliacaoTela {
       }
 
       Diario diarioSelecionado = selecionarDiario(diarios);
-      if (diarioSelecionado == null) return;
+      if (diarioSelecionado == null) {
+        return;
+      }
 
-      List<Avaliacao> avaliacoes = avaliacaoService.listarAvaliacoesPorDiario(diarioSelecionado.getCodigo());
+      List<Avaliacao> avaliacoes =
+          avaliacaoService.listarAvaliacoesPorDiario(diarioSelecionado.getCodigo());
       exibirListaAvaliacoes(avaliacoes);
 
     } catch (EntradaTela.EntradaCanceladaException e) {
@@ -116,7 +130,9 @@ public class AvaliacaoTela {
       }
 
       Diario diarioSelecionado = selecionarDiario(diarios);
-      if (diarioSelecionado == null) return;
+      if (diarioSelecionado == null) {
+        return;
+      }
 
       List<Avaliacao> avaliacoes =
           avaliacaoService.listarAvaliacoesPorDiarioDoAluno(
@@ -160,7 +176,9 @@ public class AvaliacaoTela {
       }
 
       Diario diarioSelecionado = selecionarDiario(diarios);
-      if (diarioSelecionado == null) return;
+      if (diarioSelecionado == null) {
+        return;
+      }
 
       List<Avaliacao> avaliacoes =
           avaliacaoService.listarAvaliacoesPorDiarioDoProfessor(
@@ -171,7 +189,9 @@ public class AvaliacaoTela {
       }
 
       Avaliacao avaliacaoSelecionada = selecionarAvaliacao(avaliacoes);
-      if (avaliacaoSelecionada == null) return;
+      if (avaliacaoSelecionada == null) {
+        return;
+      }
 
       Turma turma = turmaService.buscarTurmaPorCodigo(diarioSelecionado.getCodigoTurma());
       List<String> matriculas = turma.getMatriculados();
@@ -214,9 +234,12 @@ public class AvaliacaoTela {
       }
 
       Diario diarioSelecionado = selecionarDiario(diarios);
-      if (diarioSelecionado == null) return;
+      if (diarioSelecionado == null) {
+        return;
+      }
 
-      List<Avaliacao> avaliacoes = avaliacaoService.listarAvaliacoesPorDiario(diarioSelecionado.getCodigo());
+      List<Avaliacao> avaliacoes =
+          avaliacaoService.listarAvaliacoesPorDiario(diarioSelecionado.getCodigo());
       if (avaliacoes.isEmpty()) {
         System.out.println("Nenhuma avaliação cadastrada para este diário.");
         return;
@@ -225,16 +248,28 @@ public class AvaliacaoTela {
       System.out.println("Selecione a avaliação:");
       for (int i = 0; i < avaliacoes.size(); i++) {
         Avaliacao av = avaliacoes.get(i);
-        System.out.println((i + 1) + " - " + av.getDescricao() + " (Nota Máx: " + av.getNotaMaxima() + ", Peso: " + av.getPeso() + ")");
+        System.out.println(
+            (i + 1)
+                + " - "
+                + av.getDescricao()
+                + " (Nota Máx: "
+                + av.getNotaMaxima()
+                + ", Peso: "
+                + av.getPeso()
+                + ")");
       }
 
       System.out.println("0 - Voltar");
       int opAv = EntradaTela.lerOpcaoOuCancelar(scanner, "Opção: ", avaliacoes.size());
-      if (opAv == 0) return;
+      if (opAv == 0) {
+        return;
+      }
       Avaliacao avSelecionada = avaliacoes.get(opAv - 1);
 
       String matriculaAluno = selecionarAlunoMatriculado(diarioSelecionado);
-      if (matriculaAluno == null) return;
+      if (matriculaAluno == null) {
+        return;
+      }
 
       Double notaAtual =
           avaliacaoService.buscarNotaDoAluno(avSelecionada.getCodigo(), matriculaAluno);
@@ -243,8 +278,12 @@ public class AvaliacaoTela {
       } else {
         System.out.println("Nota atual: " + notaAtual);
       }
-      
-      String strNota = EntradaTela.lerTextoObrigatorioOuCancelar(scanner, "Informe a nota obtida (0.0 a " + avSelecionada.getNotaMaxima() + "): ", "Nota");
+
+      String strNota =
+          EntradaTela.lerTextoObrigatorioOuCancelar(
+              scanner,
+              "Informe a nota obtida (0.0 a " + avSelecionada.getNotaMaxima() + "): ",
+              "Nota");
       float nota = Float.parseFloat(strNota);
 
       avaliacaoService.lancarNota(
@@ -264,10 +303,18 @@ public class AvaliacaoTela {
     System.out.println("Selecione o Diário:");
     System.out.println("0 - Voltar");
     for (int i = 0; i < diarios.size(); i++) {
-      System.out.println((i + 1) + " - " + diarios.get(i).getDescricao() + " (" + diarios.get(i).getCodigo() + ")");
+      System.out.println(
+          (i + 1)
+              + " - "
+              + diarios.get(i).getDescricao()
+              + " ("
+              + diarios.get(i).getCodigo()
+              + ")");
     }
     int op = EntradaTela.lerOpcaoOuCancelar(scanner, "Informe a opção: ", diarios.size());
-    if (op == 0) return null;
+    if (op == 0) {
+      return null;
+    }
     return diarios.get(op - 1);
   }
 
@@ -302,7 +349,9 @@ public class AvaliacaoTela {
 
     int opcao =
         EntradaTela.lerOpcaoOuCancelar(scanner, "Informe a opção: ", avaliacoes.size());
-    if (opcao == 0) return null;
+    if (opcao == 0) {
+      return null;
+    }
     return avaliacoes.get(opcao - 1);
   }
 
@@ -348,7 +397,9 @@ public class AvaliacaoTela {
 
     int opcao =
         EntradaTela.lerOpcaoOuCancelar(scanner, "Informe a opção: ", matriculas.size());
-    if (opcao == 0) return null;
+    if (opcao == 0) {
+      return null;
+    }
     return matriculas.get(opcao - 1);
   }
 
@@ -359,8 +410,17 @@ public class AvaliacaoTela {
     }
     System.out.println("=== AVALIAÇÕES DO DIÁRIO ===");
     for (Avaliacao av : avaliacoes) {
-      System.out.println("Código: " + av.getCodigo() + " | Descrição: " + av.getDescricao() +
-          " | Etapa: " + av.getEtapa() + " | Peso: " + av.getPeso() + " | Nota Máx: " + av.getNotaMaxima());
+      System.out.println(
+          "Código: "
+              + av.getCodigo()
+              + " | Descrição: "
+              + av.getDescricao()
+              + " | Etapa: "
+              + av.getEtapa()
+              + " | Peso: "
+              + av.getPeso()
+              + " | Nota Máx: "
+              + av.getNotaMaxima());
     }
   }
 }

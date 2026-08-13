@@ -139,7 +139,7 @@ public class AulaRepositoryTest {
   }
 
   @Test
-  public void deveBuscarAulaPorIdIgnorandoCaixaEEspacos() {
+  public void deveBuscarAulaPorIdIgnorandoCaixaEspacos() {
 
     aulaRepository.salvarAula(aula);
 

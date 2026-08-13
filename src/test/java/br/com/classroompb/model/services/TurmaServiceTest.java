@@ -2,16 +2,19 @@ package br.com.classroompb.model.services;
 
 import br.com.classroompb.model.entities.gestaoacademica.Aula;
 import br.com.classroompb.model.entities.gestaoacademica.Boletim;
+import br.com.classroompb.model.entities.gestaoacademica.Diario;
 import br.com.classroompb.model.entities.gestaoacademica.Disciplina;
 import br.com.classroompb.model.entities.gestaoacademica.PeriodoLetivo;
 import br.com.classroompb.model.entities.gestaoacademica.Turma;
 import br.com.classroompb.model.entities.usuario.Aluno;
 import br.com.classroompb.model.entities.usuario.Professor;
+import br.com.classroompb.model.enums.SituacaoDiario;
 import br.com.classroompb.model.exception.AlunoNaoCumprePreRequisitosException;
 import br.com.classroompb.model.exception.EntradaInvalidaException;
 import br.com.classroompb.model.exception.TurmaNaoEncontradaException;
 import br.com.classroompb.model.repository.AulaRepository;
 import br.com.classroompb.model.repository.BoletimRepository;
+import br.com.classroompb.model.repository.DiarioRepository;
 import br.com.classroompb.model.repository.DisciplinaRepository;
 import br.com.classroompb.model.repository.PeriodoLetivoRepository;
 import br.com.classroompb.model.repository.TurmaRepository;
@@ -47,6 +50,7 @@ public class TurmaServiceTest {
     apagarDiretorio("usuarios");
     apagarDiretorio("boletins");
     apagarDiretorio("aulas");
+    apagarDiretorio("diarios");
   }
 
   private void apagarDiretorio(String nomeDiretorio) {
@@ -86,6 +90,10 @@ public class TurmaServiceTest {
 
   private AulaRepository criarAulaRepository() {
     return new AulaRepository(new ObjectMapper(), tempDir.resolve("aulas").toString());
+  }
+
+  private DiarioRepository criarDiarioRepository() {
+    return new DiarioRepository(new ObjectMapper(), tempDir.resolve("diarios").toString());
   }
 
   private TurmaService criarService(
@@ -1416,6 +1424,7 @@ public class TurmaServiceTest {
     prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
     BoletimRepository boletimRepository = criarBoletimRepository();
     AulaRepository aulaRepository = criarAulaRepository();
+    DiarioRepository diarioRepository = criarDiarioRepository();
 
     TurmaService service =
         new TurmaService(
@@ -1424,7 +1433,8 @@ public class TurmaServiceTest {
             periodoLetivoRepository,
             userRepository,
             boletimRepository,
-            aulaRepository);
+            aulaRepository,
+            diarioRepository);
 
     Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
     service.ofertarTurma(turma);
@@ -1433,11 +1443,19 @@ public class TurmaServiceTest {
     userRepository.salvarUsuario(aluno);
     service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
 
+    Diario diario =
+        new Diario(
+            "dia00", turma.getCodigo(), "Diário", "pr00", turma.getHorario(), turma.getSala(), 2,
+            SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+
     Map<String, Boolean> presencas = new HashMap<>();
     presencas.put("al00", true);
-    Aula aula = new Aula("aul00", turma.getCodigo(), "17/07/2026", "SEG 08:00-10:00", presencas);
+    Aula aula =
+        new Aula(
+            "aul00", turma.getCodigo(), diario.getCodigo(), "17/07/2026", "SEG 08:00-10:00",
+            presencas);
     aulaRepository.salvarAula(aula);
-    service.cadastrarNovaAula(aula, turma.getCodigo());
 
     service.atualizarFrequenciaTurma(turma.getCodigo());
 
@@ -1454,6 +1472,7 @@ public class TurmaServiceTest {
     prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
     BoletimRepository boletimRepository = criarBoletimRepository();
     AulaRepository aulaRepository = criarAulaRepository();
+    DiarioRepository diarioRepository = criarDiarioRepository();
 
     TurmaService service =
         new TurmaService(
@@ -1462,7 +1481,8 @@ public class TurmaServiceTest {
             periodoLetivoRepository,
             userRepository,
             boletimRepository,
-            aulaRepository);
+            aulaRepository,
+            diarioRepository);
 
     Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
     service.ofertarTurma(turma);
@@ -1471,11 +1491,19 @@ public class TurmaServiceTest {
     userRepository.salvarUsuario(aluno);
     service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
 
+    Diario diario =
+        new Diario(
+            "dia00", turma.getCodigo(), "Diário", "pr00", turma.getHorario(), turma.getSala(), 2,
+            SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+
     Map<String, Boolean> presencas = new HashMap<>();
     presencas.put("al00", true);
-    Aula aula = new Aula("aul00", turma.getCodigo(), "17/07/2026", "SEG 08:00-10:00", presencas);
+    Aula aula =
+        new Aula(
+            "aul00", turma.getCodigo(), diario.getCodigo(), "17/07/2026", "SEG 08:00-10:00",
+            presencas);
     aulaRepository.salvarAula(aula);
-    service.cadastrarNovaAula(aula, turma.getCodigo());
 
     service.atualizarFrequenciaTurma(turma.getCodigo(), "pr00");
 
@@ -1631,6 +1659,7 @@ public class TurmaServiceTest {
     prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
     BoletimRepository boletimRepository = criarBoletimRepository();
     AulaRepository aulaRepository = criarAulaRepository();
+    DiarioRepository diarioRepository = criarDiarioRepository();
 
     TurmaService service =
         new TurmaService(
@@ -1639,7 +1668,8 @@ public class TurmaServiceTest {
             periodoLetivoRepository,
             userRepository,
             boletimRepository,
-            aulaRepository);
+            aulaRepository,
+            diarioRepository);
 
     Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
     service.ofertarTurma(turma);
@@ -1648,20 +1678,37 @@ public class TurmaServiceTest {
     userRepository.salvarUsuario(aluno);
     service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
 
+    Diario diario =
+        new Diario(
+            "dia00", turma.getCodigo(), "Diário", "pr00", turma.getHorario(), turma.getSala(), 8,
+            SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+
     // 4 aulas: aluno falta em apenas 1 delas.
     Map<String, Boolean> presente = new HashMap<>();
     presente.put("al00", true);
     Map<String, Boolean> ausente = new HashMap<>();
     ausente.put("al00", false);
 
-    Aula aula1 = new Aula("aul00", turma.getCodigo(), "01/08/2026", "SEG 08:00-10:00", presente);
-    Aula aula2 = new Aula("aul01", turma.getCodigo(), "08/08/2026", "SEG 08:00-10:00", ausente);
-    Aula aula3 = new Aula("aul02", turma.getCodigo(), "15/08/2026", "SEG 08:00-10:00", presente);
-    Aula aula4 = new Aula("aul03", turma.getCodigo(), "22/08/2026", "SEG 08:00-10:00", presente);
+    Aula aula1 =
+        new Aula(
+            "aul00", turma.getCodigo(), diario.getCodigo(), "01/08/2026", "SEG 08:00-10:00",
+            presente);
+    Aula aula2 =
+        new Aula(
+            "aul01", turma.getCodigo(), diario.getCodigo(), "08/08/2026", "SEG 08:00-10:00",
+            ausente);
+    Aula aula3 =
+        new Aula(
+            "aul02", turma.getCodigo(), diario.getCodigo(), "15/08/2026", "SEG 08:00-10:00",
+            presente);
+    Aula aula4 =
+        new Aula(
+            "aul03", turma.getCodigo(), diario.getCodigo(), "22/08/2026", "SEG 08:00-10:00",
+            presente);
 
     for (Aula aula : List.of(aula1, aula2, aula3, aula4)) {
       aulaRepository.salvarAula(aula);
-      service.cadastrarNovaAula(aula, turma.getCodigo());
     }
 
     service.atualizarFrequenciaTurma(turma.getCodigo());
@@ -1679,6 +1726,7 @@ public class TurmaServiceTest {
     prepararDadosBasicos(disciplinaRepository, periodoLetivoRepository, userRepository);
     BoletimRepository boletimRepository = criarBoletimRepository();
     AulaRepository aulaRepository = criarAulaRepository();
+    DiarioRepository diarioRepository = criarDiarioRepository();
 
     TurmaService service =
         new TurmaService(
@@ -1687,7 +1735,8 @@ public class TurmaServiceTest {
             periodoLetivoRepository,
             userRepository,
             boletimRepository,
-            aulaRepository);
+            aulaRepository,
+            diarioRepository);
 
     Turma turma = new Turma("dis00", "2026.2", "pr00", 30, "SEG 08:00-10:00", "LAB 01");
     service.ofertarTurma(turma);
@@ -1696,11 +1745,18 @@ public class TurmaServiceTest {
     userRepository.salvarUsuario(aluno);
     service.cadastrarAlunoEmTurma(turma.getCodigo(), aluno);
 
+    Diario diario =
+        new Diario(
+            "dia00", turma.getCodigo(), "Diário", "pr00", turma.getHorario(), turma.getSala(), 2,
+            SituacaoDiario.ATIVO);
+    diarioRepository.salvarDiario(diario);
+
     // Aula registrada sem nenhuma entrada de presença para o aluno (ex.: aluno ingressou depois).
     Aula aulaSemRegistro =
-        new Aula("aul00", turma.getCodigo(), "01/08/2026", "SEG 08:00-10:00", new HashMap<>());
+        new Aula(
+            "aul00", turma.getCodigo(), diario.getCodigo(), "01/08/2026", "SEG 08:00-10:00",
+            new HashMap<>());
     aulaRepository.salvarAula(aulaSemRegistro);
-    service.cadastrarNovaAula(aulaSemRegistro, turma.getCodigo());
 
     service.atualizarFrequenciaTurma(turma.getCodigo());
 

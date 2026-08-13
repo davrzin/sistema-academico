@@ -78,7 +78,7 @@ public class MenuProfessor {
 
       switch (opcao) {
         case 1 -> turmaTela.listarMinhasTurmas(usuarioLogado);
-        case 2 -> menuAvaliacoesENotas();
+        case 2 -> menuAvaliacoesNotas();
         case 3 -> turmaTela.adicionarFrequencia(usuarioLogado);
         case 4 -> diarioTela.listarDiariosDoProfessor(usuarioLogado);
         case 5 -> frequenciaTela.consultarFrequenciaTurma(usuarioLogado);
@@ -95,7 +95,7 @@ public class MenuProfessor {
     } while (opcao != 0);
   }
 
-  private void menuAvaliacoesENotas() {
+  private void menuAvaliacoesNotas() {
     int opcao;
     do {
       System.out.println("=== AVALIAÇÕES E NOTAS ===");

@@ -16,6 +16,9 @@ import br.com.classroompb.model.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
+/**
+ * Serviço responsável pelas regras de negócio de avaliações e notas.
+ */
 public class AvaliacaoService {
 
   private final AvaliacaoRepository avaliacaoRepository;
@@ -23,6 +26,9 @@ public class AvaliacaoService {
   private final TurmaRepository turmaRepository;
   private final UserRepository userRepository;
 
+  /**
+   * Cria o serviço utilizando os repositórios padrão do sistema.
+   */
   public AvaliacaoService() {
     this(
         new AvaliacaoRepository(new ObjectMapper(), PersistenciaPaths.DIARIOS.toString()),
@@ -31,6 +37,14 @@ public class AvaliacaoService {
         new UserRepository(new ObjectMapper(), PersistenciaPaths.USUARIOS.toString()));
   }
 
+  /**
+   * Cria o serviço com repositórios customizados.
+   *
+   * @param avaliacaoRepository repositório de avaliações
+   * @param diarioRepository repositório de diários
+   * @param turmaRepository repositório de turmas
+   * @param userRepository repositório de usuários
+   */
   public AvaliacaoService(
       AvaliacaoRepository avaliacaoRepository,
       DiarioRepository diarioRepository,
@@ -42,6 +56,12 @@ public class AvaliacaoService {
     this.userRepository = userRepository;
   }
 
+  /**
+   * Cadastra uma nova avaliação em um diário ativo.
+   *
+   * @param avaliacao avaliação a ser cadastrada
+   * @param matriculaProfessor matrícula do professor responsável pelo diário
+   */
   public void cadastrarAvaliacao(Avaliacao avaliacao, String matriculaProfessor) {
     if (avaliacao == null) {
       throw new EntradaInvalidaException("Avaliação não pode ser vazia.");
@@ -58,6 +78,12 @@ public class AvaliacaoService {
     avaliacaoRepository.salvarAvaliacao(avaliacao);
   }
 
+  /**
+   * Lista as avaliações associadas a um diário.
+   *
+   * @param codigoDiario código do diário
+   * @return lista de avaliações do diário
+   */
   public List<Avaliacao> listarAvaliacoesPorDiario(String codigoDiario) {
     return avaliacaoRepository.buscarPorDiario(codigoDiario);
   }
@@ -125,6 +151,13 @@ public class AvaliacaoService {
     return soma / avaliacoes.size();
   }
 
+  /**
+   * Lista as avaliações de um diário sob a ótica de um aluno matriculado.
+   *
+   * @param codigoDiario código do diário
+   * @param matriculaAluno matrícula do aluno
+   * @return lista de avaliações do diário
+   */
   public List<Avaliacao> listarAvaliacoesPorDiarioDoAluno(
       String codigoDiario, String matriculaAluno) {
     Diario diario = buscarDiarioConsultavel(codigoDiario);
@@ -132,6 +165,13 @@ public class AvaliacaoService {
     return avaliacaoRepository.buscarPorDiario(diario.getCodigo());
   }
 
+  /**
+   * Lista as avaliações de um diário sob a ótica do professor responsável.
+   *
+   * @param codigoDiario código do diário
+   * @param matriculaProfessor matrícula do professor responsável
+   * @return lista de avaliações do diário
+   */
   public List<Avaliacao> listarAvaliacoesPorDiarioDoProfessor(
       String codigoDiario, String matriculaProfessor) {
     Diario diario = buscarDiarioConsultavel(codigoDiario);
@@ -139,6 +179,14 @@ public class AvaliacaoService {
     return avaliacaoRepository.buscarPorDiario(diario.getCodigo());
   }
 
+  /**
+   * Lança a nota de um aluno em uma avaliação.
+   *
+   * @param codigoAvaliacao código da avaliação
+   * @param matriculaAluno matrícula do aluno
+   * @param nota valor da nota, entre 0.0 e 10.0
+   * @param matriculaProfessor matrícula do professor responsável pelo diário
+   */
   public void lancarNota(
       String codigoAvaliacao, String matriculaAluno, double nota, String matriculaProfessor) {
     Avaliacao avaliacao = buscarAvaliacaoPorCodigo(codigoAvaliacao);
@@ -154,10 +202,25 @@ public class AvaliacaoService {
         new NotaAvaliacao(codigoAvaliacao, matriculaAluno.trim(), nota));
   }
 
+  /**
+   * Busca a nota de um aluno em uma avaliação, sem validar o diário associado.
+   *
+   * @param codigoAvaliacao código da avaliação
+   * @param matriculaAluno matrícula do aluno
+   * @return valor da nota, ou {@code null} caso não exista
+   */
   public Double buscarNotaDoAluno(String codigoAvaliacao, String matriculaAluno) {
     return avaliacaoRepository.buscarNotaDoAluno(codigoAvaliacao, matriculaAluno);
   }
 
+  /**
+   * Busca a nota de um aluno em uma avaliação, validando o diário informado.
+   *
+   * @param codigoAvaliacao código da avaliação
+   * @param codigoDiario código do diário ao qual a avaliação deve pertencer
+   * @param matriculaAluno matrícula do aluno
+   * @return valor da nota, ou {@code null} caso não exista
+   */
   public Double buscarNotaDoAluno(
       String codigoAvaliacao, String codigoDiario, String matriculaAluno) {
     Avaliacao avaliacao = buscarAvaliacaoPorCodigo(codigoAvaliacao);
@@ -171,6 +234,15 @@ public class AvaliacaoService {
     return avaliacaoRepository.buscarNotaDoAluno(avaliacao.getCodigo(), matriculaAluno.trim());
   }
 
+  /**
+   * Busca a nota de um aluno em uma avaliação, validando o professor responsável pelo diário.
+   *
+   * @param codigoAvaliacao código da avaliação
+   * @param codigoDiario código do diário ao qual a avaliação deve pertencer
+   * @param matriculaAluno matrícula do aluno
+   * @param matriculaProfessor matrícula do professor responsável pelo diário
+   * @return valor da nota, ou {@code null} caso não exista
+   */
   public Double buscarNotaDoAlunoParaProfessor(
       String codigoAvaliacao,
       String codigoDiario,

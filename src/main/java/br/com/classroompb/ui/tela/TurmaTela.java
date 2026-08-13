@@ -991,7 +991,8 @@ public class TurmaTela {
     for (int i = 0; i < diariosAtivos.size(); i++) {
       Diario diario = diariosAtivos.get(i);
       System.out.println((i + 1) + " - " + diario.getDescricao());
-      System.out.println("    Turma: " + diarioService.buscarDescricaoTurma(diario.getCodigoTurma()));
+      System.out.println(
+          "    Turma: " + diarioService.buscarDescricaoTurma(diario.getCodigoTurma()));
       System.out.println("    Horario: " + formatarValor(diario.getHorario()));
       System.out.println("    Sala: " + formatarValor(diario.getSala()));
 
