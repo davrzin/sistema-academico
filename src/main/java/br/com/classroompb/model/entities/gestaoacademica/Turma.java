@@ -185,6 +185,11 @@ public final class Turma {
    * @param matriculaProfessor matricula do professor.
    */
   public void setMatriculaProfessor(String matriculaProfessor) {
+    if (matriculaProfessor == null) {
+      this.matriculaProfessor = null;
+      return;
+    }
+
     validarCampoObrigatorio(matriculaProfessor, "Matrícula do professor não pode ser vazia.");
     this.matriculaProfessor = matriculaProfessor;
   }

@@ -274,9 +274,6 @@ public class TurmaService {
     validarTurma(turma);
     validarDisciplinaDoCurso(turma.getCodigoDisciplina(), codigoCursoCoordenador);
     validarPeriodoLetivoExistente(turma.getPeriodoLetivo());
-    Professor professor = validarProfessorResponsavel(turma.getMatriculaProfessor());
-    validarProfessorDoCurso(professor, codigoCursoCoordenador);
-    validarConflitoHorarioProfessor(turma, null);
 
     turma.setCodigo(gerarCodigoTurma());
     turmaRepository.salvarTurma(turma);
